@@ -1,2 +1,2 @@
-# vae_for_retina_images
+# vae_for_retinal_images
 Variational Autoencoder
