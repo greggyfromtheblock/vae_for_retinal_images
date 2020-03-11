@@ -58,11 +58,11 @@ def trim_image(img):
     img = img[tss].transpose()
     return img
 
-ts = (simg != 0).sum(axis=1) != 0
+#ts = (simg != 0).sum(axis=1) != 0
 
-ts = (simg != 0).sum(axis=0) != 0
+#ts = (simg != 0).sum(axis=0) != 0
 
-tss = ts.sum(axis = 1) != 0
+#tss = ts.sum(axis = 1) != 0
 
 def trim_image_rgb(img):
     """Trimms the black margins out of the image
@@ -78,15 +78,14 @@ def trim_image_rgb(img):
     #img[:,:,2] = trim_image(img[:,:,2])
     return img
 
-ssimg = trim_image_rgb(simg)
+#ssimg = trim_image_rgb(simg)
 
-io.imshow(ssimg)
-plt.show()
+#io.imshow(ssimg)
+#plt.show()
 
 for f in os.listdir(imdir):
-    image = rgb2gray(io.imread(imdir + f))
-    image = trim_image(image)
+    #image = rgb2gray(io.imread(imdir + f))
+    image = io.imread(imdir + f)
+    image = trim_image_rgb(image)
     io.imsave(outdir + f, image) 
-    #print(f)
-    #break
 
