@@ -50,12 +50,38 @@ imdir = args.dir
 os.makedirs(outdir, exist_ok=True)
 
 def trim_image(img):
-    """Trimms the black margins out of the image"""
+    """Trimms the black margins out of the image
+    The returned image is in gray scale"""
     ts = (img != 0).sum(axis=1) != 0
     img = img[ts].transpose()
     tss = (img != 0).sum(axis=1) != 0
     img = img[tss].transpose()
     return img
+
+ts = (simg != 0).sum(axis=1) != 0
+
+ts = (simg != 0).sum(axis=0) != 0
+
+tss = ts.sum(axis = 1) != 0
+
+def trim_image_rgb(img):
+    """Trimms the black margins out of the image
+    The originaland returned images are rgb"""
+    ts = (img != 0).sum(axis=1) != 0
+    ts = ts.sum(axis=1) != 0
+    img = img[ts]
+    ts = (img != 0).sum(axis=0) != 0
+    ts = ts.sum(axis=1) != 0
+    img = img[:,ts,:]
+    #img[:,:,0] = trim_image(img[:,:,0])
+    #img[:,:,1] = trim_image(img[:,:,1])
+    #img[:,:,2] = trim_image(img[:,:,2])
+    return img
+
+ssimg = trim_image_rgb(simg)
+
+io.imshow(ssimg)
+plt.show()
 
 for f in os.listdir(imdir):
     image = rgb2gray(io.imread(imdir + f))
