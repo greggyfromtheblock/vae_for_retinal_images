@@ -1,5 +1,5 @@
 from __future__ import print_function, division
-from scimage import io
+from skimage import io
 import argparse
 import numpy as np
 import os
