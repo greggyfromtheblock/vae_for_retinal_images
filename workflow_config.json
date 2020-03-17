@@ -1,0 +1,4 @@
+{
+  "DATADIR": "/path/to/raw/data/",
+  "SOMEPARAM": "param"
+}
