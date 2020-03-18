@@ -1,12 +1,13 @@
-from __future__ import print_function, division
-from skimage import io
+from __future__ import division, print_function
+
 import argparse
-import numpy as np
 import os
 import random
-
-# Ignore warnings
 import warnings
+
+import numpy as np
+from skimage import io
+
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser(description='Database Image Size Scanner')
@@ -19,15 +20,6 @@ parser.add_argument('outdir', type=str, default=None, metavar='output_dir',
 parser.add_argument('--resize', type=int, nargs=2, default=[0,0], metavar='resize shape',
                     help="""if resize is desired
                     use this option and give it 2 ints""")
-# parser.add_argument('--flip', action='store_true',
-#                     help="""if this flag is on
-#                     the script creates an addtional flipped version
-#                     of the images""")
-# parser.add_argument('--rotate', type=float, default=0, metavar='rotate',
-#                     help="""if this value is given
-#                     the script creates an addtional rotated version
-#                     of the images. The rotation is random between 0
-#                     and the provided argument""")
 args = parser.parse_args()
 
 
@@ -67,11 +59,4 @@ for f in os.listdir(imdir):
     image = io.imread(imdir + f)
     image = trim_image_rgb(image, args.resize)
     image = image.astype(np.uint8)
-    io.imsave(outdir + f, image)
-    # if args.flip:
-    #     image_flipped = np.fliplr(image)
-    #     io.imsave(outdir + fname + "_flipped.jpg", image_flipped)
-    # if args.rotate > 0:
-    #     rot = args.rotate*random.random()
-    #     image_rotated = transform.rotate(image, rot)
-    #     io.imsave(outdir + fname + "_rotated.jpg", image_rotated)
+    io.imsave(outdir + f + "_cropped", image)
