@@ -3,7 +3,7 @@ Add the Training (TorchSupport-Training API) and loss functions here.
 """
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader, TensorDataset, RandomSampler, BatchSampler
 from torchvision.transforms import ToTensor, Resize
 from torchsupport.training.vae import VAETraining
 
@@ -27,31 +27,33 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0):
-            return [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding,stride=stride),
+            return [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
                     nn.ReLU(),
                     nn.BatchNorm2d(out_channels),
                     nn.MaxPool2d(kernel_size=2, stride=2)]
 
         self.conv_layers = nn.Sequential(
-            # Formula of new Image_Size: (origanal_size - kernel_size + 2 * amount_of_padding)/stride + 1
-            *conv_block(3, 8, kernel_size=5),   # -> (920-5+0)/1 + 1 = 916  --> Max-Pooling: 916/2 = 458
-            *conv_block(8, 16, kernel_size=5, padding=1),   # New Image_Size:  (458-5+2*1)/1 + 1 = 456 --> 456/2 = 228
-            *conv_block(16, 16, padding=1),   # New Image_Size:  (228-3+2*1)/1 + 1 = 228 --> Max-Pooling: 228/2 = 114
-            *conv_block(32, 64),   # New Image_Size:  (114-3+2*0)/1 + 1 = 112 --> Max-Pooling: 112/2 = 56
+            # Formula of new Image_Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
+            *conv_block(3, 8, kernel_size=5, stride=1),   # -> (920-5+0)//2 + 1 = 916  --> Max-Pooling: 916/2 = 458
+            *conv_block(8, 12, kernel_size=5, padding=1),   # New Image_Size:  (458-5+2*1)/1 + 1 = 456 --> 456/2 = 228
+            *conv_block(12, 16, padding=1),   # New Image_Size:  (228-3+2*1)/1 + 1 = 228 --> Max-Pooling: 228/2 = 114
+            *conv_block(16, 24),   # New Image_Size:  (114-3+2*0)/1 + 1 = 112 --> Max-Pooling: 112/2 = 56
+            *conv_block(24, 32, padding=1),   # New Image_Size:  (56-3+2*1)/1 + 1 = 56 --> Max-Pooling: 56/2 = 28
+            *conv_block(32, 38, padding=1),   # New Image_Size:  (28-3+2*1)/1 + 1 = 28 --> Max-Pooling: 28/2 = 14
+            *conv_block(38, 44),   # New Image_Size:  (14-3+2*0)/1 + 1 = 12 --> Max-Pooling: 26/2 = 6
         )
 
-        def linear_block(in_feat, out_feat, normalize=True):
+        def linear_block(in_feat, out_feat, normalize=True, dropout=None):
             layers = [nn.Linear(in_feat, out_feat)]
-            if normalize:
-                layers.append(nn.BatchNorm1d(out_feat))
+            normalize and layers.append(nn.BatchNorm1d(out_feat))  # It's the same as: if normalize: append...
+            dropout and layers.append(nn.Dropout(dropout))
             layers.append(nn.LeakyReLU(0.2, inplace=True))
             return layers
 
         self.linear_layers = nn.Sequential(
-            # output_channels: 64; 56 x 56 from image dimension; 64*56*56 = 200704
-            *linear_block(64 * 56 * 56, 8192, normalize=False),
-            *linear_block(8192, 1024),
-            *linear_block(1024, 256),
+            # output_channels: 44; 6 x 6 from image dimension; 44*6*6 = 1584
+            *linear_block(44 * 6 * 6, 512, normalize=False, dropout=0.5),
+            *linear_block(512, 256, dropout=0.5),
             *linear_block(256, 128),
             *linear_block(128, 64),
             nn.Linear(64, z),
@@ -85,20 +87,18 @@ class Decoder(nn.Module):
     def __init__(self, z=32):
         super(Decoder, self).__init__()
 
-        def linear_block(in_feat, out_feat, normalize=True):
+        def linear_block(in_feat, out_feat, normalize=True, dropout=None):
             layers = [nn.Linear(in_feat, out_feat)]
-            if normalize:
-                layers.append(nn.BatchNorm1d(out_feat))
+            normalize and layers.append(nn.BatchNorm1d(out_feat))  # It's the same as: if normalize: append...
+            dropout and layers.append(nn.Dropout(dropout))
             layers.append(nn.LeakyReLU(0.2, inplace=True))
             return layers
 
         self.linear_blocks = nn.Sequential(
             *linear_block(z, 64, normalize=False),
-            *linear_block(64, 128),
-            *linear_block(128, 256),
-            *linear_block(256, 1024),
-            *linear_block(1024, 8192),
-            nn.Linear(8192, 179776),   # 64 * 53 *53
+            *linear_block(64, 256),
+            *linear_block(256, 512, dropout=0.5),
+            *linear_block(512, 1584, dropout=0.5),   # 44*6*6 = 1584
             nn.ReLU()
         )
 
@@ -109,16 +109,19 @@ class Decoder(nn.Module):
                     nn.Upsample(mode='bilinear', scale_factor=2)]
 
         self.conv_layers = nn.Sequential(
-            *conv_block(64, 32),
-            *conv_block(32, 16),
-            *conv_block(16, 8),
-            *conv_block(8, 3),
-            nn.UpsamplingNearest2d(size=(920, 920)),  # The wished size
+            *conv_block(44, 36, padding=1),
+            *conv_block(36, 30, padding=1),
+            *conv_block(30, 24,  kernel_size=5, padding=1),
+            *conv_block(24, 20, kernel_size=5, padding=1),
+            *conv_block(20, 12, kernel_size=5),
+            *conv_block(12, 8, kernel_size=5),
+            *conv_block(8, 3, kernel_size=5),
+            # nn.UpsamplingNearest2d(size=(920, 920)),  # The wished size
             nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
         )
 
     def forward(self, latent_vector):
-        dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 53, 53))
+        dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 44, 6, 6))
         print(dec.shape)
         reconstructions = self.conv_layers(dec)
         print(reconstructions.shape)
@@ -147,20 +150,18 @@ if __name__ == "__main__":
     decoder.forward(fake_latent_vector)
 
     # Test with fake data:
-    # Error-Message: OSError: [Errno 12] Cannot allocate memory
-    # doesn't work for me because of limited RAM?
-    data = fake_imgs
+    batch_size = 10
+    fake_imgs = torch.randn((batch_size, 3, 920, 920))
+
+    data = TensorDataset(fake_imgs)
+
     training = OdirVAETraining(
         encoder, decoder, data,
         network_name="odir-vae",
         device="cpu",
-        batch_size=10,
+        batch_size=2,
         max_epochs=1000,
         verbose=True
     )
 
     training.train()
-
-
-
-
