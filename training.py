@@ -37,7 +37,7 @@ class Encoder(nn.Module):
             *conv_block(3, 8, kernel_size=5),   # -> (920-5+0)/1 + 1 = 916  --> Max-Pooling: 916/2 = 458
             *conv_block(8, 16, kernel_size=5, padding=1),   # New Image_Size:  (458-5+2*1)/1 + 1 = 456 --> 456/2 = 228
             *conv_block(16, 16, padding=1),   # New Image_Size:  (228-3+2*1)/1 + 1 = 228 --> Max-Pooling: 228/2 = 114
-            #*conv_block(32, 32),   # New Image_Size:  (114-3+2*0)/1 + 1 = 112 --> Max-Pooling: 112/2 = 56
+            *conv_block(32, 64),   # New Image_Size:  (114-3+2*0)/1 + 1 = 112 --> Max-Pooling: 112/2 = 56
         )
 
         def linear_block(in_feat, out_feat, normalize=True):
@@ -49,7 +49,7 @@ class Encoder(nn.Module):
 
         self.linear_layers = nn.Sequential(
             # output_channels: 64; 56 x 56 from image dimension; 64*56*56 = 200704
-            *linear_block(16 * 56 * 56, 8192, normalize=False),
+            *linear_block(64 * 56 * 56, 8192, normalize=False),
             *linear_block(8192, 1024),
             *linear_block(1024, 256),
             *linear_block(256, 128),
