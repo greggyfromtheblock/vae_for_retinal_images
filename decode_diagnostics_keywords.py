@@ -206,7 +206,37 @@ for val in olist:
     df.loc[testr, "RO"] = 1
 
 
-df.to_csv(output_file, sep="\t", index=False, header=True)
+#df.to_csv(output_file, sep="\t", index=False, header=True)
+
+#df = pd.read_csv('odir/odir_train_annot_complete_lr.csv',
+#        index_col=None, header=0, sep='\t')
+
+# Making Left and Right each apear in separate row
+cols = df.columns.tolist()
+newcols = ['ID', 'Side', 'Patient Age', 'Patient Sex', 
+            'Fundus Image', 'Diagnostic Keywords',
+            'N', 'D', 'G', 'C', 'A', 'H', 'M', 
+            'O', 'anterior', 'no fundus']
+
+left_df = pd.DataFrame(columns=['ID'])
+left_df['ID'] = df['ID']
+left_df['Side'] = "L"
+left_df[newcols[2:5]] = df[cols[1:4]]
+left_df['Diagnostic Keywords'] = df['Left-Diagnostic Keywords']
+left_df[newcols[6:-2]] = df[cols[15:23]]
+left_df[newcols[-2:]] = df[['L-ant', 'L-no']]
+
+right_df = pd.DataFrame(columns=['ID'])
+right_df['ID'] = df['ID']
+right_df['Side'] = "R"
+right_df[newcols[2:5]] = df[[cols[i] for i in [1,2,4]]]
+right_df['Diagnostic Keywords'] = df['Right-Diagnostic Keywords']
+right_df[newcols[6:-2]] = df[cols[23:-4]]
+right_df[newcols[-2:]] = df[['R-ant', 'R-no']]
+
+new_df = pd.concat([left_df, right_df], axis=0)
+new_df = new_df.sort_values(by=['ID', 'Side'])
+new_df.to_csv(output_file, sep='\t', index=False, header=True)
 
 #xslfile = 'odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx'
 #df = pd.read_excel(xslfile)
