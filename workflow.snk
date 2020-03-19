@@ -1,0 +1,32 @@
+"""
+Define the workflow of the project here
+"""
+
+
+# run with:   snakemake -s workflow.snk --configfile workflow_config.json
+
+
+########################################################################################################################
+#                                               ~~~ Workflow ~~~                                                       #
+########################################################################################################################
+rule all:
+  input:
+    expand("data/processed/{split}/labels.txt",
+       split=config['SPLITS'])
+
+
+# EXAMPLE RULE:
+rule process_to_h5ad:
+  input:
+    fieldsfile="umbrella/resources/riskiano_config/ukbb_default_categories.tsv",
+  output:
+    h5ad="../data/ukb_processed/{project}/all/decoded.h5ad",
+  shell:
+    """
+    python -m umbrella.pre.scripts.process_to_h5ad \
+      -i {config[DATA]} \
+      -fu {input.fieldsfile}\
+      -ds {config[DATASHOWCASEMAP]} \
+      -csm {config[CODINGMAP]} \
+      -o {output.h5ad}
+    """

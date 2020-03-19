@@ -1,3 +1,4 @@
+<<<<<<< HEAD:preprocessing.py
 """
 This preprocessing script trims the black edges of the images and keeps it so that we have
 a minimum black border on the edges of the image.
@@ -6,6 +7,10 @@ Also has a --resize flag to resize the images to a certain dimension if needed
 
 from __future__ import division, print_function
 
+=======
+from __future__ import print_function, division
+from skimage import io
+>>>>>>> 7eaa5aa90cbdf9157dd51df7a988d4bb0008d6ff:utils/preprocessing.py
 import argparse
 import os
 # Ignore warnings
