@@ -1,4 +1,4 @@
 {
-  "DATADIR": "/path/to/raw/data/",
-  "SOMEPARAM": "param"
+  "Datasets": ["ODIR", "Palm"],
+  "Splits": ["Train", "Test"]
 }

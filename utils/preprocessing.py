@@ -7,10 +7,6 @@ Also has a --resize flag to resize the images to a certain dimension if needed
 
 from __future__ import division, print_function
 
-=======
-from __future__ import print_function, division
-from skimage import io
->>>>>>> 7eaa5aa90cbdf9157dd51df7a988d4bb0008d6ff:utils/preprocessing.py
 import argparse
 import os
 # Ignore warnings
@@ -72,4 +68,4 @@ for f in os.listdir(imdir):
     image = io.imread(imdir + f)
     image = crop(image, args.resize)
     image = image.astype(np.uint8)
-    io.imsave(outdir + "_cropped" + f, image)
+    io.imsave(outdir + f + "_cropped", image)

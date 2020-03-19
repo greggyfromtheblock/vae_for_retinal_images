@@ -9,24 +9,19 @@ Define the workflow of the project here
 ########################################################################################################################
 #                                               ~~~ Workflow ~~~                                                       #
 ########################################################################################################################
-rule all:
-  input:
-    expand("data/processed/{split}/labels.txt",
-       split=config['SPLITS'])
+
+datasets = ["ODIR". "PALM"]
+splits = ["Training", "Testing"]
+
+rule preprocess:
+     input:
+        "../data/raw/{dataset}/{dataset}_{split}_Images/"
+     conda:
+        "../env.yaml"
+     output:
+        "../data/processed/{dataset}/{dataset}_{split}_Images/"
+     script:
+        "utils/preprocessing.py {input} {output}"
 
 
-# EXAMPLE RULE:
-rule process_to_h5ad:
-  input:
-    fieldsfile="umbrella/resources/riskiano_config/ukbb_default_categories.tsv",
-  output:
-    h5ad="../data/ukb_processed/{project}/all/decoded.h5ad",
-  shell:
-    """
-    python -m umbrella.pre.scripts.process_to_h5ad \
-      -i {config[DATA]} \
-      -fu {input.fieldsfile}\
-      -ds {config[DATASHOWCASEMAP]} \
-      -csm {config[CODINGMAP]} \
-      -o {output.h5ad}
-    """
+
