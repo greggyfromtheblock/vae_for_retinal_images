@@ -1,4 +1,3 @@
-<<<<<<< HEAD:preprocessing.py
 """
 This preprocessing script trims the black edges of the images and keeps it so that we have
 a minimum black border on the edges of the image.
@@ -68,4 +67,4 @@ for f in os.listdir(imdir):
     image = io.imread(imdir + f)
     image = crop(image, args.resize)
     image = image.astype(np.uint8)
-    io.imsave(outdir + f + "_cropped", image)
+    io.imsave(outdir + f , image)
