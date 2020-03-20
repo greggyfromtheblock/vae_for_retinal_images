@@ -10,9 +10,6 @@ Define the workflow of the project here
 #                                               ~~~ Workflow ~~~                                                       #
 ########################################################################################################################
 
-datasets = ["ODIR". "PALM"]
-splits = ["Training", "Testing"]
-
 rule preprocess:
      input:
         "../data/raw/{dataset}/{dataset}_{split}_Images/"
