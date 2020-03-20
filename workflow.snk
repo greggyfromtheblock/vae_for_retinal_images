@@ -10,13 +10,16 @@ Define the workflow of the project here
 #                                               ~~~ Workflow ~~~                                                       #
 ########################################################################################################################
 
+SPLITS = ["Training", "Testing"]
+DATASETS = ["PALM", "ODIR"]
+
 rule preprocess:
      input:
-        "../data/raw/{dataset}/{dataset}_{split}_Images/"
+        "../data/raw/{dataset}_{split}_Images/"
      conda:
-        "../env.yaml"
+        "../retinn_env.yaml"
      output:
-        "../data/processed/{dataset}/{dataset}_{split}_Images/"
+        "../data/processed/{dataset}_{split}_Images/"
      script:
         "utils/preprocessing.py {input} {output}"
 
