@@ -15,11 +15,11 @@ DATASETS = ["PALM", "ODIR"]
 
 rule preprocess:
      input:
-        "../data/raw/{dataset}_{split}_Images/"
+        expand("../data/raw/{dataset}_{split}_Images/", split=SPLITS, dataset=DATASETS)
      conda:
         "../retinn_env.yaml"
      output:
-        "../data/processed/{dataset}_{split}_Images/"
+        expand("../data/processed/{dataset}_{split}_Images/", split=SPLITS, dataset=DATASETS)
      script:
         "utils/preprocessing.py {input} {output}"
 
