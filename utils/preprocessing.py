@@ -79,7 +79,8 @@ if __name__ == "__main__":
     print("Start finding optimal image size and extend db...")
     opt_w, opt_h = find_optimal_image_size_and_extend_db(
             db = rootdir, 
-            imdir = ddir + outdir, out="odir/extended.tsv")
+            imdir = ddir + outdir, out="extended.tsv")
+#            imdir = ddir + outdir, out="odir/extended.tsv")
     print("Finished finding optimal image size and extend db...")
 
     print("Start resizing and data augmentation...")
