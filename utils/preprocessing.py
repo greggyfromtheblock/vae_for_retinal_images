@@ -111,6 +111,6 @@ if __name__ == "__main__":
     print("Finished resizing and data augmentation...")
 
     print("Decode diagnostics keywords...")
-    #decode_d_k(ddir)
-    decode_d_k(path=rootdir, out="extended.csv" )
+    #decode_d_k(ddir )
+    decode_d_k(path=rootdir, output_file = "extended.csv" )
     print("Finished decoding diagnostics keywords...")
