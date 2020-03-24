@@ -29,7 +29,8 @@ def find_optimal_image_size_and_extend_db(
     """
     #imdir = db + imdir
 
-    df = pd.read_excel(db + "odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx")
+    df = pd.read_excel(db + "/ODIR-5K_Training_Annotations(Updated)_V2.xlsx")
+    #df = pd.read_excel(db + "odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx")
     df["Left-Width"] = int(0)
     df["Left-Height"] = int(0)
     df["Right-Width"] = int(0)
