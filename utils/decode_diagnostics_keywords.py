@@ -59,7 +59,8 @@ special keywords: 'anterior segment image',  'no fonndus image'
 
 
 def decode_d_k(path, output_file="odir/odir_train_lr_annotations.csv"):
-    xsl_file = path + "odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+    #xsl_file = path + "odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+    xsl_file = path + "ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
     df = pd.read_excel(xsl_file)
 
     # get all the unique diagnostics as a list
