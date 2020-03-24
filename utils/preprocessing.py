@@ -30,14 +30,12 @@ if __name__ == '__main__':
     outdir = 'processed/train/'
 
     os.makedirs(dir+outdir, exist_ok=True)
-    """
+   
      print("Start cropping...")
     for f in tqdm(os.listdir(dir+odir)):
         # Crop image
         trim_image_rgb(f, dir+odir, dir+outdir)
     print("Finished cropping...")
-    """
-
 
     print("Start finding optimal image size and extend db...")
     opt_w, opt_h = find_optimal_image_size_and_extend_db(dir)
