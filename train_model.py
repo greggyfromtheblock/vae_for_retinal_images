@@ -30,10 +30,6 @@ if __name__ == '__main__':
 
     training.train()
 
-    # trainset = datasets.ImageNet('./data/processed/', download=False, transform=transforms.ToTensor())
-    # dataloader = DataLoader(trainset, batch_size=32, shuffle=True)
-
-
 
 """    
 def prepare_datasets(logger, path_to_splits):
