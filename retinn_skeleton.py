@@ -40,12 +40,16 @@ class RetinnDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
+        #img_name = os.path.join(self.root_dir, self.labels.loc[idx,
+        #    'Left-Fundus'])
         img_name = os.path.join(self.root_dir, self.labels.loc[idx,
-            'Left-Fundus'])
+            'Fundus Image'])
         image = io.imread(img_name)
-        labels = self.labels.iloc[idx, 15:-4]
+        #labels = self.labels.iloc[idx, 15:-4]
+        labels = self.labels.iloc[idx, 6:14]
         labels = np.array([labels])
-        labels = labels.astype("float").reshape(-1, 2)
+        #labels = labels.astype("float").reshape(-1, 2)
+        labels = labels.astype("float")
         sample = {"image": image, "labels": labels}
         if self.transform:
             sample = self.transform(sample)
@@ -88,8 +92,26 @@ class ToTensor(object):
         # x and y axes are axis 1 and 0 respectively
         return {'image': img, 'labels': labels}
 
+class trim_image_rgb(object):
+    def __call__(self, sample):
+        """Trimms the black margins out of the image
+        The originaland returned images are rgb"""
+        img, labels = sample['image'], sample['labels']
+        ts = (img != 0).sum(axis=1) != 0
+        ts = ts.sum(axis=1) != 0
+        img = img[ts]
+        ts = (img != 0).sum(axis=0) != 0
+        ts = ts.sum(axis=1) != 0
+        img = img[:, ts, :]
+        return {'image': img, 'labels': labels}
+
 class Crop(object):
     """Crops the black margins out of the image."""
+    def __call__(self, sample):
+        pass
+
+class Crop_to_Standar(object):
+    """Crops the image to proportion. h:1"""
     def __call__(self, sample):
         pass
 
@@ -118,13 +140,17 @@ class RetinnVAETraining(VAETraining):
 
 ### Tests ###
 #xslfile = 'odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx'
-csv_file = 'odir/odir_train_annot_complete_lr.csv'
-imgdir = 'odir/ODIR-5K_Training_Dataset/'
+#csv_file = 'odir/odir_train_annot_complete_lr.csv'
+#imgdir = 'odir/ODIR-5K_Training_Dataset/'
+csv_file = 'odir/odir_train_lr_annotations.csv'
+imgdir = './preptest2/'
 
 df = pd.read_csv(csv_file, sep='\t', header=0, index_col=None)
 
-transformations = transforms.Compose([Rescale((920,920)), 
-    ToTensor()])
+#transformations = transforms.Compose([Rescale((920,920)), 
+#    ToTensor()])
+
+transformations = transforms.Compose([ToTensor()])
 
 retinn_df = RetinnDataset(csv_file, imgdir, transformations)
 
@@ -136,7 +162,16 @@ plt.ion()
 
 dataiter = iter(dataset_loader)
 
-x,y = dataiter.next()
+d = {1:4, 2:6}
+
+d.items()
+d.values()
+
+x,y = dataiter.next().values()
+
+z = dataiter.next()
+
+dataiter.next()
 
 for i_batch, sample_batched in enumerate(dataset_loader):
     print(x)
