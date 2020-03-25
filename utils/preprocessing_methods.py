@@ -18,16 +18,14 @@ def trim_image_rgb(jpg, dir, outdir):
     io.imsave(outdir + jpg, img)
 
 
-def find_optimal_image_size_and_extend_db(db, imdir='processed/train/', out='odir/extended.tsv'):
+def find_optimal_image_size_and_extend_db(xlsx_dir, imdir):
     """
-    :param db: Directory of data (Directory to images,.xlsx file and later processed data too)
-    :param imdir: Directory to cropped images
-    :param out: Directory of extended Database (saving as .tsv file)
+    :param db: Directory of data (Directory to .xlsx file, later of extended Database (saving as .tsv file))
+    :param imdir: Directory of cropped images
     :return: Tuple: values for new Image Size
     """
-    imdir = db + imdir
 
-    df = pd.read_excel(db+'odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx')
+    df = pd.read_excel(xlsx_dir+'ODIR-5K_Training_Annotations(Updated)_V2.xlsx')
     df['Left-Width'] = int(0)
     df['Left-Height'] = int(0)
     df['Right-Width'] = int(0)
@@ -58,8 +56,8 @@ def find_optimal_image_size_and_extend_db(db, imdir='processed/train/', out='odi
     df['Left-Height'] = y
     df['Right-Width'] = z
     df['Right-Height'] = w
-    print("saving the extended database to: ", db+out)
-    df.to_csv(db+out, index=False, sep='\t')
+    print("saving the extended database to: ", xlsx_dir+"extended.tsv")
+    df.to_csv(xlsx_dir+"extended.tsv", index=False, sep='\t')
 
     print('minimal/maximal size (width-height):',
             (min(x), min(y)),
@@ -110,7 +108,7 @@ def rotate(img, outdir, fname):
     if check_prereq(img[0]) and check_prereq(img[-1]) and check_prereq(np.transpose(img)[0]) and \
             check_prereq(np.transpose(img)[-1]):
 
-        angles = [10, -10]  # [20, -15, -10, -5, -2.5, 2.5, 5, 10, 15, 20]
+        angles = [20, -15, -10, -5, -2.5, 2.5, 5, 10, 15, 20]
         for angle in angles:
             io.imsave(outdir + fname + "_rot_%i.jpg" % angle, img_as_ubyte(transform.rotate(img, angle)))
 

@@ -60,8 +60,11 @@ special keywords: 'anterior segment image',  'no fonndus image'
 """
 
 
-def decode_d_k(path, output_file = "odir/odir_train_lr_annotations.csv"):
-    xsl_file = path + "odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+def decode_d_k(path):
+    """
+    :param path: Directory to excel-files
+    """
+    xsl_file = path + "ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
     df = pd.read_excel(xsl_file)
 
     # get all the unique diagnostics as a list
@@ -103,7 +106,7 @@ def decode_d_k(path, output_file = "odir/odir_train_lr_annotations.csv"):
     df["R-ant"] = np.zeros_like(df["O"])
     df["R-no"] = np.zeros_like(df["O"])
 
-    ### Find All Diagnostic Keywords and Encode Them with:
+    #Find All Diagnostic Keywords and Encode Them with:
     feature = {
         "N": "normal fundus",
         "D": "proliferative retinopathy",
@@ -180,4 +183,4 @@ def decode_d_k(path, output_file = "odir/odir_train_lr_annotations.csv"):
 
     new_df = pd.concat([left_df, right_df], axis=0)
     new_df = new_df.sort_values(by=['ID', 'Side'])
-    new_df.to_csv(path+output_file, sep='\t', index=False, header=True)
+    new_df.to_csv(path+"odir_train_lr_annotations.csv", sep='\t', index=False, header=True)
