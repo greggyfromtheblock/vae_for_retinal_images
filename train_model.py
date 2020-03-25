@@ -15,13 +15,28 @@ from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 
 
 if __name__ == "__main__":
-    if len(sys.argv)>1:
-        imfolder = sys.argv[0]
-    else:
-        imfolder = './data/processed/'
+    parser = argparse.ArgumentParser(
+            description="""Training VAE""")
+    parser.add_argument('imfolder', type=str, default=None,
+        metavar='image_dir',
+                    help="""The path to the directory which contains
+                    the imgage folder. The images themselves must be
+                    in one or more subdirectories of the imfolder""")
+    args = parser.parse_args()
+
+    def add_slash(path):
+        if path[-1] != '/':
+            return path + "/"
+        else:
+            return(path)
+    imfolder = add_slash(args.imfolder)
+
     print("Load Data as Tensors...")
+#    img_dataset = datasets.ImageFolder(
+#        "./data/processed/", transform=transforms.ToTensor()
+#    )
     img_dataset = datasets.ImageFolder(
-        "./data/processed/", transform=transforms.ToTensor()
+        imfolder, transform=transforms.ToTensor()
     )
     data = VAEDataset(img_dataset)
 
