@@ -1,27 +1,10 @@
-"""
-Define the workflow of the project here
-"""
-
-
-# run with:   snakemake -s workflow.snk --configfile workflow_config.json
-
-
-########################################################################################################################
-#                                               ~~~ Workflow ~~~                                                       #
-########################################################################################################################
-
-SPLITS = ["Training", "Testing"]
-DATASETS = ["PALM", "ODIR"]
-
 rule preprocess:
      input:
-        expand("../data/raw/{dataset}_{split}_Images/", split=SPLITS, dataset=DATASETS)
+        "data/raw/{dataset}_Testing_Images"
      conda:
-        "../retinn_env.yaml"
+        "environment.yml"
      output:
-        expand("../data/processed/{dataset}_{split}_Images/", split=SPLITS, dataset=DATASETS)
-     script:
-        "utils/preprocessing.py {input} {output}"
-
-
+        "data/processed/{dataset}_Testing_Images"
+    shell:
+        "python3 -u utils/preprocessing.py {input} {output}"
 

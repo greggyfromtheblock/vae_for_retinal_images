@@ -27,7 +27,7 @@ parser.add_argument('outdir', type=str, default=None, metavar='output_dir',
 parser.add_argument('--resize', type=int, nargs=2, default=[0,0], metavar='resize shape',
                     help="""if resize is desired
                     use this option and give it 2 ints""")
-args = parser.parse_args()
+args = parser.parse_args() 
 
 
 # Correcting the possibly missing slash.
