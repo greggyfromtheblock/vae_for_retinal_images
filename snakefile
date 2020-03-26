@@ -10,7 +10,7 @@ rule train:
     conda:
         "../envs/retina_env.yml"
     shell:
-        "python3 {input}"
+        "python3 -u train_model.py {input}"
 
 rule preprocess_images:
     input:
@@ -30,6 +30,6 @@ rule preprocess_annotations:
     conda:
         "../envs/retina_env.yml"
     shell:
-        "python3 -u decode_diagnostics_keywords.py {input} {output}"
+        "python3 -u ./utils/decode_diagnostics_keywords.py {input} {output}"
 
 
