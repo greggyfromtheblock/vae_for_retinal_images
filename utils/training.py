@@ -146,11 +146,11 @@ class OdirVAETraining(VAETraining):
 
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
-        for i in range(0,50,10):
-            data[i] = normalize(data[i])
+        # for i in range(0,50,10):
+        #    data[i] = normalize(data[i])
         if self.step_id % 10 == 0:
-            self.writer.add_images("target", data[0:50:10], self.step_id)
-            self.writer.add_images("reconstruction", reconstructions[0:50:10], self.step_id)
+            self.writer.add_image("target", data[0], self.step_id)
+            self.writer.add_image("reconstruction", reconstructions[0], self.step_id)
         return mean, logvar, reconstructions, data
 
 
