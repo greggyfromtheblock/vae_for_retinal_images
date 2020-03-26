@@ -135,7 +135,7 @@ class Decoder(nn.Module):
 
 
 class OdirVAETraining(VAETraining):
-    def __init__(self, encoder, decoder, data, path_prefix, network_name,
+    def __init__(self, encoder, decoder, data, path_prefix, net_name,
                  # alpha=0.25, beta=0.5, m=120,
                  optimizer=torch.optim.Adam,
                  optimizer_kwargs=None, **kwargs):
@@ -145,8 +145,8 @@ class OdirVAETraining(VAETraining):
             optimizer_kwargs=optimizer_kwargs,
             **kwargs
         )
-        self.checkpoint_path = f"{path_prefix}/{network_name}/{network_name}-checkpoint"
-        self.writer = SummaryWriter(f"{path_prefix}/{network_name}/")
+        self.checkpoint_path = f"{path_prefix}/{net_name}/{net_name}-checkpoint"
+        self.writer = SummaryWriter(f"{path_prefix}/{net_name}/")
 
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
