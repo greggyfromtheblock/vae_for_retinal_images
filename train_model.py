@@ -56,9 +56,8 @@ if __name__ == "__main__":
         net_name=network_name,
         network_name=network_name,
         device = "cuda:3" if torch.cuda.is_available() else "cpu",
-        batch_size=50,
-        max_epochs=1,
-        verbose=True,
+        batch_size=100,
+        max_epochs=1000
     )
 
     trained = training.train()
@@ -67,14 +66,14 @@ if __name__ == "__main__":
     features, mean, logvar = encoder(sample)
     print(type(features))
     if type(features) == torch.Tensor:
-        torch.save(features, f"./{network_name}/features.pt")
-        torch.save(mean, f"./{network_name}/mean.pt")
-        torch.save(logvar, f"./{network_name}/logvar.pt")
+        torch.save(features, f"{path_prefix}/{network_name}/features.pt")
+        torch.save(mean, f"{path_prefix}{network_name}/mean.pt")
+        torch.save(logvar, f"{path_prefix}/{network_name}/logvar.pt")
 
     if (type(features)) == np.ndarray:
-        np.save(f"./{network_name}/features.npy", features )
-        np.save(f"./{network_name}/mean.npy", mean)
-        np.save(f"./{network_name}/logvar.npy", logvar)
+        np.save(f"{path_prefix}/{network_name}/features.npy", features )
+        np.save(f"{path_prefix}/{network_name}/mean.npy", mean)
+        np.save(f"{path_prefix}/{network_name}/logvar.npy", logvar)
 
 
 """    
