@@ -18,6 +18,12 @@ if __name__ == "__main__":
                     help="""The path to the directory which contains
                     the imgge folder. The images themselves must be
                     in one or more subdirectories of the imfolder""")
+    parser.add_argument('path_prefix', type=str, default=None,
+        metavar='path_prefix',
+                    help="""The path to the directory which should contain the data for tensorboard.""")
+    parser.add_argument('network_name', type=str, default=None,
+        metavar='network_name',
+                    help="""The name of the network. Use different names for different models!""")
     args = parser.parse_args()
     # python3 train_model.py /home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/train
 
@@ -28,7 +34,13 @@ if __name__ == "__main__":
             return(path)
 
     imfolder = add_slash(args.imfolder)
-    network_name = "odir-vae2"
+    network_name = args.network_name
+    path_prefix = args.path_prefix
+
+    if network_name in os.listdir(path_prefix):
+        input1 = input("Network already exists. Are you sure to continue? [y/yes]\n")
+        if not input1 in ['y', 'yes']:
+            sys.exit()
 
     print("Load Data as Tensors...")
     img_dataset = datasets.ImageFolder(
@@ -41,6 +53,7 @@ if __name__ == "__main__":
         encoder,
         decoder,
         data,
+        path_prefix=path_prefix,
         net_name=network_name,
         network_name=network_name,
         device = "cuda:3" if torch.cuda.is_available() else "cpu",
@@ -63,7 +76,6 @@ if __name__ == "__main__":
         np.save(f"./{network_name}/features.npy", features )
         np.save(f"./{network_name}/mean.npy", mean)
         np.save(f"./{network_name}/logvar.npy", logvar)
-
 
 """    
 def prepare_datasets(logger, path_to_splits):

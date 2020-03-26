@@ -95,4 +95,4 @@ if __name__ == '__main__':
     decode_d_k(xlsx_dir)
     print("Finished decoding diagnostics keywords...")
 
-/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Training_Images
+

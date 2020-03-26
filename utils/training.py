@@ -3,9 +3,9 @@ Add the Training (TorchSupport-Training API) and loss functions here.
 """
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, TensorDataset
+from torch.utils.data import Dataset
 from torchsupport.training.vae import VAETraining
-
+from tensorboardX import SummaryWriter
 # Ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -135,6 +135,19 @@ class Decoder(nn.Module):
 
 
 class OdirVAETraining(VAETraining):
+    def __init__(self, encoder, decoder, data, path_prefix, network_name,
+                 # alpha=0.25, beta=0.5, m=120,
+                 optimizer=torch.optim.Adam,
+                 optimizer_kwargs=None, **kwargs):
+        super(OdirVAETraining, self).__init__(
+            encoder, decoder, data,
+            optimizer=optimizer,
+            optimizer_kwargs=optimizer_kwargs,
+            **kwargs
+        )
+        self.checkpoint_path = f"{path_prefix}/{network_name}/{network_name}-checkpoint"
+        self.writer = SummaryWriter(f"{path_prefix}/{network_name}/")
+
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
         if self.step_id % 10 == 0:
@@ -143,18 +156,7 @@ class OdirVAETraining(VAETraining):
         return mean, logvar, reconstructions, data
 
 
-if __name__ == "__main__":
-    # Test Encoder
-    fake_imgs = torch.randn((10, 3, 192, 188))
-    # print(fake_imgs.shape)
-    encoder = Encoder()
-    # encoder.forward(fake_imgs)
 
-    # Test Decoder
-    fake_latent_vector = torch.randn((10, 32))
-    # print(233, fake_latent_vector.shape)
-    decoder = Decoder()
-    # decoder.forward(fake_latent_vector)
 
 
 
