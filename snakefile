@@ -4,6 +4,14 @@ SPLITS = ["Training", "Testing"]
 RESIZE_DIMENSIONS = [0,0]
 
 
+rule train:
+    input:
+        "../data/processed/ODIR_Training_Images/"
+    conda:
+        "../envs/retina_env.yml"
+    shell:
+        "python3 {input}"
+
 rule preprocess_images:
     input:
         expand("../data/raw/{dataset}_{split}_Images/", dataset = DATASETS, split= SPLITS)
@@ -23,4 +31,5 @@ rule preprocess_annotations:
         "../envs/retina_env.yml"
     shell:
         "python3 -u decode_diagnostics_keywords.py {input} {output}"
+
 
