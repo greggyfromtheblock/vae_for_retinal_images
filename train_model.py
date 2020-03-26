@@ -18,7 +18,7 @@ if __name__ == "__main__":
                     help="""The path to the directory which contains
                     the imgge folder. The images themselves must be
                     in one or more subdirectories of the imfolder""")
-    parser.add_argument('path_prefix', type=str, default=None,
+    parser.add_argument('--path_prefix', type=str, default="./",
         metavar='path_prefix',
                     help="""The path to the directory which should contain the data for tensorboard.""")
     parser.add_argument('network_name', type=str, default=None,
@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     imfolder = add_slash(args.imfolder)
     network_name = args.network_name
-    path_prefix = args.path_prefix
+    path_prefix = args.path_prefix  # optional argument. If default: the path is the current one.
 
     if network_name in os.listdir(path_prefix):
         input1 = input("Network already exists. Are you sure to continue? [y/yes]\n")
@@ -76,6 +76,7 @@ if __name__ == "__main__":
         np.save(f"./{network_name}/features.npy", features )
         np.save(f"./{network_name}/mean.npy", mean)
         np.save(f"./{network_name}/logvar.npy", logvar)
+
 
 """    
 def prepare_datasets(logger, path_to_splits):
