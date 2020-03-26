@@ -25,7 +25,6 @@ if __name__ == "__main__":
         metavar='network_name',
                     help="""The name of the network. Use different names for different models!""")
     args = parser.parse_args()
-    # python3 train_model.py /home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/train
 
     def add_slash(path):
         if path[-1] != '/':
