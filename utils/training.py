@@ -73,14 +73,11 @@ class Encoder(nn.Module):
 
     def forward(self, inputs):
         features = self.conv_layers(inputs)
-        # print(features.shape)
         features = features.view(-1, self.num_flat_features(features))
-        # print(features.shape)
         features = self.linear_layers(features)
 
         mean = self.mean(features)
         logvar = self.logvar(features)
-        # print(features.shape)
         return features, mean, logvar
 
     def num_flat_features(self, x):
@@ -128,21 +125,20 @@ class Decoder(nn.Module):
 
     def forward(self, latent_vector):
         dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 3, 3))
-        # print(dec.shape)
         reconstructions = self.conv_layers(dec)
-        print(reconstructions.shape)
         return reconstructions
 
 
 class OdirVAETraining(VAETraining):
     def __init__(self, encoder, decoder, data, path_prefix, net_name,
                  # alpha=0.25, beta=0.5, m=120,
-                 optimizer=torch.optim.Adam,
-                 optimizer_kwargs=None, **kwargs):
+                 # optimizer=torch.optim.Adam,
+                 # optimizer_kwargs=None,
+                 **kwargs):
         super(OdirVAETraining, self).__init__(
             encoder, decoder, data,
-            optimizer=optimizer,
-            optimizer_kwargs=optimizer_kwargs,
+            #  optimizer=optimizer,
+            #  optimizer_kwargs=optimizer_kwargs,
             **kwargs
         )
         self.checkpoint_path = f"{path_prefix}/{net_name}/{net_name}-checkpoint"
@@ -151,7 +147,7 @@ class OdirVAETraining(VAETraining):
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
         if self.step_id % 10 == 0:
-            self.writer.add_images("target", data[0:50:10], self.step_id)
+            self.writer.add_images("target", list(map(normalize, data[0:50:10])), self.step_id)
             self.writer.add_images("reconstruction", reconstructions[0:50:10], self.step_id)
         return mean, logvar, reconstructions, data
 
