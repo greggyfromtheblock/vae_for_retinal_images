@@ -5,11 +5,7 @@ import argparse
 import os
 import sys
 from torchvision import datasets, transforms
-from torchvision.utils import save_image
-from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
-from skimage import io
-from tqdm import tqdm
 import torch
 from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 
@@ -23,7 +19,7 @@ if __name__ == "__main__":
                     the imgge folder. The images themselves must be
                     in one or more subdirectories of the imfolder""")
     args = parser.parse_args()
-    # python3 train_model.py /home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/train/
+    # python3 train_model.py /home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/train
 
     def add_slash(path):
         if path[-1] != '/':
@@ -32,9 +28,9 @@ if __name__ == "__main__":
             return(path)
 
     imfolder = add_slash(args.imfolder)
+    network_name = "odir-vae2"
 
     print("Load Data as Tensors...")
-
     img_dataset = datasets.ImageFolder(
         imfolder, transform=transforms.ToTensor()
     )
@@ -45,14 +41,28 @@ if __name__ == "__main__":
         encoder,
         decoder,
         data,
-        network_name="odir-vae",
-        device = "cuda" if torch.cuda.is_available() else "cpu",
+        net_name=network_name,
+        network_name=network_name,
+        device = "cuda:3" if torch.cuda.is_available() else "cpu",
         batch_size=50,
-        max_epochs=1000,
+        max_epochs=1,
         verbose=True,
     )
 
-    training.train()
+    trained = training.train()
+    encoder = trained[0]
+    sample, _ = img_dataset[0]
+    features, mean, logvar = encoder(sample)
+    print(type(features))
+    if type(features) == torch.Tensor:
+        torch.save(features, f"./{network_name}/features.pt")
+        torch.save(mean, f"./{network_name}/mean.pt")
+        torch.save(logvar, f"./{network_name}/logvar.pt")
+
+    if (type(features)) == np.ndarray:
+        np.save(f"./{network_name}/features.npy", features )
+        np.save(f"./{network_name}/mean.npy", mean)
+        np.save(f"./{network_name}/logvar.npy", logvar)
 
 
 """    

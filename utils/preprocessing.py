@@ -26,7 +26,7 @@ if __name__ == '__main__':
     """
 
     parser = argparse.ArgumentParser(
-        description="""Training VAE""")
+        description="""Preprocessing""")
     parser.add_argument('imdir', type=str, default=None,
                         metavar='image_dir',
                         help="""The path to the directory which contains
@@ -95,3 +95,4 @@ if __name__ == '__main__':
     decode_d_k(xlsx_dir)
     print("Finished decoding diagnostics keywords...")
 
+/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Training_Images
