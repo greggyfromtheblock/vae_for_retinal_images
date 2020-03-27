@@ -69,6 +69,7 @@ class Encoder(nn.Module):
             *linear_block(256, 128),
             *linear_block(128, 64),
             nn.Linear(64, z),
+            nn.BatchNorm1d(z),
             nn.ReLU()
         )
 
@@ -82,7 +83,7 @@ class Encoder(nn.Module):
         # print(features.shape)
 
         features = self.linear_layers(features)
-        # print(features.shape)
+        # print(8,features.shape)
         mean = self.mean(features)
         logvar = self.logvar(features)
         return features, mean, logvar
@@ -139,13 +140,14 @@ class Decoder(nn.Module):
             *conv_block(24, 8, padding=1, scale_factor=2, mode='nearest'),
             *conv_block(8, 3, kernel_size=5, padding=2, scale_factor=2),
             nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
+            nn.BatchNorm2d(3),
         )
 
     def forward(self, latent_vector):
         dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 5, 4))
         # print(dec.shape)
         reconstructions = self.conv_layers(dec)
-        # print(reconstructions.shape)
+        # print(7, reconstructions.shape)
         return reconstructions
 
 
@@ -167,8 +169,6 @@ class OdirVAETraining(VAETraining):
 
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
-        for i in range(0, 50, 10):
-            data[i] = normalize(data[i])
 
         if self.epoch != self.epoch_id:
             self.epoch = self.epoch_id
