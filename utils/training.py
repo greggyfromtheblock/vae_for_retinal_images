@@ -35,16 +35,18 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.z = z
         self.encoder = nn.Sequential(
-            nn.Linear(256 * 320, 128 * 160),
-            nn.ReLU(),
-            nn.Linear(128 * 160, 32 * 40),
-            nn.ReLU(),
-            nn.Linear(32 * 40, 16 * 20),
-            nn.ReLU(),
-            nn.Linear(16 * 20, 128),
-            nn.ReLU(),
-            nn.Linear(128, z),
+            nn.Linear(256 * 320, z),
             nn.ReLU()
+#            nn.Linear(256 * 320, 128 * 160),
+#            nn.ReLU(),
+#            nn.Linear(128 * 160, 32 * 40),
+#            nn.ReLU(),
+#            nn.Linear(32 * 40, 16 * 20),
+#            nn.ReLU(),
+#            nn.Linear(16 * 20, 128),
+#            nn.ReLU(),
+#            nn.Linear(128, z),
+#            nn.ReLU()
         )
         self.mean = nn.Linear(z, z)
         self.logvar = nn.Linear(z, z)
@@ -62,19 +64,21 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.z = z
         self.decoder = nn.Sequential(
-            nn.Linear(z, 128),
-            nn.ReLU(),
-            nn.Linear(128, 256),
-            nn.ReLU(),
-            nn.Linear(256, 28 * 32),
-            nn.ReLU(),
-            nn.Linear(28 * 32, 36 * 48),
-            nn.ReLU(),
-            nn.Linear(36 * 48, 72 * 96),
-            nn.ReLU(),
-            nn.Linear(72 * 96, 156 * 212),
-            nn.ReLU(),
-            nn.Linear(156 * 212, 256 * 320)
+            nn.Linear(z, 256*320),
+            nn.ReLU()
+#            nn.Linear(z, 128),
+#            nn.ReLU(),
+#            nn.Linear(128, 256),
+#            nn.ReLU(),
+#            nn.Linear(256, 28 * 32),
+#            nn.ReLU(),
+#            nn.Linear(28 * 32, 36 * 48),
+#            nn.ReLU(),
+#            nn.Linear(36 * 48, 72 * 96),
+#            nn.ReLU(),
+#            nn.Linear(72 * 96, 156 * 212),
+#            nn.ReLU(),
+#            nn.Linear(156 * 212, 256 * 320)
         )
 
     def forward(self, sample):
