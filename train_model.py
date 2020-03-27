@@ -48,7 +48,7 @@ if __name__ == "__main__":
         network_name="odir-vae",
         device = "cuda" if torch.cuda.is_available() else "cpu",
         batch_size=50,
-        max_epochs=200,
+        max_epochs=300,
         verbose=True,
     )
 

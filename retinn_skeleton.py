@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
+import torch.nn.functional as F
 
 import torchsupport
 from torchsupport.training.vae import VAETraining
