@@ -26,6 +26,7 @@ class VAEDataset(Dataset):
 
 
 def normalize(image):
+    print(image.shape)
     for i, each_dim in enumerate(image):
         image[i] = (each_dim - each_dim.min()) / (each_dim.max() - each_dim.min())
     return image
