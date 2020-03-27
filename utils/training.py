@@ -121,6 +121,9 @@ class Decoder(nn.Module):
             layers = [nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
                       nn.ReLU(),
                       nn.BatchNorm2d(in_channels),
+                      nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+                      nn.ReLU(),
+                      nn.BatchNorm2d(in_channels),
                       nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
                       nn.ReLU(),
                       nn.BatchNorm2d(out_channels)]
@@ -173,7 +176,7 @@ class OdirVAETraining(VAETraining):
             print("%i-Epoch" % self.epoch_id)
         if self.step_id % 10 == 0:
             self.writer.add_image("target", data[0], self.step_id)
-            self.writer.add_image("reconstruction", normalize(reconstructions[0]), self.step_id)
+            self.writer.add_image("reconstruction", reconstructions[0], self.step_id)
         return mean, logvar, reconstructions, data
 
 
