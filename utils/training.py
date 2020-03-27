@@ -26,7 +26,8 @@ class VAEDataset(Dataset):
 
 
 def normalize(image):
-    for each_dim in image[0]:
+    print("marker", type(image))
+    for each_dim in image:
         (each_dim - each_dim.min()) / (each_dim.max() - each_dim.min())
     return
 
