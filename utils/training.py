@@ -40,8 +40,8 @@ class Encoder(nn.Module):
                     nn.ReLU(),
                     nn.BatchNorm2d(out_channels),
                     nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
-                    nn.ReLU(),
                     nn.BatchNorm2d(out_channels),
+                    nn.ReLU(),
                     nn.MaxPool2d(kernel_size=2, stride=2, padding=padding_max_pooling)]
 
         self.conv_layers = nn.Sequential(
@@ -64,8 +64,8 @@ class Encoder(nn.Module):
 
         self.linear_layers = nn.Sequential(
             # output_channels: 64; 3 x 3 from image dimension; 64*3*3 = 576
-            *linear_block(64 * 5 * 4, 512, normalize=False, dropout=0.5),
-            *linear_block(512, 256, dropout=0.5),
+            *linear_block(64 * 5 * 4, 512, normalize=False, dropout=None),
+            *linear_block(512, 256, dropout=None),
             *linear_block(256, 128),
             *linear_block(128, 64),
             nn.Linear(64, z),
@@ -110,23 +110,23 @@ class Decoder(nn.Module):
         self.linear_blocks = nn.Sequential(
             *linear_block(z, 64, normalize=False),
             *linear_block(64, 128),
-            *linear_block(128, 256, dropout=0.5),
-            *linear_block(256, 512, dropout=0.5),
-            *linear_block(512, 1280, dropout=0.5),  # 5*4*64
+            *linear_block(128, 256, dropout=None),
+            *linear_block(256, 512, dropout=None),
+            *linear_block(512, 1280, dropout=None),  # 5*4*64
             nn.Sigmoid()
         )
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, scale_factor=None, size=None, mode='bilinear'):
 
-            layers = [nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+            layers = [nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
+                      nn.BatchNorm2d(out_channels),
                       nn.ReLU(),
-                      nn.BatchNorm2d(in_channels),
-                      nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+                      nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+                      nn.BatchNorm2d(out_channels),
                       nn.ReLU(),
-                      nn.BatchNorm2d(in_channels),
-                      nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
-                      nn.ReLU(),
-                      nn.BatchNorm2d(out_channels)]
+                      nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+                      nn.BatchNorm2d(out_channels),
+                      nn.ReLU()]
 
             scale_factor and layers.append(nn.Upsample(mode=mode, scale_factor=scale_factor))
             size and layers.append(nn.Upsample(mode=mode, size=size))
@@ -140,7 +140,6 @@ class Decoder(nn.Module):
             *conv_block(8, 3, kernel_size=5, padding=2, scale_factor=2),
             nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
         )
-
 
     def forward(self, latent_vector):
         dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 5, 4))
@@ -168,15 +167,15 @@ class OdirVAETraining(VAETraining):
 
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
-        # for i in range(0,50,10):
-        #    data[i] = normalize(data[i])
+        for i in range(0, 50, 10):
+            data[i] = normalize(data[i])
 
         if self.epoch != self.epoch_id:
             self.epoch = self.epoch_id
             print("%i-Epoch" % self.epoch_id)
         if self.step_id % 10 == 0:
-            self.writer.add_image("target", data[0], self.step_id)
-            self.writer.add_image("reconstruction", reconstructions[0], self.step_id)
+            self.writer.add_images("target", data[0:50:10], self.step_id)
+            self.writer.add_images("reconstruction", reconstructions[0:50:10], self.step_id)
         return mean, logvar, reconstructions, data
 
 
