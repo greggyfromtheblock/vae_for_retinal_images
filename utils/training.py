@@ -164,7 +164,7 @@ class OdirVAETraining(VAETraining):
             self.epoch = self.epoch_id
             print("%i-Epoch" % self.epoch_id)
         if self.step_id % 10 == 0:
-            self.writer.add_image("target", normalize(data[0]), self.step_id)
+            self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image("reconstruction", normalize(reconstructions[0]), self.step_id)
         return mean, logvar, reconstructions, data
 

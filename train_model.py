@@ -46,7 +46,7 @@ if __name__ == "__main__":
         imfolder, transform=transforms.ToTensor()
     )
     data = VAEDataset(img_dataset)
-
+    print(len(data))
     encoder, decoder = Encoder(), Decoder()
     training = OdirVAETraining(
         encoder,
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         net_name=network_name,
         network_name=network_name,
         device="cuda:3" if torch.cuda.is_available() else "cpu",
-        batch_size=5,
+        batch_size=4,
         max_epochs=1000,
         verbose=True
     )
