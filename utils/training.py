@@ -204,7 +204,7 @@ class Decoder(nn.Module):
             nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
         )
 
-    self.decoder = nn.Sequential(
+        self.decoder = nn.Sequential(
             nn.Linear(z,128),
             nn.ReLU(),
             nn.Linear(128,256),
