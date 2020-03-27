@@ -26,7 +26,9 @@ class VAEDataset(Dataset):
 
 
 def normalize(image):
-    return (image - image.min()) / (image.max() - image.min())
+    for each_dim in image.shape[0]:
+        (each_dim - each_dim.min()) / (each_dim.max() - each_dim.min())
+    return
 
 
 class Encoder(nn.Module):
@@ -149,6 +151,8 @@ class OdirVAETraining(VAETraining):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
         # for i in range(0,50,10):
         #    data[i] = normalize(data[i])
+        not self.epoch and print("%i-Epoch" % self.epoch_id)    # print zeroth epoch
+
         if self.epoch != self.epoch_id:
             self.epoch = self.epoch_id
             print("%i-Epoch" % self.epoch_id)

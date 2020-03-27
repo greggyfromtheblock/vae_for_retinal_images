@@ -68,10 +68,11 @@ if __name__ == "__main__":
         net_name=network_name,
         network_name=network_name,
         device="cuda:3" if torch.cuda.is_available() else "cpu",
-        batch_size=10,
+        batch_size=5,
         max_epochs=1000,
         verbose=True
     )
+    
     print("Start Training...")
     trained = training.train()
     print("Finished Training...")
@@ -79,7 +80,7 @@ if __name__ == "__main__":
     encoder = trained[0]
     sample, _ = img_dataset[0]
     features, mean, logvar = encoder(sample)
-    
+
     print(type(features))
     if type(features) == torch.Tensor:
         torch.save(features, f"{path_prefix}/{network_name}/features.pt")
