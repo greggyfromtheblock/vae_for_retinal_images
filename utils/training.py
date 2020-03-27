@@ -59,7 +59,6 @@ class Encoder(nn.Module):
             return layers
 
         self.linear_layers = nn.Sequential(
-            # output_channels: 64; 3 x 3 from image dimension; 64*3*3 = 576
             *linear_block(64 * 5 * 4, 512, normalize=False, dropout=None),
             # *linear_block(512, 256, dropout=None),
             *linear_block(512, 128),
@@ -74,12 +73,12 @@ class Encoder(nn.Module):
 
     def forward(self, inputs):
         features = self.conv_layers(inputs)
-        # print(features.shape)
+        print(features.shape)
         features = features.view(-1, self.num_flat_features(features))
-        # print(features.shape)
+        print(features.shape)
 
         features = self.linear_layers(features)
-        # print(8,features.shape)
+        print(8,features.shape)
         mean = self.mean(features)
         logvar = self.logvar(features)
         return features, mean, logvar
@@ -143,9 +142,9 @@ class Decoder(nn.Module):
 
     def forward(self, latent_vector):
         dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 5, 4))
-        # print(dec.shape)
+        print(dec.shape)
         reconstructions = self.conv_layers(dec)
-        # print(7, reconstructions.shape)
+        print(7, reconstructions.shape)
         return reconstructions
 
 
