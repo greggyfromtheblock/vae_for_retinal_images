@@ -148,6 +148,7 @@ class OdirVAETraining(VAETraining):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
         # for i in range(0,50,10):
         #    data[i] = normalize(data[i])
+        print("%i-Epoch" % self.epoch_id)
         if self.step_id % 10 == 0:
             self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image("reconstruction", reconstructions[0], self.step_id)

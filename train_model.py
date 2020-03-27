@@ -30,7 +30,7 @@ if __name__ == "__main__":
                     help="""The path to the directory which contains
                     the imgge folder. The images themselves must be
                     in one or more subdirectories of the imfolder""")
-    parser.add_argument('--path_prefix', type=str, default="./",
+    parser.add_argument('--path_prefix', type=str, default=".",
         metavar='path_prefix',
                     help="""The path to the directory which should contain the data for tensorboard.""")
     parser.add_argument('network_name', type=str, default=None,
@@ -69,7 +69,8 @@ if __name__ == "__main__":
         network_name=network_name,
         device = "cuda:3" if torch.cuda.is_available() else "cpu",
         batch_size=10,
-        max_epochs=1000
+        max_epochs=1000,
+        verbose=True
     )
 
     trained = training.train()
@@ -78,14 +79,14 @@ if __name__ == "__main__":
     features, mean, logvar = encoder(sample)
     print(type(features))
     if type(features) == torch.Tensor:
-        torch.save(features, f"{path_prefix}{network_name}/features.pt")
-        torch.save(mean, f"{path_prefix}{network_name}/mean.pt")
-        torch.save(logvar, f"{path_prefix}{network_name}/logvar.pt")
+        torch.save(features, f"{path_prefix}/{network_name}/features.pt")
+        torch.save(mean, f"{path_prefix}/{network_name}/mean.pt")
+        torch.save(logvar, f"{path_prefix}/{network_name}/logvar.pt")
 
     if (type(features)) == np.ndarray:
-        np.save(f"{path_prefix}{network_name}/features.npy", features )
-        np.save(f"{path_prefix}{network_name}/mean.npy", mean)
-        np.save(f"{path_prefix}{network_name}/logvar.npy", logvar)
+        np.save(f"{path_prefix}/{network_name}/features.npy", features )
+        np.save(f"{path_prefix}/{network_name}/mean.npy", mean)
+        np.save(f"{path_prefix}/{network_name}/logvar.npy", logvar)
 
 
 """    
