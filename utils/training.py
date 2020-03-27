@@ -29,15 +29,23 @@ class VAEDataset(Dataset):
 def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
 
+
 class Encoder(nn.Module):
     def __init__(self, z=32):
         super(Encoder, self).__init__()
         self.z = z
-        self.encoder = nn.Sequential(nn.Linear(256 * 320, 128*160), nn.ReLU(),
-                                     nn.Linear(128*160, 32*40), nn.ReLU(),
-                                     nn.Linear(32*40, 16*20), nn.ReLU(),
-                                     nn.Linear(16*20, 128), nn.ReLU(),
-                                     nn.Linear(128, z), nn.ReLU())
+        self.encoder = nn.Sequential(
+            nn.Linear(256 * 320, 128 * 160),
+            nn.ReLU(),
+            nn.Linear(128 * 160, 32 * 40),
+            nn.ReLU(),
+            nn.Linear(32 * 40, 16 * 20),
+            nn.ReLU(),
+            nn.Linear(16 * 20, 128),
+            nn.ReLU(),
+            nn.Linear(128, z),
+            nn.ReLU()
+        )
         self.mean = nn.Linear(z, z)
         self.logvar = nn.Linear(z, z)
 
@@ -48,28 +56,29 @@ class Encoder(nn.Module):
         logvar = self.logvar(features)
         return features, mean, logvar
 
-class Decoder(nn.Module):
-  def __init__(self, z=32):
-    super(Decoder, self).__init__()
-    self.z = z  
-    self.decoder = nn.Sequential(
-      nn.Linear(z, 128),
-      nn.ReLU(),
-      nn.Linear(128, 256),
-      nn.ReLU(),
-      nn.Linear(256, 28 * 32),
-      nn.ReLU(),
-      nn.Linear(28*32, 36*48),
-      nn.ReLU(),
-      nn.Linear(36*48, 72*96),
-      nn.ReLU(),
-      nn.Linear(72*96, 156*212),
-      nn.ReLU(),
-      nn.Linear(156*212, 256*320)
-    )
 
-  def forward(self, sample):
-    return self.decoder(sample).view(-1, 1, 256, 320)
+class Decoder(nn.Module):
+    def __init__(self, z=32):
+        super(Decoder, self).__init__()
+        self.z = z
+        self.decoder = nn.Sequential(
+            nn.Linear(z, 128),
+            nn.ReLU(),
+            nn.Linear(128, 256),
+            nn.ReLU(),
+            nn.Linear(256, 28 * 32),
+            nn.ReLU(),
+            nn.Linear(28 * 32, 36 * 48),
+            nn.ReLU(),
+            nn.Linear(36 * 48, 72 * 96),
+            nn.ReLU(),
+            nn.Linear(72 * 96, 156 * 212),
+            nn.ReLU(),
+            nn.Linear(156 * 212, 256 * 320)
+        )
+
+    def forward(self, sample):
+        return self.decoder(sample).view(-1, 1, 256, 320)
 
 
 class OdirVAETraining(VAETraining):
@@ -79,5 +88,3 @@ class OdirVAETraining(VAETraining):
             self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image("reconstruction", reconstructions[0], self.step_id)
         return mean, logvar, reconstructions, data
-
-
