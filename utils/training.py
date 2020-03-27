@@ -19,7 +19,7 @@ class VAEDataset(Dataset):
 
     def __getitem__(self, index):
         data, label = self.data[index]
-        return (data,)
+        return (data[0].unsqueeze(0),)
 
     def __len__(self):
         return len(self.data)
