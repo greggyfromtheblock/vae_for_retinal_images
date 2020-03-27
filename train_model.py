@@ -10,18 +10,6 @@ import torch
 from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 
 
-"""
-Trigger training here
-"""
-import argparse
-import os
-import sys
-from torchvision import datasets, transforms
-import numpy as np
-import torch
-from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
             description="""Training VAE""")
@@ -72,7 +60,7 @@ if __name__ == "__main__":
         max_epochs=1000,
         verbose=True
     )
-    
+
     print("Start Training...")
     trained = training.train()
     print("Finished Training...")
