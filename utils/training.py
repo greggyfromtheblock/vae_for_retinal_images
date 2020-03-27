@@ -160,6 +160,7 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, z=32):
         super(Decoder, self).__init__()
+        self.z = z
 
         def linear_block(in_feat, out_feat, normalize=True, dropout=None):
             layers = [nn.Linear(in_feat, out_feat)]
@@ -203,14 +204,32 @@ class Decoder(nn.Module):
             nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
         )
 
+    self.decoder = nn.Sequential(
+            nn.Linear(z,128),
+            nn.ReLU(),
+            nn.Linear(128,256),
+            nn.ReLU(),
+            nn.Linear(256, 256*8),
+            nn.ReLU(),
+            nn.Linear(256*8, 256*24),
+            nn.ReLU(),
+            nn.Linear(256*24, 256*64),
+            nn.ReLU(),
+            nn.Linear(256*64, 256*128),
+            nn.ReLU(),
+            nn.Linear(256*128, 256*320),
+            nn.ReLU(),
+            nn.Linear(256*320, 256*320*3))
+
     def forward(self, latent_vector):
-        dec = torch.reshape(
-            self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 3, 3)
-        )
-        # print(dec.shape)
-        reconstructions = self.conv_layers(dec)
-        print(reconstructions.shape)
-        return reconstructions
+        return self.decoder(latent_vector).view(-1,3,256,320)
+#        dec = torch.reshape(
+#            self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 3, 3)
+#        )
+#        # print(dec.shape)
+#        reconstructions = self.conv_layers(dec)
+#        print(reconstructions.shape)
+#        return reconstructions
 
 
 class OdirVAETraining(VAETraining):
