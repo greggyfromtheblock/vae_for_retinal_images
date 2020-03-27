@@ -42,12 +42,12 @@ class Encoder(nn.Module):
 
         self.conv_layers = nn.Sequential(
             # Formula of new "Image" Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
-            *conv_block(3, 8, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
+            *conv_block(3, 16, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
             # -> (188-5+2*2)//1 + 1 = 188  --> Max-Pooling: 188/2 = 94
-            *conv_block(8, 16, kernel_size=5, padding=2),   # New "Image" Size:  48x47
-            *conv_block(16, 24, padding=1),  # New "Image" Size:  24x23
-            *conv_block(24, 36, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
-            *conv_block(36, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
+            *conv_block(16, 64, kernel_size=5, padding=2),   # New "Image" Size:  48x47
+            *conv_block(256, 512, padding=1),  # New "Image" Size:  24x23
+            *conv_block(512, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
+            *conv_block(256, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
             # *conv_block(54, 64),   # New "Image" Size:  2*2
         )
 
@@ -61,8 +61,8 @@ class Encoder(nn.Module):
         self.linear_layers = nn.Sequential(
             # output_channels: 64; 3 x 3 from image dimension; 64*3*3 = 576
             *linear_block(64 * 5 * 4, 512, normalize=False, dropout=None),
-            *linear_block(512, 256, dropout=None),
-            *linear_block(256, 128),
+            # *linear_block(512, 256, dropout=None),
+            *linear_block(512, 128),
             *linear_block(128, 64),
             nn.Linear(64, z),
             nn.BatchNorm1d(z),
@@ -107,21 +107,23 @@ class Decoder(nn.Module):
         self.linear_blocks = nn.Sequential(
             *linear_block(z, 64, normalize=False),
             *linear_block(64, 128),
-            *linear_block(128, 256, dropout=None),
-            *linear_block(256, 512, dropout=None),
+            *linear_block(128, 512, dropout=None),
             *linear_block(512, 1280, dropout=None),  # 5*4*64
-            nn.Sigmoid()
+            nn.ReLU()
         )
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, scale_factor=None, size=None, mode='bilinear'):
 
-            layers = [nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
+            layers = [nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2,
+                                stride=stride),
                       nn.BatchNorm2d(out_channels),
                       nn.ReLU(),
-                      nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+                      nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2,
+                                stride=stride),
                       nn.BatchNorm2d(out_channels),
                       nn.ReLU(),
-                      nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+                      nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding,
+                                         stride=stride),
                       nn.BatchNorm2d(out_channels),
                       nn.ReLU()]
 
@@ -130,12 +132,12 @@ class Decoder(nn.Module):
             return layers
 
         self.conv_layers = nn.Sequential(
-            *conv_block(64, 48, padding=1, size=(11, 10)),
-            *conv_block(48, 32, padding=1, size=(24, 23), mode='nearest'),
-            *conv_block(32, 24, padding=1, size=(48, 47)),
-            *conv_block(24, 8, padding=1, scale_factor=2, mode='nearest'),
-            *conv_block(8, 3, kernel_size=5, padding=2, scale_factor=2),
-            nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
+            *conv_block(64, 256, padding=1, size=(11, 10), mode='nearest'),
+            *conv_block(256, 512, padding=1, size=(24, 23), mode='nearest'),
+            *conv_block(512, 256, padding=1, size=(48, 47)),
+            *conv_block(256, 128, padding=1, scale_factor=2),
+            *conv_block(128, 64, kernel_size=5, padding=2, scale_factor=2),
+            nn.Conv2d(in_channels=64, out_channels=3, kernel_size=1),
             nn.BatchNorm2d(3),
         )
 
@@ -169,9 +171,9 @@ class OdirVAETraining(VAETraining):
         if self.epoch != self.epoch_id:
             self.epoch = self.epoch_id
             print("%i-Epoch" % self.epoch_id)
-        if self.step_id % 10 == 0:
-            self.writer.add_images("target", data[0:50:10], self.step_id)
-            self.writer.add_images("reconstruction", reconstructions[0:50:10], self.step_id)
+        if self.step_id % 20 == 0:
+            self.writer.add_image("target", data[0], self.step_id)
+            self.writer.add_image("reconstruction", reconstructions[0], self.step_id)
         return mean, logvar, reconstructions, data
 
 
