@@ -61,6 +61,12 @@ parser.add_argument(
                     of the images"""
 )
 parser.add_argument(
+    "--rgb2gray",
+    action="store_true",
+    help="""if this flag is on 
+                    transforms the image to grayscale"""
+)
+parser.add_argument(
     "--rotate",
     type=float,
     default=0,
@@ -145,6 +151,8 @@ for f in os.listdir(imdir):
         args.resize != 0):
         image = resize(image, args.resize, anti_aliasing=True)
     image = (255*image).astype(np.uint8)
+    if args.rgb2gray:
+        image = (rgb2gray(image)*256).astype(np.uint8)
     io.imsave(outdir + f, image)
     if args.flip:
         image_flipped = np.fliplr(image)
