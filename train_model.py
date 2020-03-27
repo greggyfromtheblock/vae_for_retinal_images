@@ -17,6 +17,9 @@ from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""Training VAE""")
     parser.add_argument(
+            "usecuda", type=store_true,
+            help="""try to use cuda""")
+    parser.add_argument(
         "imfolder",
         type=str,
         default=None,
@@ -49,7 +52,7 @@ if __name__ == "__main__":
         decoder,
         data,
         network_name="odir-vae",
-        device="cuda" if torch.cuda.is_available() else "cpu",
+        device="cuda" if (args.usecuda and torch.cuda.is_available()) else "cpu",
         batch_size=64,
         max_epochs=300,
         verbose=True
