@@ -25,17 +25,8 @@ class VAEDataset(Dataset):
         pass
 
 
-""" 
 def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
-"""
-
-
-def normalize(image):
-    img = torch.zeros_like(image)
-    for i in range(image.shape[0]):
-        img[i] = (image[i] - image[i].min()) / (image[i].max() - image[i].min())
-    return img
 
 
 class Encoder(nn.Module):
@@ -112,8 +103,8 @@ class Decoder(nn.Module):
             *linear_block(z, 64, normalize=False),
             *linear_block(64, 256),
             *linear_block(256, 320, dropout=0.5),
-            *linear_block(320, 576, dropout=0.5),   # 44*6*6 = 1584
-            nn.ReLU()
+            *linear_block(320, 576, dropout=0.5),
+            nn.Sigmoid()
         )
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0):
@@ -139,7 +130,7 @@ class Decoder(nn.Module):
 
 
 class OdirVAETraining(VAETraining):
-    def __init__(self, encoder, decoder, data, path_prefix, net_name,
+    def __init__(self, encoder, decoder, data, path_prefix, network_name,
                  # alpha=0.25, beta=0.5, m=120,
                  # optimizer=torch.optim.Adam,
                  # optimizer_kwargs=None,
@@ -150,15 +141,15 @@ class OdirVAETraining(VAETraining):
             #  optimizer_kwargs=optimizer_kwargs,
             **kwargs
         )
-        self.checkpoint_path = f"{path_prefix}/{net_name}/{net_name}-checkpoint"
-        self.writer = SummaryWriter(f"{path_prefix}/{net_name}/")
-        self.epoch = 0
+        self.checkpoint_path = f"{path_prefix}/{network_name}/{network_name}-checkpoint"
+        self.writer = SummaryWriter(f"{path_prefix}/{network_name}/")
+        self.epoch = None
 
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
         # for i in range(0,50,10):
         #    data[i] = normalize(data[i])
-        not self.epoch and print("%i-Epoch" % self.epoch_id)    # print zeroth epoch
+        not self.epoch and self.epoch != self.epoch_id and print("%i-Epoch" % self.epoch_id)     # print zeroth epoch
 
         if self.epoch != self.epoch_id:
             self.epoch = self.epoch_id

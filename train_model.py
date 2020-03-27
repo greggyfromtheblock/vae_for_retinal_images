@@ -46,17 +46,15 @@ if __name__ == "__main__":
         imfolder, transform=transforms.ToTensor()
     )
     data = VAEDataset(img_dataset)
-    print(len(data))
     encoder, decoder = Encoder(), Decoder()
     training = OdirVAETraining(
         encoder,
         decoder,
         data,
         path_prefix=path_prefix,
-        net_name=network_name,
         network_name=network_name,
         device="cuda:3" if torch.cuda.is_available() else "cpu",
-        batch_size=4,
+        batch_size=64,
         max_epochs=1000,
         verbose=True
     )
@@ -76,7 +74,7 @@ if __name__ == "__main__":
         torch.save(logvar, f"{path_prefix}/{network_name}/logvar.pt")
 
     if (type(features)) == np.ndarray:
-        np.save(f"{path_prefix}/{network_name}/features.npy", features )
+        np.save(f"{path_prefix}/{network_name}/features.npy", features)
         np.save(f"{path_prefix}/{network_name}/mean.npy", mean)
         np.save(f"{path_prefix}/{network_name}/logvar.npy", logvar)
 
