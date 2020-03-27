@@ -73,12 +73,12 @@ class Encoder(nn.Module):
 
     def forward(self, inputs):
         features = self.conv_layers(inputs)
-        print(features.shape)
+        # print(features.shape)
         features = features.view(-1, self.num_flat_features(features))
-        print(features.shape)
+        # print(features.shape)
 
         features = self.linear_layers(features)
-        print(8,features.shape)
+        # print(8,features.shape)
         mean = self.mean(features)
         logvar = self.logvar(features)
         return features, mean, logvar
@@ -113,15 +113,15 @@ class Decoder(nn.Module):
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, scale_factor=None, size=None, mode='bilinear'):
 
-            layers = [nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2,
+            layers = [nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size//2,
+                                stride=stride),
+                      nn.BatchNorm2d(in_channels),
+                      nn.ReLU(),
+                      nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2,
                                 stride=stride),
                       nn.BatchNorm2d(out_channels),
                       nn.ReLU(),
-                      nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2,
-                                stride=stride),
-                      nn.BatchNorm2d(out_channels),
-                      nn.ReLU(),
-                      nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding,
+                      nn.ConvTranspose2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding,
                                          stride=stride),
                       nn.BatchNorm2d(out_channels),
                       nn.ReLU()]
