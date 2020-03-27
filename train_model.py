@@ -17,7 +17,7 @@ from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""Training VAE""")
     parser.add_argument(
-            "usecuda", 
+            "--usecuda", 
             action="store_true",
             help="""try to use cuda""")
     parser.add_argument(
