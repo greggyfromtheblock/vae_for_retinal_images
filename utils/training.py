@@ -57,7 +57,7 @@ class Decoder(nn.Module):
       nn.ReLU(),
       nn.Linear(128, 256),
       nn.ReLU(),
-      nn.Linear(256, 28 * 32)
+      nn.Linear(256, 28 * 32),
       nn.ReLU(),
       nn.Linear(28*32, 36*48),
       nn.ReLU(),
