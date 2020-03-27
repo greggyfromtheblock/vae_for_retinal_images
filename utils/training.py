@@ -32,9 +32,10 @@ def normalize(image):
 
 
 def normalize(image):
+    img = torch.zeros_like(image)
     for i in range(image.shape[0]):
-        image[i] = (image[i] - image[i].min()) / (image[i].max() - image[i].min())
-    return image
+        img[i] = (image[i] - image[i].min()) / (image[i].max() - image[i].min())
+    return img
 
 
 class Encoder(nn.Module):
