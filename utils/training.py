@@ -24,12 +24,16 @@ class VAEDataset(Dataset):
         return len(self.data)
         pass
 
-
-def normalize(image):
+""" def normalize(image):
     print(image.shape)
     for i, each_dim in enumerate(image):
         image[i] = (each_dim - each_dim.min()) / (each_dim.max() - each_dim.min())
-    return image
+    return image """
+
+
+def normalize(image):
+    (image - image.min()) / (image.max() - image.min())
+    return
 
 
 class Encoder(nn.Module):
