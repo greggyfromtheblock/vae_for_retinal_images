@@ -55,7 +55,7 @@ if __name__ == "__main__":
         network_name=network_name,
         device="cuda:3" if torch.cuda.is_available() else "cpu",
         batch_size=64,
-        max_epochs=1000,
+        max_epochs=100,
         verbose=True
     )
 
