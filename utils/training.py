@@ -142,9 +142,9 @@ class Decoder(nn.Module):
 
     def forward(self, latent_vector):
         dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 5, 4))
-        print(dec.shape)
+        # print(dec.shape)
         reconstructions = self.conv_layers(dec)
-        print(7, reconstructions.shape)
+        # print(7, reconstructions.shape)
         return reconstructions
 
 
