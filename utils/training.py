@@ -39,6 +39,9 @@ class Encoder(nn.Module):
             return [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
                     nn.ReLU(),
                     nn.BatchNorm2d(out_channels),
+                    nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+                    nn.ReLU(),
+                    nn.BatchNorm2d(out_channels),
                     nn.MaxPool2d(kernel_size=2, stride=2, padding=padding_max_pooling)]
 
         self.conv_layers = nn.Sequential(
@@ -115,9 +118,12 @@ class Decoder(nn.Module):
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, scale_factor=None, size=None, mode='bilinear'):
 
-            layers = [nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
-                     nn.ReLU(),
-                     nn.BatchNorm2d(out_channels)]
+            layers = [nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+                      nn.ReLU(),
+                      nn.BatchNorm2d(in_channels),
+                      nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
+                      nn.ReLU(),
+                      nn.BatchNorm2d(out_channels)]
 
             scale_factor and layers.append(nn.Upsample(mode=mode, scale_factor=scale_factor))
             size and layers.append(nn.Upsample(mode=mode, size=size))
