@@ -141,17 +141,20 @@ class OdirVAETraining(VAETraining):
             #  optimizer_kwargs=optimizer_kwargs,
             **kwargs
         )
-        self.checkpoint_path = f"{path_prefix}{net_name}/{net_name}-checkpoint"
-        self.writer = SummaryWriter(f"{path_prefix}{net_name}/")
+        self.checkpoint_path = f"{path_prefix}/{net_name}/{net_name}-checkpoint"
+        self.writer = SummaryWriter(f"{path_prefix}/{net_name}/")
+        self.epoch = 0
 
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
         # for i in range(0,50,10):
         #    data[i] = normalize(data[i])
-        print("%i-Epoch" % self.epoch_id)
+        if self.epoch != self.epoch_id:
+            self.epoch = self.epoch_id
+            print("%i-Epoch" % self.epoch_id)
         if self.step_id % 10 == 0:
-            self.writer.add_image("target", data[0], self.step_id)
-            self.writer.add_image("reconstruction", reconstructions[0], self.step_id)
+            self.writer.add_image("target", normalize(data[0]), self.step_id)
+            self.writer.add_image("reconstruction", normalize(reconstructions[0]), self.step_id)
         return mean, logvar, reconstructions, data
 
 
