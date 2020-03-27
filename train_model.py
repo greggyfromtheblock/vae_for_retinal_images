@@ -78,14 +78,14 @@ if __name__ == "__main__":
     features, mean, logvar = encoder(sample)
     print(type(features))
     if type(features) == torch.Tensor:
-        torch.save(features, f"{path_prefix}/{network_name}/features.pt")
+        torch.save(features, f"{path_prefix}{network_name}/features.pt")
         torch.save(mean, f"{path_prefix}{network_name}/mean.pt")
-        torch.save(logvar, f"{path_prefix}/{network_name}/logvar.pt")
+        torch.save(logvar, f"{path_prefix}{network_name}/logvar.pt")
 
     if (type(features)) == np.ndarray:
-        np.save(f"{path_prefix}/{network_name}/features.npy", features )
-        np.save(f"{path_prefix}/{network_name}/mean.npy", mean)
-        np.save(f"{path_prefix}/{network_name}/logvar.npy", logvar)
+        np.save(f"{path_prefix}{network_name}/features.npy", features )
+        np.save(f"{path_prefix}{network_name}/mean.npy", mean)
+        np.save(f"{path_prefix}{network_name}/logvar.npy", logvar)
 
 
 """    

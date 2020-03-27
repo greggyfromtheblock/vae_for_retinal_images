@@ -141,8 +141,8 @@ class OdirVAETraining(VAETraining):
             #  optimizer_kwargs=optimizer_kwargs,
             **kwargs
         )
-        self.checkpoint_path = f"{path_prefix}/{net_name}/{net_name}-checkpoint"
-        self.writer = SummaryWriter(f"{path_prefix}/{net_name}/")
+        self.checkpoint_path = f"{path_prefix}{net_name}/{net_name}-checkpoint"
+        self.writer = SummaryWriter(f"{path_prefix}{net_name}/")
 
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
