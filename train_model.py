@@ -10,6 +10,10 @@ import torch
 from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 
 
+def normalize(image):
+    return (image - image.min()) / (image.max() - image.min())
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
             description="""Training VAE""")
@@ -42,9 +46,11 @@ if __name__ == "__main__":
             sys.exit()
 
     print("Load Data as Tensors...")
+    transform_data = transforms.Compose([transforms.ToTensor(), normalize])
     img_dataset = datasets.ImageFolder(
-        imfolder, transform=transforms.ToTensor()
+        imfolder, transform=transform_data
     )
+
     data = VAEDataset(img_dataset)
     encoder, decoder = Encoder(), Decoder()
     training = OdirVAETraining(
@@ -54,7 +60,7 @@ if __name__ == "__main__":
         path_prefix=path_prefix,
         network_name=network_name,
         device="cuda:3" if torch.cuda.is_available() else "cpu",
-        batch_size=64,
+        batch_size=128,
         max_epochs=100,
         verbose=True
     )

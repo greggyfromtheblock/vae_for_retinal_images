@@ -26,10 +26,6 @@ class VAEDataset(Dataset):
         pass
 
 
-def normalize(image):
-    return (image - image.min()) / (image.max() - image.min())
-
-
 class Encoder(nn.Module):
     def __init__(self, z=32):
         # Incoming image has shape e.g. 192x188x3
