@@ -42,12 +42,12 @@ class Encoder(nn.Module):
 
         self.conv_layers = nn.Sequential(
             # Formula of new "Image" Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
-            *conv_block(3, 128, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
+            *conv_block(3, 64, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
             # -> (188-5+2*2)//1 + 1 = 188  --> Max-Pooling: 188/2 = 94
-            *conv_block(128, 256, kernel_size=5, padding=2),   # New "Image" Size:  48x47
-            *conv_block(256, 512, padding=1),  # New "Image" Size:  24x23
-            *conv_block(512, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
-            *conv_block(256, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
+            *conv_block(64, 128, kernel_size=5, padding=2),   # New "Image" Size:  48x47
+            *conv_block(128, 512, padding=1),  # New "Image" Size:  24x23
+            *conv_block(512, 128, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
+            *conv_block(128, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
             # *conv_block(54, 64),   # New "Image" Size:  2*2
         )
 
@@ -131,8 +131,8 @@ class Decoder(nn.Module):
             return layers
 
         self.conv_layers = nn.Sequential(
-            *conv_block(64, 256, padding=1, size=(11, 10), mode='nearest'),
-            *conv_block(256, 512, padding=1, size=(24, 23), mode='nearest'),
+            *conv_block(64, 128, padding=1, size=(11, 10), mode='nearest'),
+            *conv_block(128, 512, padding=1, size=(24, 23), mode='nearest'),
             *conv_block(512, 256, padding=1, size=(48, 47)),
             *conv_block(256, 128, padding=1, scale_factor=2),
             *conv_block(128, 64, kernel_size=5, padding=2, scale_factor=2),
