@@ -35,7 +35,7 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.z = z
         self.encoder = nn.Sequential(
-                nn.Conv2d(in_channels=3,
+                nn.Conv2d(in_channels=1,
                     out_channels=6,
                     kernel_size=5,
                     stride=1,
