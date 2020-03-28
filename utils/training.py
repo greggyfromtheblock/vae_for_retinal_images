@@ -56,7 +56,7 @@ class Encoder(nn.Module):
                     bias=True), #12x16
                 nn.ReLU(),
                 nn.MaxPool2d(kernel_size=4, stride=4), #24x3x4
-                nn.Flatten(0), #24*3*4
+                nn.Flatten(1), #24*3*4
                 nn.Linear(24*3*4, 32),
                 nn.ReLU() #32
                 ) 
