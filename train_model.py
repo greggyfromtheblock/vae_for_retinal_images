@@ -1,31 +1,51 @@
-"""
-Trigger training here
-"""
 import argparse
 import os
-from torchvision import datasets, transforms
-from torchvision.utils import save_image
-from torch.utils.data import DataLoader, TensorDataset
+import sys
+
 import numpy as np
 from skimage import io
 from tqdm import tqdm
+
 import torch
-from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
+from torch.utils.data import DataLoader, TensorDataset
+from torchvision import datasets, transforms
+from torchvision.utils import save_image
+from utils.training import Decoder, Encoder, OdirVAETraining, VAEDataset
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+            description="""Training VAE""")
+    parser.add_argument('imfolder', type=str, default=None,
+        metavar='image_dir',
+                    help="""The path to the directory which contains
+                    the imgage folder. The images themselves must be
+                    in one or more subdirectories of the imfolder""")
+    args = parser.parse_args()
 
-if __name__ == '__main__':
-    print("Load Data as Tensors...")
-    img_dataset = datasets.ImageFolder('./data/processed/', transform=transforms.ToTensor())
+    def add_slash(path):
+        if path[-1] != '/':
+            return path + "/"
+        else:
+            return(path)
+    imfolder = add_slash(args.imfolder)
+
+    print("Load Data as Tensors...")i
+
+        img_dataset = datasets.ImageFolder(
+        imfolder, transform=transforms.ToTensor()
+    )
     data = VAEDataset(img_dataset)
 
     encoder, decoder = Encoder(), Decoder()
     training = OdirVAETraining(
-        encoder, decoder, data,
+        encoder,
+        decoder,
+        data,
         network_name="odir-vae",
-        device="cpu",
+        device = "cuda" if torch.cuda.is_available() else "cpu",
         batch_size=50,
         max_epochs=1000,
-        verbose=True
+        verbose=True,
     )
 
     training.train()
