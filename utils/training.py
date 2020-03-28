@@ -19,7 +19,8 @@ class VAEDataset(Dataset):
 
     def __getitem__(self, index):
         data, label = self.data[index]
-        return (data[0].unsqueeze(0),)
+        return (data,)
+#        return (data[0].unsqueeze(0),)
 
     def __len__(self):
         return len(self.data)
@@ -35,7 +36,7 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.z = z
         self.encoder = nn.Sequential(
-                nn.Conv2d(in_channels=1,
+                nn.Conv2d(in_channels=3,
                     out_channels=6,
                     kernel_size=5,
                     stride=1,
@@ -93,9 +94,9 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.z = z
         self.decoder = nn.Sequential(
-            nn.Linear(z, 256*320),
+            nn.Linear(z, 256*320*3),
             nn.ReLU(),
-            nn.Sigmoid()
+#            nn.Sigmoid()
 #            nn.Linear(z, 128),
 #            nn.ReLU(),
 #            nn.Linear(128, 256),
@@ -112,7 +113,8 @@ class Decoder(nn.Module):
         )
 
     def forward(self, sample):
-        return self.decoder(sample).view(-1, 1, 256, 320)
+        return self.decoder(sample).view(-1, 3, 256, 320)
+#        return self.decoder(sample).view(-1, 1, 256, 320)
 
 
 class OdirVAETraining(VAETraining):
