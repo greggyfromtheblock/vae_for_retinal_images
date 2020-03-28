@@ -42,7 +42,8 @@ if __name__ == "__main__":
     img_dataset = datasets.ImageFolder(
         imfolder,
         transform=transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
+            [transforms.ToTensor(),]
+            #                transforms.Normalize((0.5,), (0.5,))]
         ),
     )
     data = VAEDataset(img_dataset)
