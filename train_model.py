@@ -13,13 +13,9 @@ from tqdm import tqdm
 import torch
 from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""Training VAE""")
-    parser.add_argument(
-            "--usecuda", 
-            action="store_true",
-            help="""try to use cuda""")
+    parser.add_argument("--usecuda", action="store_true", help="""try to use cuda""")
     parser.add_argument(
         "imfolder",
         type=str,
@@ -43,7 +39,12 @@ if __name__ == "__main__":
     #    img_dataset = datasets.ImageFolder(
     #        "./data/processed/", transform=transforms.ToTensor()
     #    )
-    img_dataset = datasets.ImageFolder(imfolder, transform=transforms.ToTensor())
+    img_dataset = datasets.ImageFolder(
+        imfolder,
+        transform=transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
+        ),
+    )
     data = VAEDataset(img_dataset)
 
     encoder, decoder = Encoder(z=32), Decoder(z=32)
@@ -56,7 +57,7 @@ if __name__ == "__main__":
         device="cuda" if (args.usecuda and torch.cuda.is_available()) else "cpu",
         batch_size=64,
         max_epochs=300,
-        verbose=True
+        verbose=True,
     )
 
     training.train()

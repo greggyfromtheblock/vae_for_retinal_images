@@ -35,8 +35,34 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.z = z
         self.encoder = nn.Sequential(
-            nn.Linear(256 * 320, z),
-            nn.ReLU()
+                nn.Conv2d(in_channels=3,
+                    out_channels=6,
+                    kernel_size=5,
+                    stride=1,
+                    bias=True), #252x316
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size=4,stride=4),#63x79
+                nn.Conv2d(in_channels=6,
+                    out_channels=12,
+                    kernel_size=4,
+                    stride=1,
+                    bias=True), #60x76
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size=4, stride=4), #15x19
+                nn.Conv2d(in_channels=12,
+                    out_channels=24,
+                    kernel_size=4,
+                    stride=1,
+                    bias=True), #12x16
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size=4, stride=4), #24x3x4
+                nn.Flatten(0)) #24*3*4
+
+
+
+
+#            nn.Linear(256 * 320, z),
+#            nn.ReLU()
 #            nn.Linear(256 * 320, 128 * 160),
 #            nn.ReLU(),
 #            nn.Linear(128 * 160, 32 * 40),
@@ -47,12 +73,12 @@ class Encoder(nn.Module):
 #            nn.ReLU(),
 #            nn.Linear(128, z),
 #            nn.ReLU()
-        )
+#                       )
         self.mean = nn.Linear(z, z)
         self.logvar = nn.Linear(z, z)
 
     def forward(self, inputs):
-        inputs = inputs.view(inputs.size(0), -1)
+        #inputs = inputs.view(inputs.size(0), -1)
         features = self.encoder(inputs)
         mean = self.mean(features)
         logvar = self.logvar(features)
@@ -65,7 +91,8 @@ class Decoder(nn.Module):
         self.z = z
         self.decoder = nn.Sequential(
             nn.Linear(z, 256*320),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.Sigmoid()
 #            nn.Linear(z, 128),
 #            nn.ReLU(),
 #            nn.Linear(128, 256),
