@@ -264,7 +264,7 @@ class Encoder(nn.Module):
             ),  # 42x5x7
             nn.Flatten(1),
             nn.Linear(42 * 5 * 7, z),
-            nn.ReLU()
+            nn.ReLU(),
         )
 
         #            nn.Conv2d(
@@ -302,23 +302,83 @@ class Decoder(nn.Module):
     def __init__(self, z=32):
         super(Decoder, self).__init__()
         self.z = z
-        self.decoder = nn.Sequential(
-            nn.Linear(z, 256 * 320 * 3),
+        #        self.decoder = nn.Sequential(
+        #            nn.Linear(z, 256 * 320 * 3),
+        #            nn.ReLU(),
+        #            #            nn.Sigmoid()
+        #            #            nn.Linear(z, 128),
+        #            #            nn.ReLU(),
+        #            #            nn.Linear(128, 256),
+        #            #            nn.ReLU(),
+        #            #            nn.Linear(256, 28 * 32),
+        #            #            nn.ReLU(),
+        #            #            nn.Linear(28 * 32, 36 * 48),
+        #            #            nn.ReLU(),
+        #            #            nn.Linear(36 * 48, 72 * 96),
+        #            #            nn.ReLU(),
+        #            #            nn.Linear(72 * 96, 156 * 212),
+        #            #            nn.ReLU(),
+        #            #            nn.Linear(156 * 212, 256 * 320)
+        #        )
+
+        def linear_block(in_feat, out_feat, normalize=True, dropout=None):
+            layers = [nn.Linear(in_feat, out_feat)]
+            normalize and layers.append(
+                nn.BatchNorm1d(out_feat)
+            )  # It's the same as: if normalize: append...
+            dropout and layers.append(nn.Dropout(dropout))
+            layers.append(nn.LeakyReLU(0.2, inplace=True))
+            return layers
+
+        self.linear_blocks = nn.Sequential(
+            *linear_block(z, 64, normalize=False),
+            *linear_block(64, 256),
+            *linear_block(256, 320, dropout=0.5),
+            *linear_block(320, 576, dropout=0.5),  # 44*6*6 = 1584
             nn.ReLU(),
-            #            nn.Sigmoid()
-            #            nn.Linear(z, 128),
-            #            nn.ReLU(),
-            #            nn.Linear(128, 256),
-            #            nn.ReLU(),
-            #            nn.Linear(256, 28 * 32),
-            #            nn.ReLU(),
-            #            nn.Linear(28 * 32, 36 * 48),
-            #            nn.ReLU(),
-            #            nn.Linear(36 * 48, 72 * 96),
-            #            nn.ReLU(),
-            #            nn.Linear(72 * 96, 156 * 212),
-            #            nn.ReLU(),
-            #            nn.Linear(156 * 212, 256 * 320)
+        )
+
+        def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0):
+            return [
+                nn.ConvTranspose2d(
+                    in_channels,
+                    out_channels,
+                    kernel_size=kernel_size,
+                    padding=padding,
+                    stride=stride,
+                ),
+                nn.ReLU(),
+                nn.BatchNorm2d(out_channels),
+                nn.Upsample(mode="bilinear", scale_factor=2),
+            ]
+
+        self.conv_layers = nn.Sequential(
+            *conv_block(64, 54, padding=1),
+            *conv_block(54, 36, padding=1),
+            *conv_block(36, 24, padding=1),
+            *conv_block(24, 8, padding=1),
+            *conv_block(8, 3, kernel_size=5, padding=2),
+            # nn.UpsamplingNearest2d(size=(192, 188)),  # The wished size
+            nn.UpsamplingNearest2d(size=(256, 320)),  # The wished size
+            nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
+        )
+
+        self.decoder = nn.Sequential(
+            nn.Linear(z, 128),
+            nn.ReLU(),
+            nn.Linear(128, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256 * 8),
+            nn.ReLU(),
+            nn.Linear(256 * 8, 256 * 24),
+            nn.ReLU(),
+            nn.Linear(256 * 24, 256 * 64),
+            nn.ReLU(),
+            nn.Linear(256 * 64, 256 * 128),
+            nn.ReLU(),
+            nn.Linear(256 * 128, 256 * 320),
+            nn.ReLU(),
+            nn.Linear(256 * 320, 256 * 320 * 3),
         )
 
     def forward(self, sample):
