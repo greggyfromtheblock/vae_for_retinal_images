@@ -363,23 +363,23 @@ class Decoder(nn.Module):
             nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
         )
 
-        self.decoder = nn.Sequential(
-            nn.Linear(z, 128),
-            nn.ReLU(),
-            nn.Linear(128, 256),
-            nn.ReLU(),
-            nn.Linear(256, 256 * 8),
-            nn.ReLU(),
-            nn.Linear(256 * 8, 256 * 24),
-            nn.ReLU(),
-            nn.Linear(256 * 24, 256 * 64),
-            nn.ReLU(),
-            nn.Linear(256 * 64, 256 * 128),
-            nn.ReLU(),
-            nn.Linear(256 * 128, 256 * 320),
-            nn.ReLU(),
-            nn.Linear(256 * 320, 256 * 320 * 3),
-        )
+#        self.decoder = nn.Sequential(
+#            nn.Linear(z, 128),
+#            nn.ReLU(),
+#            nn.Linear(128, 256),
+#            nn.ReLU(),
+#            nn.Linear(256, 256 * 8),
+#            nn.ReLU(),
+#            nn.Linear(256 * 8, 256 * 24),
+#            nn.ReLU(),
+#            nn.Linear(256 * 24, 256 * 64),
+#            nn.ReLU(),
+#            nn.Linear(256 * 64, 256 * 128),
+#            nn.ReLU(),
+#            nn.Linear(256 * 128, 256 * 320),
+#            nn.ReLU(),
+#            nn.Linear(256 * 320, 256 * 320 * 3),
+#        )
 
     def forward(self, sample):
 #        return self.decoder(sample).view(-1, 1, 256, 320)
