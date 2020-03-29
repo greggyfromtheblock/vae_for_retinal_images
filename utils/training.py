@@ -334,13 +334,19 @@ class Decoder(nn.Module):
             *linear_block(z, 64, normalize=False),
             *linear_block(64, 256),
             *linear_block(256, 320, dropout=0.1),
-            *linear_block(320, 576, dropout=0.05), 
+            *linear_block(320, 576, dropout=0.05),
             *linear_block(576, 1280),  # 64x4x5=1280
             nn.ReLU(),
         )
 
-        def conv_block(in_channels, out_channels, kernel_size=3,
-                stride=1, padding=0, scale_factor=2):
+        def conv_block(
+            in_channels,
+            out_channels,
+            kernel_size=3,
+            stride=1,
+            padding=0,
+            scale_factor=2,
+        ):
             return [
                 nn.ConvTranspose2d(
                     in_channels,
@@ -351,66 +357,67 @@ class Decoder(nn.Module):
                 ),
                 nn.ReLU(),
                 nn.BatchNorm2d(out_channels),
-                nn.Upsample(mode="bilinear",
-                    scale_factor=scale_factor),
+                nn.Upsample(mode="bilinear", scale_factor=scale_factor),
             ]
 
-
-        self.conv_layers = nn.Sequential(#64x4x5
-            *conv_block(64, 60, padding=0, kernel_size=2),#60x10x12
-            *conv_block(60, 56, padding=0, kernel_size=2),#56x22x26
-            *conv_block(56, 52, padding=0, kernel_size=2), #52x46x54
-            *conv_block(56, 32, padding=1, kernel_size=3, scale_factor=1.5), #32x69x81
-            *conv_block(32, 18, padding=1, kernel_size=3, scale_factor=1.5), #18x103x121
-            *conv_block(18, 10, padding=1, kernel_size=3, scale_factor=1.5), #10x154x181
-            *conv_block(10, 7, padding=1, kernel_size=3, scale_factor=1.5), #7x231x271
-            *conv_block(7, 3, padding=1, kernel_size=3, scale_factor=1.1), #7x231x271
+        self.conv_layers = nn.Sequential(  # 64x4x5
+            *conv_block(64, 60, padding=0, kernel_size=2),  # 60x10x12
+            *conv_block(60, 56, padding=0, kernel_size=2),  # 56x22x26
+            *conv_block(56, 52, padding=0, kernel_size=2),  # 52x46x54
+            *conv_block(52, 32, padding=1, kernel_size=3, scale_factor=1.5),  # 32x69x81
+            *conv_block(
+                32, 18, padding=1, kernel_size=3, scale_factor=1.5
+            ),  # 18x103x121
+            *conv_block(
+                18, 10, padding=1, kernel_size=3, scale_factor=1.5
+            ),  # 10x154x181
+            *conv_block(10, 7, padding=1, kernel_size=3, scale_factor=1.5),  # 7x231x271
+            *conv_block(7, 3, padding=1, kernel_size=3, scale_factor=1.1),  # 7x231x271
             nn.UpsamplingNearest2d(size=(256, 320)),  # The wished size
             nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
         )
 
-#        self.conv_layers = nn.Sequential(
-#            *conv_block(64, 54, padding=1),
-#            *conv_block(54, 36, padding=1),
-#            *conv_block(36, 24, padding=1),
-#            *conv_block(24, 8, padding=1),
-#            *conv_block(8, 3, kernel_size=5, padding=2),
-#            # nn.UpsamplingNearest2d(size=(192, 188)),  # The wished size
-#            nn.UpsamplingNearest2d(size=(256, 320)),  # The wished size
-#            nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
-#        )
+    #        self.conv_layers = nn.Sequential(
+    #            *conv_block(64, 54, padding=1),
+    #            *conv_block(54, 36, padding=1),
+    #            *conv_block(36, 24, padding=1),
+    #            *conv_block(24, 8, padding=1),
+    #            *conv_block(8, 3, kernel_size=5, padding=2),
+    #            # nn.UpsamplingNearest2d(size=(192, 188)),  # The wished size
+    #            nn.UpsamplingNearest2d(size=(256, 320)),  # The wished size
+    #            nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
+    #        )
 
-#        self.decoder = nn.Sequential(
-#            nn.Linear(z, 128),
-#            nn.ReLU(),
-#            nn.Linear(128, 256),
-#            nn.ReLU(),
-#            nn.Linear(256, 256 * 8),
-#            nn.ReLU(),
-#            nn.Linear(256 * 8, 256 * 24),
-#            nn.ReLU(),
-#            nn.Linear(256 * 24, 256 * 64),
-#            nn.ReLU(),
-#            nn.Linear(256 * 64, 256 * 128),
-#            nn.ReLU(),
-#            nn.Linear(256 * 128, 256 * 320),
-#            nn.ReLU(),
-#            nn.Linear(256 * 320, 256 * 320 * 3),
-#        )
+    #        self.decoder = nn.Sequential(
+    #            nn.Linear(z, 128),
+    #            nn.ReLU(),
+    #            nn.Linear(128, 256),
+    #            nn.ReLU(),
+    #            nn.Linear(256, 256 * 8),
+    #            nn.ReLU(),
+    #            nn.Linear(256 * 8, 256 * 24),
+    #            nn.ReLU(),
+    #            nn.Linear(256 * 24, 256 * 64),
+    #            nn.ReLU(),
+    #            nn.Linear(256 * 64, 256 * 128),
+    #            nn.ReLU(),
+    #            nn.Linear(256 * 128, 256 * 320),
+    #            nn.ReLU(),
+    #            nn.Linear(256 * 320, 256 * 320 * 3),
+    #        )
 
     def forward(self, sample):
-#        return self.decoder(sample).view(-1, 1, 256, 320)
-#        return self.decoder(sample).view(-1, 3, 256, 320)
+        #        return self.decoder(sample).view(-1, 1, 256, 320)
+        #        return self.decoder(sample).view(-1, 3, 256, 320)
         dec = torch.reshape(
-            self.linear_blocks(sample), (sample.shape[0], 64, 4, 5)
-#            self.linear_blocks(sample), (sample.shape[0], 64, 3, 3)
+            self.linear_blocks(sample),
+            (sample.shape[0], 64, 4, 5)
+            #            self.linear_blocks(sample), (sample.shape[0], 64, 3, 3)
         )
         # print(dec.shape)
         reconstructions = self.conv_layers(dec)
         print(reconstructions.shape)
         return reconstructions
-
-
 
 
 class OdirVAETraining(VAETraining):
