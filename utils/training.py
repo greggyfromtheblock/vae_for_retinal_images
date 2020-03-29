@@ -117,12 +117,6 @@ class Decoder(nn.Module):
                                 stride=stride),
                       nn.BatchNorm2d(in_channels),
                       nn.ReLU(),
-                      """
-                      nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2,
-                                stride=stride),
-                      nn.BatchNorm2d(out_channels),
-                      nn.ReLU(),
-                      """,
                       nn.ConvTranspose2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding,
                                          stride=stride),
                       nn.BatchNorm2d(out_channels),
