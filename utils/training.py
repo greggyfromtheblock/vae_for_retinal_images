@@ -59,7 +59,7 @@ class Encoder(nn.Module):
                     out_channels,
                     kernel_size=kernel_size,
                     padding=padding,
-                    strid=stride,
+                    stride=stride,
                     bias=bias,
                 )
             )
