@@ -385,7 +385,7 @@ class Decoder(nn.Module):
 #        return self.decoder(sample).view(-1, 1, 256, 320)
 #        return self.decoder(sample).view(-1, 3, 256, 320)
         dec = torch.reshape(
-            self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 3, 3)
+            self.linear_blocks(sample), (sample.shape[0], 64, 3, 3)
         )
         # print(dec.shape)
         reconstructions = self.conv_layers(dec)
