@@ -62,8 +62,8 @@ class Encoder(nn.Module):
             *linear_block(64 * 5 * 4, 512, normalize=False, dropout=None),
             # *linear_block(512, 256, dropout=None),
             *linear_block(512, 128),
-            *linear_block(128, 64),
-            nn.Linear(64, z),
+            # *linear_block(128, 64),
+            nn.Linear(128, z),
             nn.BatchNorm1d(z),
             nn.ReLU()
         )
@@ -104,8 +104,8 @@ class Decoder(nn.Module):
             return layers
 
         self.linear_blocks = nn.Sequential(
-            *linear_block(z, 64, normalize=False),
-            *linear_block(64, 128),
+            *linear_block(z, 128, normalize=False),
+            # *linear_block(64, 128),
             *linear_block(128, 512, dropout=None),
             *linear_block(512, 1280, dropout=None),  # 5*4*64
             nn.ReLU()
@@ -117,10 +117,12 @@ class Decoder(nn.Module):
                                 stride=stride),
                       nn.BatchNorm2d(in_channels),
                       nn.ReLU(),
+                      """
                       nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2,
                                 stride=stride),
                       nn.BatchNorm2d(out_channels),
                       nn.ReLU(),
+                      """,
                       nn.ConvTranspose2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding,
                                          stride=stride),
                       nn.BatchNorm2d(out_channels),
