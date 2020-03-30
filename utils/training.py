@@ -32,7 +32,7 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, padding_max_pooling=0):
-            return [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
+            return [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
                     nn.ReLU(),
                     nn.BatchNorm2d(out_channels),
                     nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
@@ -142,6 +142,10 @@ class Decoder(nn.Module):
         return reconstructions
 
 
+def normalize(image):
+    return (image - image.min()) / (image.max() - image.min())
+
+
 class OdirVAETraining(VAETraining):
     def __init__(self, encoder, decoder, data, path_prefix, network_name,
                  alpha=0.25, beta=0.5, m=120,
@@ -164,9 +168,10 @@ class OdirVAETraining(VAETraining):
         if self.epoch != self.epoch_id:
             self.epoch = self.epoch_id
             print("%i-Epoch" % self.epoch_id)
+
         if self.step_id % 10 == 0:
-            self.writer.add_image("target", data[0], self.step_id)
-            self.writer.add_image("reconstruction", reconstructions[0], self.step_id)
+            self.writer.add_image("target", normalize(data[0]), self.step_id)
+            self.writer.add_image("reconstruction", normalize(reconstructions[0].sigmoid()), self.step_id)
         return mean, logvar, reconstructions, data
 
 
