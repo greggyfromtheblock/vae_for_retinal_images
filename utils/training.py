@@ -35,16 +35,19 @@ class Encoder(nn.Module):
             return [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
                     nn.ReLU(),
                     nn.BatchNorm2d(out_channels),
+                    nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
+                    nn.ReLU(),
+                    nn.BatchNorm2d(out_channels),
                     nn.MaxPool2d(kernel_size=2, stride=2, padding=padding_max_pooling)]
 
         self.conv_layers = nn.Sequential(
             # Formula of new "Image" Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
-            *conv_block(3, 16, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
+            *conv_block(3, 32, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
             # -> (188-5+2*2)//1 + 1 = 188  --> Max-Pooling: 188/2 = 94
-            *conv_block(16, 32, kernel_size=5, padding=2),   # New "Image" Size:  48x47
-            *conv_block(32, 64, padding=1),  # New "Image" Size:  24x23
-            *conv_block(64, 128, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
-            *conv_block(128, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
+            *conv_block(32, 64, kernel_size=5, padding=2),   # New "Image" Size:  48x47
+            *conv_block(64, 128, padding=1),  # New "Image" Size:  24x23
+            *conv_block(128, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
+            *conv_block(256, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
             # *conv_block(54, 64),   # New "Image" Size:  2*2
         )
 
@@ -59,8 +62,8 @@ class Encoder(nn.Module):
             *linear_block(64 * 5 * 4, 128, normalize=True, dropout=None),
             # *linear_block(512, 256, dropout=None),
             # *linear_block(256, 128),
-            # *linear_block(128, 64),
-            *linear_block(128, z, negative_slope=0.0)
+            *linear_block(128, 64),
+            *linear_block(64, z, negative_slope=0.0)
         )
 
         self.mean = nn.Linear(z, z)
@@ -99,19 +102,20 @@ class Decoder(nn.Module):
             return layers
 
         self.linear_blocks = nn.Sequential(
-            *linear_block(z, 128, normalize=True),
-            # *linear_block(64, 128),
+            *linear_block(z, 64, normalize=True),
+            *linear_block(64, 128),
             # *linear_block(128, 256, dropout=None),
             *linear_block(128, 1280, dropout=None),  # 5*4*64
             nn.ReLU()
         )
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, scale_factor=None, size=None, mode='bilinear'):
-            """nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size//2,
+
+            layers = [nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size//2,
                                 stride=stride),
                       nn.BatchNorm2d(in_channels),
-                      nn.ReLU(),"""
-            layers = [nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding,
+                      nn.ReLU(),
+                      nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding,
                                          stride=stride),
                       nn.BatchNorm2d(out_channels),
                       nn.ReLU()]
@@ -125,9 +129,9 @@ class Decoder(nn.Module):
             *conv_block(128, 64, padding=1, size=(24, 23), mode='nearest'),
             *conv_block(64, 64, padding=1, size=(48, 47)),
             *conv_block(64, 32, padding=1, scale_factor=2),
-            *conv_block(32, 32, kernel_size=5, padding=2, scale_factor=2),
-            nn.Conv2d(in_channels=32, out_channels=3, kernel_size=1),
-            nn.BatchNorm2d(3),
+            *conv_block(32, 16, kernel_size=5, padding=2, scale_factor=2),
+            nn.Conv2d(in_channels=16, out_channels=3, kernel_size=1),
+            nn.BatchNorm2d(3)
         )
 
     def forward(self, latent_vector):
@@ -142,7 +146,7 @@ class OdirVAETraining(VAETraining):
     def __init__(self, encoder, decoder, data, path_prefix, network_name,
                  alpha=0.25, beta=0.5, m=120,
                  optimizer=torch.optim.Adam,
-                 optimizer_kwargs={"lr": 1e-2},
+                 optimizer_kwargs={"lr": 5e-5},
                  **kwargs):
         super(OdirVAETraining, self).__init__(
             encoder, decoder, data,

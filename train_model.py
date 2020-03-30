@@ -29,9 +29,12 @@ if __name__ == "__main__":
     parser.add_argument('network_name', type=str, default=None,
         metavar='network_name',
                     help="""The name of the network. Use different names for different models!""")
-    parser.add_argument('--gpu_number', type=str, default=None,
-        metavar='network_name',
+    parser.add_argument('--gpu_number', type=int, default=3,
+        metavar='gpu_number',
                     help="""The gpu you want to use. Number must be between 0 and 7""")
+    parser.add_argument('--learning_rate', type=float, default=5e-5,
+        metavar='learning_rate',
+                    help="""The learning_rate.""")
     args = parser.parse_args()
 
     def add_slash(path):
@@ -43,7 +46,9 @@ if __name__ == "__main__":
     imfolder = add_slash(args.imfolder)
     network_name = args.network_name
     path_prefix = args.path_prefix  # optional argument. If default: the path is the current one.
+    print(type(args.gpu_number))
     gpu_number = int(args.gpu_number) if int(args.gpu_number) in range(8) else 3
+    lr = args.learning_rate
 
     if network_name in os.listdir(path_prefix):
         input1 = input("Network already exists. Are you sure to continue? [y/yes]\n")
@@ -64,6 +69,7 @@ if __name__ == "__main__":
         data,
         path_prefix=path_prefix,
         network_name=network_name,
+        optimizer_kwargs={"lr": lr},
         device="cuda:%i" % gpu_number if torch.cuda.is_available() else "cpu",
         batch_size=128,
         max_epochs=100,
