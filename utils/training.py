@@ -266,27 +266,6 @@ class Encoder(nn.Module):
             nn.Linear(42 * 5 * 7, z),
             nn.ReLU(),
         )
-
-        #            nn.Conv2d(
-        #                in_channels=3, out_channels=6, kernel_size=5, stride=1, bias=False
-        #            ),  # 252x316
-        #            nn.ReLU(),
-        #            nn.MaxPool2d(kernel_size=4, stride=4),  # 63x79
-        #            nn.Conv2d(
-        #                in_channels=6, out_channels=12, kernel_size=4, stride=1, bias=False
-        #            ),  # 60x76
-        #            nn.ReLU(),
-        #            nn.MaxPool2d(kernel_size=4, stride=4),  # 15x19
-        #            nn.Conv2d(
-        #                in_channels=12, out_channels=24, kernel_size=4, stride=1, bias=False
-        #            ),  # 12x16
-        #            nn.ReLU(),
-        #            nn.MaxPool2d(kernel_size=4, stride=4),  # 24x3x4
-        #            nn.Flatten(1),  # 24*3*4
-        #            nn.Linear(24 * 3 * 4, 32),
-        #            nn.ReLU(),  # 32
-        #        )
-
         self.mean = nn.Linear(z, z)
         self.logvar = nn.Linear(z, z)
 
@@ -302,24 +281,6 @@ class Decoder(nn.Module):
     def __init__(self, z=32):
         super(Decoder, self).__init__()
         self.z = z
-        #        self.decoder = nn.Sequential(
-        #            nn.Linear(z, 256 * 320 * 3),
-        #            nn.ReLU(),
-        #            #            nn.Sigmoid()
-        #            #            nn.Linear(z, 128),
-        #            #            nn.ReLU(),
-        #            #            nn.Linear(128, 256),
-        #            #            nn.ReLU(),
-        #            #            nn.Linear(256, 28 * 32),
-        #            #            nn.ReLU(),
-        #            #            nn.Linear(28 * 32, 36 * 48),
-        #            #            nn.ReLU(),
-        #            #            nn.Linear(36 * 48, 72 * 96),
-        #            #            nn.ReLU(),
-        #            #            nn.Linear(72 * 96, 156 * 212),
-        #            #            nn.ReLU(),
-        #            #            nn.Linear(156 * 212, 256 * 320)
-        #        )
 
         def linear_block(in_feat, out_feat, normalize=True, dropout=None):
             layers = [nn.Linear(in_feat, out_feat)]
@@ -377,43 +338,9 @@ class Decoder(nn.Module):
             nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
         )
 
-    #        self.conv_layers = nn.Sequential(
-    #            *conv_block(64, 54, padding=1),
-    #            *conv_block(54, 36, padding=1),
-    #            *conv_block(36, 24, padding=1),
-    #            *conv_block(24, 8, padding=1),
-    #            *conv_block(8, 3, kernel_size=5, padding=2),
-    #            # nn.UpsamplingNearest2d(size=(192, 188)),  # The wished size
-    #            nn.UpsamplingNearest2d(size=(256, 320)),  # The wished size
-    #            nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
-    #        )
-
-    #        self.decoder = nn.Sequential(
-    #            nn.Linear(z, 128),
-    #            nn.ReLU(),
-    #            nn.Linear(128, 256),
-    #            nn.ReLU(),
-    #            nn.Linear(256, 256 * 8),
-    #            nn.ReLU(),
-    #            nn.Linear(256 * 8, 256 * 24),
-    #            nn.ReLU(),
-    #            nn.Linear(256 * 24, 256 * 64),
-    #            nn.ReLU(),
-    #            nn.Linear(256 * 64, 256 * 128),
-    #            nn.ReLU(),
-    #            nn.Linear(256 * 128, 256 * 320),
-    #            nn.ReLU(),
-    #            nn.Linear(256 * 320, 256 * 320 * 3),
-    #        )
-
     def forward(self, sample):
-        #        return self.decoder(sample).view(-1, 1, 256, 320)
         #        return self.decoder(sample).view(-1, 3, 256, 320)
-        dec = torch.reshape(
-            self.linear_blocks(sample),
-            (sample.shape[0], 64, 4, 5)
-            #            self.linear_blocks(sample), (sample.shape[0], 64, 3, 3)
-        )
+        dec = torch.reshape(self.linear_blocks(sample), (sample.shape[0], 64, 4, 5))
         # print(dec.shape)
         reconstructions = self.conv_layers(dec)
         print(reconstructions.shape)
