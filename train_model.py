@@ -64,6 +64,8 @@ if __name__ == "__main__":
         max_epochs=100,
         verbose=True
     )
+    print(len(data))
+    print("To check if values are between 0 and 1:\n", data[0][0][0][50][30:180:10])
 
     print("Start Training...")
     trained = training.train()
