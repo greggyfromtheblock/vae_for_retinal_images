@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import pandas as pd
 import PIL as pil
@@ -18,6 +20,7 @@ def trim_image_rgb(jpg, dir, outdir):
     io.imsave(outdir + jpg, img)
 
 
+# TODO: Split this function into two functions: extend_db and resize_image
 def find_optimal_image_size_and_extend_db(xlsx_dir, imdir):
     """
     :param db: Directory of data (Directory to .xlsx file, later of extended Database (saving as .tsv file))
@@ -80,7 +83,7 @@ def find_optimal_image_size_and_extend_db(xlsx_dir, imdir):
                 return new_w, new_h
 
 
-def rotate(img, outdir, fname):
+def rotate(img, outdir, fname, aug_per_image, max_rotation_angle):
     # Prerequisites for rotating: Only those images should be rotated on which the retina is a 'whole' circle
     # They are defined by the distance between two black pixels (values of these pixels are (0, 0, 0)) in the first
     # and last row respectively the column
@@ -105,9 +108,10 @@ def rotate(img, outdir, fname):
 
         return abs(max-min) < max_distance
 
+    # DONE: Make a list ranging from -max_angle to +max_angle and then choose n_aug and perform rotation on it
     if check_prereq(img[0]) and check_prereq(img[-1]) and check_prereq(np.transpose(img)[0]) and \
             check_prereq(np.transpose(img)[-1]):
 
-        angles = [20, -15, -10, -5, -2.5, 2.5, 5, 10, 15, 20]
-        for angle in angles:
+        rotation_angles = [random.randrange(-max_rotation_angle, max_rotation_angle) for x in range(aug_per_image)]
+        for angle in rotation_angles:
             io.imsave(outdir + fname + "_rot_%i.jpg" % angle, img_as_ubyte(transform.rotate(img, angle)))

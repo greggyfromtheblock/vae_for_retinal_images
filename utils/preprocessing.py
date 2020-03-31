@@ -1,6 +1,7 @@
+# TODO: maybe rename this file to preprocess_images.py and then the annotations file to preprocess_labels?
+
 import argparse
 import os
-# Ignore warnings
 import warnings
 
 import numpy as np
@@ -26,7 +27,7 @@ if __name__ == '__main__':
     Subsequently, the augmentation step follows:
     Flip images, Rotate those images whose retinas are complete circles 
     """
-
+    # TODO: remove argparse for annotations directory
     parser = argparse.ArgumentParser(
         description="""Preprocessing""")
     parser.add_argument('imdir', type=str, default=None,
@@ -34,14 +35,18 @@ if __name__ == '__main__':
                         help="""The path to the directory which contains
                        the image folder. """)
     parser.add_argument('outdir', type=str, default=None,
-                        metavar='image_dir',
+                        metavar='target_dir',
                         help="""The path to the directory which should contain
                         processed augmented images.""")
-    parser.add_argument('xlsx_dir', type=str, default=None,
-                        metavar='image_dir',
-                        help="""The path to the directory which contains
-                       the Annotations of the Odir-Dataset. """)
-    args = parser.parse_args()
+    parser.add_argument('aug_per_image', type=int, default=0,
+                        metavar='n_augmentation',
+                        help="""Number of Augmented images per image""")
+    parser.add_argument('max_rotation_angle', type=int, default=0,
+                        metavar='maximum_rotation_angle',
+                        help="""Max rotation degree +- for the images, for example if you pass 10 to
+                        this argument then the function will pick {aug_per_image} random values from
+                        the range -10 to 10""")
+    args, unknown = parser.parse_known_args()
 
     def add_slash(path):
         if path[-1] != '/':
@@ -51,23 +56,8 @@ if __name__ == '__main__':
 
     dir = add_slash(args.imdir)
     outdir = add_slash(args.outdir)
-    xlsx_dir = add_slash(args.xlsx_dir)
 
-    """
-    python3 utils/preprocessing.py
-    /home/henrik/PycharmProjects/vae_for_retinal_images/data/odir/ODIR-5K_Training_Dataset/
-    /home/henrik/PycharmProjects/vae_for_retinal_images/data/processed
-    /home/henrik/PycharmProjects/vae_for_retinal_images/data/odir
-    """
-
-    os.makedirs(outdir, exist_ok=True)
-
-    print("Start cropping...")
-    for i, f in tqdm(enumerate(os.listdir(dir))):
-        # Crop image
-        trim_image_rgb(f, dir, outdir)
-    print("Finished cropping...")
-
+    # TODO: Uncouple resize function with preprocess annotations function on preprocessing_methods.py
     print("Start finding optimal image size and extend db...")
     opt_w, opt_h = find_optimal_image_size_and_extend_db(xlsx_dir, outdir)
     print("Finished finding optimal image size and extend db...")
@@ -88,11 +78,7 @@ if __name__ == '__main__':
         io.imsave(outdir + fname + "_flipped.jpg", img_as_ubyte(image_flipped))
 
         # rotate image and save it
-        rotate(image, outdir, fname)
-        rotate(image_flipped, outdir, fname + "_flipped")
+        rotate(image, outdir, fname, args.aug_per_image, args.max_rotation_angle)
+        rotate(image_flipped, outdir, fname + "_flipped", args.aug_per_image, args.max_rotation_angle)
 
     print("Finished resizing and data augmentation...")
-
-    print("Decode diagnostics keywords...")
-    decode_d_k(xlsx_dir)
-    print("Finished decoding diagnostics keywords...")
