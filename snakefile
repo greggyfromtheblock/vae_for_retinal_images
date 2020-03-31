@@ -1,30 +1,39 @@
-# TODO: Move variables to the config file
-DATASETS = ["ODIR", "PALM"]
-SPLITS = ["Training", "Testing"]
-RESIZE_DIMENSIONS = [0,0]
+configfile: "./workflow_config.json"
+dataset = config["DATASETS"]
+n_augmentation = config["N_AUGMENTATION"]
+maxdegree = config["MAX_ROTATION_DEGREE"]
 
-
-rule train:
+rule all:
     input:
-        "../data/processed/ODIR_Training_Images/"
+        expand("../data/processed/{dataset}_{split}_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/",
+               dataset = config['DATASETS'],
+               split= config['SPLITS'],
+               n_augmentation = config['SPLITS'],
+               maxdegree = config['MAX_ROTATION_DEGREE'])
     shell:
-        "python3 -u train_model.py {input}"
+        "python3 train_model.py {input} {config.network_name}"
 
 
 rule preprocess_images:
     input:
-        expand("../data/raw/{dataset}_{split}_Images/", dataset = DATASETS, split= SPLITS)
+        expand("../data/raw/{dataset}_{split}_Images/", dataset = config['DATASETS'], split= config['SPLITS'])
     output:
-        expand("../data/processed/{dataset}_{split}_Images/", dataset = DATASETS, split= SPLITS)
-    shell:
-        "python3 -u ./utils/preprocessing.py --resize resize_dimensions[0] resize_dimensions[1]  {input} {output}"
+        expand("../data/processed/{dataset}_{split}_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/",
+               dataset = config['DATASETS'],
+               split= config['SPLITS'],
+               n_augmentation = config['SPLITS'],
+               maxdegree = config['MAX_ROTATION_DEGREE'])
+    run:
+        if wildcards.split == 'Training' or wildcards.split == 'training':
+            shell("python3 ./utils/preprocessing.py {input} {output} {config[n_augmentation]} {config[max_rotation_degree]}")
+        else:
+            shell("python3 ./utils/preprocessing.py {input} {output} 0 0")
+
 
 rule preprocess_annotations:
     input:
-        "../data/raw/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+        "../data/raw/annotations/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
     output:
-        "../data/processed/ODIR_Annotations.csv"
-    conda:
-        "../envs/greg.yml"
+        "../data/processed/annotations/ODIR_Annotations.csv"
     shell:
-        "python3 -u decode_diagnostics_keywords.py {input} {output}"
+        "python3 decode_diagnostics_keywords.py {input} {output}"

@@ -1,4 +1,7 @@
 {
-  "Datasets": ["ODIR", "Palm"],
-  "Splits": ["Train", "Test"]
+    "DATASETS": ["ODIR", "Palm"],
+    "SPLITS": ["Train", "Test"],
+    "N_AUGMENTATION": 3,
+    "MAX_ROTATION_DEGREE": 12,
+    "network_name": "gregnet"
 }
