@@ -84,8 +84,7 @@ if __name__ == "__main__":
 
     print("Start finding optimal image size and extend db...")
     opt_w, opt_h = find_optimal_image_size_and_extend_db(
-            db = rootdir, 
-            imdir = ddir + outdir, out="extended.tsv")
+            imdir = ddir + outdir)
 #            imdir = ddir + outdir, out="odir/extended.tsv")
     print("Finished finding optimal image size and extend db...")
 
@@ -109,8 +108,3 @@ if __name__ == "__main__":
         rotate(image_flipped, ddir + outdir, fname + "_flipped")
 
     print("Finished resizing and data augmentation...")
-
-    print("Decode diagnostics keywords...")
-    #decode_d_k(ddir)
-    decode_d_k(path=rootdir, output_file = "extended.csv" )
-    print("Finished decoding diagnostics keywords...")
