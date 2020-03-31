@@ -130,3 +130,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# this shit from apple
+.DS_Store
+DS_Store
+.#findings.org
+.gitignore.swo
+.gitignore.swp
+.snakemake/

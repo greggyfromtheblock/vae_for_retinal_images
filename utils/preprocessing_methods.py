@@ -1,7 +1,9 @@
+import random
+
 import numpy as np
-import PIL as pil
-from skimage import io, img_as_ubyte, transform
 import pandas as pd
+import PIL as pil
+from skimage import img_as_ubyte, io, transform
 
 
 def trim_image_rgb(jpg, dir, outdir):
@@ -18,16 +20,15 @@ def trim_image_rgb(jpg, dir, outdir):
     io.imsave(outdir + jpg, img)
 
 
-def find_optimal_image_size_and_extend_db(db, imdir='processed/train/', out='odir/extended.tsv'):
+# TODO: Split this function into two functions: extend_db and resize_image
+def find_optimal_image_size_and_extend_db(xlsx_dir, imdir):
     """
-    :param db: Directory of data (Directory to images,.xlsx file and later processed data too)
-    :param imdir: Directory to cropped images
-    :param out: Directory of extended Database (saving as .tsv file)
+    :param db: Directory of data (Directory to .xlsx file, later of extended Database (saving as .tsv file))
+    :param imdir: Directory of cropped images
     :return: Tuple: values for new Image Size
     """
-    imdir = db + imdir
 
-    df = pd.read_excel(db+'odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx')
+    df = pd.read_excel(xlsx_dir+'ODIR-5K_Training_Annotations(Updated)_V2.xlsx')
     df['Left-Width'] = int(0)
     df['Left-Height'] = int(0)
     df['Right-Width'] = int(0)
@@ -58,8 +59,9 @@ def find_optimal_image_size_and_extend_db(db, imdir='processed/train/', out='odi
     df['Left-Height'] = y
     df['Right-Width'] = z
     df['Right-Height'] = w
-    print("saving the extended database to: ", db+out)
-    df.to_csv(db+out, index=False, sep='\t')
+
+    print("saving the extended database to: ", xlsx_dir+"extended.tsv")
+    df.to_csv(xlsx_dir+"extended.tsv", index=False, sep='\t')
 
     print('minimal/maximal size (width-height):',
             (min(x), min(y)),
@@ -82,7 +84,7 @@ def find_optimal_image_size_and_extend_db(db, imdir='processed/train/', out='odi
                 return new_w, new_h
 
 
-def rotate(img, outdir, fname):
+def rotate(img, outdir, fname, aug_per_image, max_rotation_angle):
     # Prerequisites for rotating: Only those images should be rotated on which the retina is a 'whole' circle
     # They are defined by the distance between two black pixels (values of these pixels are (0, 0, 0)) in the first
     # and last row respectively the column
@@ -107,11 +109,11 @@ def rotate(img, outdir, fname):
 
         return abs(max-min) < max_distance
 
+
+    # DONE: Make a list ranging from -max_angle to +max_angle and then choose n_aug and perform rotation on it
     if check_prereq(img[0]) and check_prereq(img[-1]) and check_prereq(np.transpose(img)[0]) and \
             check_prereq(np.transpose(img)[-1]):
 
-        angles = [10, -10]  # [20, -15, -10, -5, -2.5, 2.5, 5, 10, 15, 20]
-        for angle in angles:
+        rotation_angles = [random.randrange(-max_rotation_angle, max_rotation_angle) for x in range(aug_per_image)]
+        for angle in rotation_angles:
             io.imsave(outdir + fname + "_rot_%i.jpg" % angle, img_as_ubyte(transform.rotate(img, angle)))
-
-

@@ -25,18 +25,50 @@
 # special keywords: 'anterior segment image',  'no fonndus image'
 
 
-from __future__ import print_function, division
-import os
-import pandas as pd
-from skimage import io, transform
-import numpy as np
+
+from __future__ import division, print_function
+
 import argparse
+import os
 import sys
 
+import numpy as np
+import pandas as pd
+from skimage import io, transform
 
-# Command: python3 Preprocessing/decode_diagnostics_keywords.py /home/henrik/PycharmProjects/Project\ A\ -\ VAE\
-# Retina/odir/ODIR-5K_Training_Annotations\(Updated\)_V2.xlsx --out /home/henrik/PycharmProjects/Project\ A\ -\ VAE\
-# Retina/odir/decoded.csv
+parser = argparse.ArgumentParser(
+    description="""Reads the odir
+annotation file and asigns diagnostic codes for each side according
+to the diagnostic keywords. So in addition to field 'N', 'D' etc.
+The script adds fields 'LN','LD','RN','RD' etc.
+In additional there is a field 'L-ant', 'R-ant' where a non-zero
+indicates there is the special 'anterio segment image' keyword,
+and 'L-no', 'R-no' which indicates the keyword 'no fundus image'.
+"""
+)
+parser.add_argument(
+    "input",
+    type=str,
+    default=None,
+    metavar="input_file",
+    help="""The path to excel file of the annotations for
+                    the odir database training set."""
+)
+parser.add_argument(
+    "--out",
+    type=str,
+    default=sys.stdout,
+    metavar="--output_file",
+    help="""The path where to save the new
+             csv file. If no argument is given, the result is
+             printed to stdout and can be piped in the command line."""
+)
+parser.add_argument(
+    "--info",
+    action="store_true",
+    help="""Print information about how to use this script and exit"""
+)
+args = parser.parse_args()
 
 info_text = """Reads the odir
 annotation file and asigns diagnostic codes for each side according
@@ -60,8 +92,10 @@ special keywords: 'anterior segment image',  'no fonndus image'
 """
 
 
-def decode_d_k(path, output_file = "odir/odir_train_lr_annotations.csv"):
-    xsl_file = path + "odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+
+def decode_d_k(path, output_file="odir/odir_train_lr_annotations.csv"):
+    #xsl_file = path + "odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+    xsl_file = path + "ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
     df = pd.read_excel(xsl_file)
 
     # get all the unique diagnostics as a list
@@ -152,32 +186,48 @@ def decode_d_k(path, output_file = "odir/odir_train_lr_annotations.csv"):
     for val in olist:
         testl = np.vectorize(f(val))(df["Left-Diagnostic Keywords"])
         testr = np.vectorize(f(val))(df["Right-Diagnostic Keywords"])
-        df.loc[testl, "LO"]= 1
+
+        df.loc[testl, "LO"] = 1
         df.loc[testr, "RO"] = 1
 
     # Making Left and Right each apear in separate row
     cols = df.columns.tolist()
-    newcols = ['ID', 'Side', 'Patient Age', 'Patient Sex',
-               'Fundus Image', 'Diagnostic Keywords',
-               'N', 'D', 'G', 'C', 'A', 'H', 'M',
-               'O', 'anterior', 'no fundus']
 
-    left_df = pd.DataFrame(columns=['ID'])
-    left_df['ID'] = df['ID']
-    left_df['Side'] = "L"
+    newcols = [
+        "ID",
+        "Side",
+        "Patient Age",
+        "Patient Sex",
+        "Fundus Image",
+        "Diagnostic Keywords",
+        "N",
+        "D",
+        "G",
+        "C",
+        "A",
+        "H",
+        "M",
+        "O",
+        "anterior",
+        "no fundus",
+    ]
+
+    left_df = pd.DataFrame(columns=["ID"])
+    left_df["ID"] = df["ID"]
+    left_df["Side"] = "L"
     left_df[newcols[2:5]] = df[cols[1:4]]
-    left_df['Diagnostic Keywords'] = df['Left-Diagnostic Keywords']
+    left_df["Diagnostic Keywords"] = df["Left-Diagnostic Keywords"]
     left_df[newcols[6:-2]] = df[cols[15:23]]
-    left_df[newcols[-2:]] = df[['L-ant', 'L-no']]
+    left_df[newcols[-2:]] = df[["L-ant", "L-no"]]
 
-    right_df = pd.DataFrame(columns=['ID'])
-    right_df['ID'] = df['ID']
-    right_df['Side'] = "R"
+    right_df = pd.DataFrame(columns=["ID"])
+    right_df["ID"] = df["ID"]
+    right_df["Side"] = "R"
     right_df[newcols[2:5]] = df[[cols[i] for i in [1, 2, 4]]]
-    right_df['Diagnostic Keywords'] = df['Right-Diagnostic Keywords']
+    right_df["Diagnostic Keywords"] = df["Right-Diagnostic Keywords"]
     right_df[newcols[6:-2]] = df[cols[23:-4]]
-    right_df[newcols[-2:]] = df[['R-ant', 'R-no']]
+    right_df[newcols[-2:]] = df[["R-ant", "R-no"]]
 
     new_df = pd.concat([left_df, right_df], axis=0)
-    new_df = new_df.sort_values(by=['ID', 'Side'])
-    new_df.to_csv(path+output_file, sep='\t', index=False, header=True)
+    new_df = new_df.sort_values(by=["ID", "Side"])
+    new_df.to_csv(path + output_file, sep="\t", index=False, header=True)
