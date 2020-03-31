@@ -2,6 +2,9 @@ import numpy as np
 import PIL as pil
 from skimage import io, img_as_ubyte, transform
 import pandas as pd
+import os
+import sys
+from tqdm import tqdm
 
 
 def trim_image_rgb(jpg, dir, outdir):
@@ -19,50 +22,29 @@ def trim_image_rgb(jpg, dir, outdir):
 
 
 def find_optimal_image_size_and_extend_db(
-    db, imdir="processed/train/", out="odir/extended.tsv"
-):
+    imdir="processed/train/"):
     """
-    :param db: Directory of data (Directory to images,.xlsx file and later processed data too)
     :param imdir: Directory to cropped images
-    :param out: Directory of extended Database (saving as .tsv file)
     :return: Tuple: values for new Image Size
     """
     #imdir = db + imdir
 
-    df = pd.read_excel(db + "/ODIR-5K_Training_Annotations(Updated)_V2.xlsx")
-    #df = pd.read_excel(db + "odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx")
-    df["Left-Width"] = int(0)
-    df["Left-Height"] = int(0)
-    df["Right-Width"] = int(0)
-    df["Right-Height"] = int(0)
-
-    x = np.zeros_like(df["ID"]).astype("int")
-    y = np.zeros_like(df["ID"]).astype("int")
-    z = np.zeros_like(df["ID"]).astype("int")
-    w = np.zeros_like(df["ID"]).astype("int")
+    n = len(os.listdir(imdir)) #number of images
+    x = np.zeros(n).astype("int")
+    y = np.zeros(n).astype("int")
+#    z = np.zeros(n).astype("int")
+#    w = np.zeros(n).astype("int")
 
     min_x, min_y = float("inf"), float("inf")
-    for i, row in enumerate(df["Left-Fundus"]):
-        s = imdir + row
-        t = imdir + row.replace("left", "right")
-        img = pil.Image.open(s)
+    i = 0
+    for f in tqdm(os.listdir(imdir)):
+        img = pil.Image.open(imdir + '/' + f)
         x[i] = img.width
         y[i] = img.height
+        i += 1
         if img.width * img.height < min_x * min_y:
             min_x, min_y = img.width, img.height
-
         img.close
-        img = pil.Image.open(t)
-        z[i] = img.width
-        w[i] = img.height
-        img.close
-
-    df["Left-Width"] = x
-    df["Left-Height"] = y
-    df["Right-Width"] = z
-    df["Right-Height"] = w
-    print("saving the extended database to: ", db + out)
-    df.to_csv(db + out, index=False, sep="\t")
 
     print("minimal/maximal size (width-height):", (min(x), min(y)), (max(x), max(y))),
 
