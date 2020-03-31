@@ -7,31 +7,28 @@ import sys
 from torchvision import datasets, transforms
 import numpy as np
 import torch
-from skimage import img_as_ubyte
 from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
-
+import time
 
 def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-            description="""Training VAE""")
-    parser.add_argument('imfolder', type=str, default=None,
-        metavar='image_dir',
-                    help="""The path to the directory which contains
-                    the imgge folder. The images themselves must be
-                    in one or more subdirectories of the imfolder""")
-    parser.add_argument('--path_prefix', type=str, default=".",
-        metavar='path_prefix',
-                    help="""The path to the directory which should contain the data for tensorboard.""")
-    parser.add_argument('network_name', type=str, default=None,
-        metavar='network_name',
-                    help="""The name of the network. Use different names for different models!""")
-    parser.add_argument('--gpu_number', type=int, default=3,
-        metavar='gpu_number',
-                    help="""The gpu you want to use. Number must be between 0 and 7""")
+    parser = argparse.ArgumentParser(description="""Training VAE""")
+    parser.add_argument('imfolder', type=str, default=None, metavar='image_dir',
+                        help="""The path to the directory which contains the imgge folder. The images themselves must be
+                        in one or more subdirectories of the imfolder""")
+    parser.add_argument('--path_prefix', type=str, default=".", metavar='path_prefix',
+                        help="""The path to the directory which should contain the data for tensorboard.""")
+    parser.add_argument('network_name', type=str, default=None, metavar='network_name',
+                        help="""The name of the network. Use different names for different models!""")
+    parser.add_argument('--gpu_number', type=int, default=3, metavar='gpu_number',
+                        help="""The gpu you want to use.     Number must be between 0 and 7""")
+    parser.add_argument('--n_epochs', type=int, default=100, metavar='n_epochs',
+                        help="""Maximal number of epochs.""")
+    parser.add_argument('--batch_size', type=int, default=64, metavar='batch_size',
+                        help="""Size of a Batch.""")
     parser.add_argument('--learning_rate', type=float, default=5e-5,
         metavar='learning_rate',
                     help="""The learning_rate.""")
@@ -46,12 +43,13 @@ if __name__ == "__main__":
     imfolder = add_slash(args.imfolder)
     network_name = args.network_name
     path_prefix = args.path_prefix  # optional argument. If default: the path is the current one.
-    print(type(args.gpu_number))
     gpu_number = int(args.gpu_number) if int(args.gpu_number) in range(8) else 3
+    n_epochs = args.n_epochs
+    batch_size = args.batch_size
     lr = args.learning_rate
 
     if network_name in os.listdir(path_prefix):
-        input1 = input("Network already exists. Are you sure to continue? [y/yes]\n")
+        input1 = input("Network already exists. Are you sure to proceed? ([y]/n)\n")
         if not input1 in ['y', 'yes']:
             sys.exit()
 
@@ -71,20 +69,24 @@ if __name__ == "__main__":
         network_name=network_name,
         optimizer_kwargs={"lr": lr},
         device="cuda:%i" % gpu_number if torch.cuda.is_available() else "cpu",
-        batch_size=128,
-        max_epochs=100,
+        batch_size=batch_size,
+        max_epochs=n_epochs,
         verbose=True
     )
     print(len(data), data[0][0].shape)
     print("To check if values are between 0 and 1:\n", data[0][0][0][50][30:180:10])
 
     print("Start Training...")
+    time_start = time.time()
     trained = training.train()
-    print("Finished Training...")
+    print('\nTraining with %i done! Time elapsed: %.2f minutes' % (n_epochs, (time.time() - time_start)/60))
+    trained_encoder, _ = training.train()
+    # print(trained_encoder)
 
-    encoder = trained[0]
-    sample, _ = img_dataset[0]
-    features, mean, logvar = encoder(sample)
+    # Save network
+    PATH = f'{path_prefix}/{network_name}/{network_name}.pth'
+    torch.save(trained_encoder.state_dict(), PATH)
+
 
     print(type(features))
     if type(features) == torch.Tensor:
