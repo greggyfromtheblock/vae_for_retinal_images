@@ -15,6 +15,8 @@ from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 from utils.utils import setup
 
 if __name__ == "__main__":
+    FLAGS, logger = setup(running_script="./utils/training.py", config="config.json")
+    print("FLAGS= ", FLAGS)
 
     def add_slash(path):
         if path[-1] != "/":
