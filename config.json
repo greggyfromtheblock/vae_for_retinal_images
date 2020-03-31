@@ -1,0 +1,92 @@
+{
+  "-out_directory": {
+    "short": "-od",
+    "value": "./output",
+    "help": "Output directory.",
+    "type": "str"
+  },
+  "-input": {
+    "short": "-i",
+    "value": "../data/test/",
+    "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
+    "type": "str"
+  },
+  "-logging_name": {
+    "short": "-n",
+    "value": "test",
+    "help": "Global logger prefix.",
+    "type": "str"
+  },
+  "-networkname": {
+    "short": "-nn",
+    "value": "Retinal VAE",
+    "help": "Some juicy VAE name.",
+    "type": "str"
+  },
+  "-device": {
+    "short": "-dv",
+    "value": "cuda",
+    "help": "Device to work on",
+    "type": "str"
+  },
+  "-learningrate": {
+    "short": "-lr",
+    "value": 1e-5,
+    "help": "The models learningrate",
+    "type": "float"
+  },
+  "-maxpochs": {
+    "short": "-me",
+    "value": 250,
+    "help": "Maximum nr of epochs to train the model",
+    "type": "int"
+  },
+  "-reportinterval": {
+    "short": "-rp",
+    "value": 100,
+    "help": "Report after {reprotinterval}-steps",
+    "type": "int"
+  },
+  "-batchsize": {
+    "short": "-bs",
+    "value": 64,
+    "help": "The models batchsize",
+    "type": "int"
+  },
+  "-zdim": {
+    "short": "-zd",
+    "value": 32,
+    "help": "The latent dimension of the bottleneck.",
+    "type": "int"
+  },
+  "-dropout": {
+    "short": "-do",
+    "value": 0.0,
+    "help": "Dropout to apply",
+    "type": "float"
+  },
+  "-alpha": {
+    "short": "-aa",
+    "value": 0.0,
+    "help": "Parameter alpha (float)",
+    "type": "float"
+  },
+  "-beta": {
+    "short": "-bb",
+    "value": 0.0,
+    "help": "Parameter beta (float)",
+    "type": "float"
+  },
+  "-gamma": {
+    "short": "-gg",
+    "value": 0,
+    "help": "Parameter gamma (int)",
+    "type": "int"
+  },
+  "-delta": {
+    "short": "-dd",
+    "value": 0,
+    "help": "Parameter delta (int)",
+    "type": "int"
+  }
+}

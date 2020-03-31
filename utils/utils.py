@@ -14,6 +14,8 @@ def set_up_logger(out_directory, name, to_console=True, console_level="DEBUG"):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
+    if not os.path.isdir(out_directory):
+        os.makedirs(os.path.abspath(out_directory), exist_ok=True)
     logfile = os.path.join(out_directory, "{}.log".format(name))
     if os.path.isfile(logfile):
         with open(logfile, "a") as ofile:

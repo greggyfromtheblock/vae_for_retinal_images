@@ -12,20 +12,9 @@ from skimage import io
 from tqdm import tqdm
 import torch
 from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
+from utils.utils import setup
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="""Training VAE""")
-    parser.add_argument("--usecuda", action="store_true", help="""try to use cuda""")
-    parser.add_argument(
-        "imfolder",
-        type=str,
-        default=None,
-        metavar="image_dir",
-        help="""The path to the directory which contains
-                    the imgage folder. The images themselves must be
-                    in one or more subdirectories of the imfolder""",
-    )
-    args = parser.parse_args()
 
     def add_slash(path):
         if path[-1] != "/":
@@ -33,12 +22,14 @@ if __name__ == "__main__":
         else:
             return path
 
-    imfolder = add_slash(args.imfolder)
+#    imfolder = add_slash(args.imfolder)
+    imfolder = os.path.abspath(FLAGS.input)
+    device = FLAGS.device if torch.cuda.is_available() else "cpu"
+
+    print("input dir: ", imfolder,
+            "device: : ", device)
 
     print("Load Data as Tensors...")
-    #    img_dataset = datasets.ImageFolder(
-    #        "./data/processed/", transform=transforms.ToTensor()
-    #    )
     img_dataset = datasets.ImageFolder(
         imfolder,
         transform=transforms.Compose(
@@ -48,16 +39,16 @@ if __name__ == "__main__":
     )
     data = VAEDataset(img_dataset)
 
-    encoder, decoder = Encoder(z=32), Decoder(z=32)
+    encoder, decoder = Encoder(z=FLAGS.zdim), Decoder(z=FLAGS.zdim)
 
     training = OdirVAETraining(
         encoder,
         decoder,
         data,
-        network_name="odir-vae",
-        device="cuda" if (args.usecuda and torch.cuda.is_available()) else "cpu",
-        batch_size=64,
-        max_epochs=1200,
+        network_name=FLAGS.networkname,
+        device=device,
+        batch_size=FLAGS.batchsize,
+        max_epochs=FLAGS.maxpochs,
         verbose=True,
     )
 
