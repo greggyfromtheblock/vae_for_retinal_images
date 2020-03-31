@@ -25,6 +25,7 @@
 # special keywords: 'anterior segment image',  'no fonndus image'
 
 
+
 from __future__ import division, print_function
 
 import argparse
@@ -89,6 +90,7 @@ M: myopia
 O: other diagnosys except 'anterior segment image' and 'no fonndus image'
 special keywords: 'anterior segment image',  'no fonndus image'
 """
+
 
 
 def decode_d_k(path, output_file="odir/odir_train_lr_annotations.csv"):
@@ -184,11 +186,13 @@ def decode_d_k(path, output_file="odir/odir_train_lr_annotations.csv"):
     for val in olist:
         testl = np.vectorize(f(val))(df["Left-Diagnostic Keywords"])
         testr = np.vectorize(f(val))(df["Right-Diagnostic Keywords"])
+
         df.loc[testl, "LO"] = 1
         df.loc[testr, "RO"] = 1
 
     # Making Left and Right each apear in separate row
     cols = df.columns.tolist()
+
     newcols = [
         "ID",
         "Side",

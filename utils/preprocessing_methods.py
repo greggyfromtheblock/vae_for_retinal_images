@@ -59,6 +59,7 @@ def find_optimal_image_size_and_extend_db(xlsx_dir, imdir):
     df['Left-Height'] = y
     df['Right-Width'] = z
     df['Right-Height'] = w
+
     print("saving the extended database to: ", xlsx_dir+"extended.tsv")
     df.to_csv(xlsx_dir+"extended.tsv", index=False, sep='\t')
 
@@ -107,6 +108,7 @@ def rotate(img, outdir, fname, aug_per_image, max_rotation_angle):
                     max = i
 
         return abs(max-min) < max_distance
+
 
     # DONE: Make a list ranging from -max_angle to +max_angle and then choose n_aug and perform rotation on it
     if check_prereq(img[0]) and check_prereq(img[-1]) and check_prereq(np.transpose(img)[0]) and \

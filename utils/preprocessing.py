@@ -1,3 +1,4 @@
+
 # TODO: maybe rename this file to preprocess_images.py and then the annotations file to preprocess_labels?
 
 import argparse
@@ -14,7 +15,6 @@ from preprocessing_methods import (find_optimal_image_size_and_extend_db,
                                    rotate, trim_image_rgb)
 
 warnings.filterwarnings("ignore")
-
 
 if __name__ == '__main__':
     """
@@ -66,11 +66,11 @@ if __name__ == '__main__':
     for f in tqdm(os.listdir(outdir)):
         fname = f.replace(".jpg", "")
         image = io.imread(outdir + f)
-
         # Resize image
         image = resize(image, output_shape=(opt_w, opt_h))
 
         # save image under processed data
+
         io.imsave(outdir + f, img_as_ubyte(image))
 
         # flip image
