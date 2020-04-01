@@ -1,7 +1,7 @@
 {
     "DATASETS": ["ODIR"],
-    "SPLITS": ["Training", "Testing"],
-    "N_AUGMENTATION": 3,
-    "MAX_ROTATION_DEGREE": 12,
+    "SPLITS": ["Training"],
+    "N_AUGMENTATION": 1,
+    "MAX_ROTATION_DEGREE": 3,
     "network_name": "gregnet"
 }

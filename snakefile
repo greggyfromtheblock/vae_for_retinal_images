@@ -7,29 +7,34 @@ split = config["SPLITS"]
 # TODO: currently this only works on one dataset, figure out a way to do it on 2 datasets
 rule all:
     input:
-        expand("../data/processed/{dataset}_Training_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/",
-               dataset = config['DATASETS'],
-               split= config['SPLITS'],
-               n_augmentation = config['SPLITS'],
-               maxdegree = config['MAX_ROTATION_DEGREE'])
+        parent=expand("../data/processed/{dataset}_Training_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/",
+                      dataset = config['DATASETS'],
+                      split= config['SPLITS'],
+                      n_augmentation = config['N_AUGMENTATION'],
+                      maxdegree = config['MAX_ROTATION_DEGREE']),
+        child=expand("../data/processed/{dataset}_Training_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/images/",
+                      dataset = config['DATASETS'],
+                      split= config['SPLITS'],
+                      n_augmentation = config['N_AUGMENTATION'],
+                      maxdegree = config['MAX_ROTATION_DEGREE'])
     shell:
-        "python3 train_model.py {input} {config[network_name]}"
+        "python train_model.py {input.parent} {config[network_name]}"
 
 
 rule preprocess_images:
     input:
         expand("../data/raw/{dataset}_{split}_Images/", dataset = config['DATASETS'], split= config['SPLITS'])
     output:
-        expand("../data/processed/{dataset}_{split}_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/",
+        directory(expand("../data/processed/{dataset}_{split}_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/images/",
                dataset = config['DATASETS'],
                split= config['SPLITS'],
-               n_augmentation = config['SPLITS'],
-               maxdegree = config['MAX_ROTATION_DEGREE'])
+               n_augmentation = config['N_AUGMENTATION'],
+               maxdegree = config['MAX_ROTATION_DEGREE']))
     run:
         if split == 'Training' or split == 'training':
-            shell("python3 ./utils/preprocessing.py {input} {output} {config[n_augmentation]} {config[max_rotation_degree]}")
+            shell("python ./utils/preprocessing.py {input} {output} -na {config[n_augmentation]} -mra {config[max_rotation_degree]}")
         else:
-            shell("python3 ./utils/preprocessing.py {input} {output} 0 0")
+            shell("python ./utils/preprocessing.py {input} {output} -na 0 -mra 0")
 
 
 rule preprocess_annotations:
@@ -38,4 +43,4 @@ rule preprocess_annotations:
     output:
         "../data/processed/annotations/ODIR_Annotations.csv"
     shell:
-        "python3 decode_diagnostics_keywords.py {input} {output}"
+        "python decode_diagnostics_keywords.py {input} {output}"
