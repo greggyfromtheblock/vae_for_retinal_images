@@ -1,4 +1,5 @@
 import os
+import random
 import sys
 
 import numpy as np
@@ -114,5 +115,5 @@ def rotate(img, outdir, fname, n_aug_per_image, max_rotation_angle):
         and check_prereq(np.transpose(img)[-1])
     ):
         rotation_angles = [random.randrange(-max_rotation_angle, max_rotation_angle) for x in range(n_aug_per_image)]
-        for angle in angles:
+        for angle in rotation_angles:
             io.imsave(outdir + fname + "_rot_%i.jpg" % angle, img_as_ubyte(transform.rotate(img, angle)))

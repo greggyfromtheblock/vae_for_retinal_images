@@ -1,4 +1,3 @@
-
 import argparse
 import os
 import warnings
@@ -8,7 +7,6 @@ from skimage import img_as_ubyte, io
 from skimage.transform import resize
 from tqdm import tqdm
 
-from decode_diagnostics_keywords import decode_d_k
 from preprocessing_methods import (find_optimal_image_size_and_extend_db,
                                    rotate, trim_image_rgb)
 
@@ -25,25 +23,18 @@ if __name__ == '__main__':
     Subsequently, the augmentation step follows:
     Flip images, Rotate those images whose retinas are complete circles 
     """
-    parser = argparse.ArgumentParser(
-        description="""Preprocessing""")
+    parser = argparse.ArgumentParser(description="Preprocessing")
     parser.add_argument('imdir', type=str, default=None,
-                        metavar='image_dir',
-                        help="""The path to the directory which contains
-                       the image folder. """)
+                        help="""The path to the directory which contain the image folder. """)
     parser.add_argument('outdir', type=str, default=None,
-                        metavar='target_dir',
-                        help="""The path to the directory which should contain
-                        processed augmented images.""")
-    parser.add_argument('aug_per_image', type=int, default=0,
-                        metavar='n_augmentation',
+                        help="The path to the directory which should contain processed augmented images")
+    parser.add_argument('-na', '--n_augmentation', type=int, default=0,
                         help="""Number of Augmented images per image""")
-    parser.add_argument('max_rotation_angle', type=int, default=0,
-                        metavar='maximum_rotation_angle',
+    parser.add_argument('-mra','--max_rotation', type=int, default=0,
                         help="""Max rotation degree +- for the images, for example if you pass 10 to
                         this argument then the function will pick {aug_per_image} random values from
                         the range -10 to 10""")
-    args, unknown = parser.parse_known_args()
+    args = parser.parse_args()
 
     def add_slash(path):
         if path[-1] != '/':
@@ -54,9 +45,15 @@ if __name__ == '__main__':
     dir = add_slash(args.imdir)
     outdir = add_slash(args.outdir)
 
-    # TODO: Uncouple resize function with preprocess annotations function on preprocessing_methods.py
+    os.makedirs(outdir, exist_ok=True)
+    print("Start cropping...")
+    for i, f in tqdm(enumerate(os.listdir(dir))):
+        # Crop image
+        trim_image_rgb(f, dir, outdir)
+    print("Finished cropping...")
+
     print("Start finding optimal image size and extend db...")
-    opt_w, opt_h = find_optimal_image_size_and_extend_db(xlsx_dir, outdir)
+    opt_w, opt_h = find_optimal_image_size_and_extend_db(outdir)
     print("Finished finding optimal image size and extend db...")
 
     print("Start resizing and data augmentation...")
@@ -75,7 +72,7 @@ if __name__ == '__main__':
         io.imsave(outdir + fname + "_flipped.jpg", img_as_ubyte(image_flipped))
 
         # rotate image and save it
-        rotate(image, outdir, fname, args.aug_per_image, args.max_rotation_angle)
-        rotate(image_flipped, outdir, fname + "_flipped", args.aug_per_image, args.max_rotation_angle)
+        rotate(image, outdir, fname, args.n_augmentation, args.max_rotation)
+        rotate(image_flipped, outdir, fname + "_flipped", args.n_augmentation, args.max_rotation)
 
     print("Finished resizing and data augmentation...")
