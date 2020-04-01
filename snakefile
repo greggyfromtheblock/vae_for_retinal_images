@@ -11,7 +11,7 @@ rule all:
                n_augmentation = config['SPLITS'],
                maxdegree = config['MAX_ROTATION_DEGREE'])
     shell:
-        "python3 train_model.py {input} {config.network_name}"
+        "python3 train_model.py {input} {config[network_name]}"
 
 
 rule preprocess_images:
@@ -32,7 +32,7 @@ rule preprocess_images:
 
 rule preprocess_annotations:
     input:
-        "../data/raw/annotations/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+        "../data/raw/ODIR_Training_Annotations/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
     output:
         "../data/processed/annotations/ODIR_Annotations.csv"
     shell:
