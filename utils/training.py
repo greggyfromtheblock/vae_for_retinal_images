@@ -126,11 +126,11 @@ class Decoder(nn.Module):
 
         self.conv_layers = nn.Sequential(
             *conv_block(64, 128, padding=1, size=(11, 10), mode='nearest'),
-            *conv_block(128, 64, padding=1, size=(24, 23), mode='nearest'),
-            *conv_block(64, 64, padding=1, size=(48, 47)),
-            *conv_block(64, 32, padding=1, scale_factor=2),
-            *conv_block(32, 16, kernel_size=5, padding=2, scale_factor=2),
-            nn.Conv2d(in_channels=16, out_channels=3, kernel_size=1),
+            *conv_block(128, 256, padding=1, size=(24, 23), mode='nearest'),
+            *conv_block(256, 128, padding=1, size=(48, 47)),
+            *conv_block(128, 64, padding=1, scale_factor=2),
+            *conv_block(64, 32, kernel_size=5, padding=2, scale_factor=2),
+            nn.Conv2d(in_channels=32, out_channels=3, kernel_size=1),
             nn.BatchNorm2d(3)
         )
 
@@ -148,7 +148,7 @@ def normalize(image):
 
 class OdirVAETraining(VAETraining):
     def __init__(self, encoder, decoder, data, path_prefix, network_name,
-                 alpha=0.25, beta=0.5, m=120,
+                 # alpha=0.25, beta=0.5, m=120,
                  optimizer=torch.optim.Adam,
                  optimizer_kwargs={"lr": 5e-5},
                  **kwargs):
@@ -173,16 +173,3 @@ class OdirVAETraining(VAETraining):
             self.writer.add_image("target", normalize(data[0]), self.step_id)
             self.writer.add_image("reconstruction", normalize(reconstructions[0].sigmoid()), self.step_id)
         return mean, logvar, reconstructions, data
-
-
-if __name__ == '__main__':
-    fake_imgs = torch.randn((4, 3, 192, 188))
-    encoder = Encoder()
-    encoder(fake_imgs)
-    fake_latent_vector = torch.randn((10, 32))
-    decoder = Decoder()
-    decoder(fake_latent_vector)
-
-
-
-
