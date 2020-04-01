@@ -340,7 +340,8 @@ class Decoder(nn.Module):
 
     def forward(self, sample):
         #        return self.decoder(sample).view(-1, 3, 256, 320)
-        dec = torch.reshape(self.linear_blocks(sample), (sample.shape[0], 64, 4, 5))
+        dec = torch.reshape(self.linear_blocks(sample),
+                (nn.functional.sigmoid(sample.shape[0]), 64, 4, 5))
         # print(dec.shape)
         reconstructions = self.conv_layers(dec)
         print(reconstructions.shape)
