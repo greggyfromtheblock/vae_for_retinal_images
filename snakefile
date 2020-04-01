@@ -2,10 +2,12 @@ configfile: "./workflow_config.json"
 dataset = config["DATASETS"]
 n_augmentation = config["N_AUGMENTATION"]
 maxdegree = config["MAX_ROTATION_DEGREE"]
+split = config["SPLITS"]
 
+# TODO: currently this only works on one dataset, figure out a way to do it on 2 datasets
 rule all:
     input:
-        expand("../data/processed/{dataset}_{split}_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/",
+        expand("../data/processed/{dataset}_Training_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/",
                dataset = config['DATASETS'],
                split= config['SPLITS'],
                n_augmentation = config['SPLITS'],
@@ -24,7 +26,7 @@ rule preprocess_images:
                n_augmentation = config['SPLITS'],
                maxdegree = config['MAX_ROTATION_DEGREE'])
     run:
-        if wildcards.split == 'Training' or wildcards.split == 'training':
+        if split == 'Training' or split == 'training':
             shell("python3 ./utils/preprocessing.py {input} {output} {config[n_augmentation]} {config[max_rotation_degree]}")
         else:
             shell("python3 ./utils/preprocessing.py {input} {output} 0 0")
