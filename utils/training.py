@@ -131,7 +131,8 @@ class Decoder(nn.Module):
             *conv_block(32, 16, padding=1, scale_factor=2),
             *conv_block(16, 8, kernel_size=5, padding=2, scale_factor=2),
             nn.Conv2d(in_channels=8, out_channels=3, kernel_size=1),
-            nn.BatchNorm2d(3)
+            nn.BatchNorm2d(3),
+            nn.Sigmoid()
         )
 
     def forward(self, latent_vector):

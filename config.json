@@ -13,7 +13,7 @@
   },
   "-input_csv": {
     "short": "-ii",
-    "value": "data/odir/",
+    "value": "data/",
     "help": "Input file or directory for the csv file, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
@@ -25,7 +25,7 @@
   },
   "-networkname": {
     "short": "-nn",
-    "value": "odir-vae-test",
+    "value": "odir-vae",
     "help": "Some juicy VAE name.",
     "type": "str"
   },
