@@ -1,13 +1,13 @@
 {
   "-out_directory": {
     "short": "-od",
-    "value": "./output",
+    "value": "output",
     "help": "Output directory.",
     "type": "str"
   },
   "-input": {
     "short": "-i",
-    "value": "../data/test/",
+    "value": "train3_right",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
