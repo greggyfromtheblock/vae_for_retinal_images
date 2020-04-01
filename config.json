@@ -1,14 +1,20 @@
 {
   "-out_directory": {
     "short": "-od",
-    "value": "./",
+    "value": ".",
     "help": "Output directory.",
     "type": "str"
   },
   "-input": {
     "short": "-i",
-    "value": "",
+    "value": "data/processed/",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
+    "type": "str"
+  },
+  "-input_csv": {
+    "short": "-ii",
+    "value": "data/odir/",
+    "help": "Input file or directory for the csv file, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
   "-logging_name": {
@@ -19,13 +25,19 @@
   },
   "-networkname": {
     "short": "-nn",
-    "value": "YourVanillaVAE",
+    "value": "odir-vae-test",
     "help": "Some juicy VAE name.",
+    "type": "str"
+  },
+  "-path_prefix": {
+    "short": "-pp",
+    "value": ".",
+    "help": "Path Prefix.",
     "type": "str"
   },
   "-device": {
     "short": "-dv",
-    "value": "cuda:7",
+    "value": "cuda:3",
     "help": "Device to work on",
     "type": "str"
   },
@@ -37,7 +49,7 @@
   },
   "-maxpochs": {
     "short": "-me",
-    "value": 10,
+    "value": 1,
     "help": "Maximum nr of epochs to train the model",
     "type": "int"
   },
@@ -49,14 +61,14 @@
   },
   "-batchsize": {
     "short": "-bs",
-    "value": 32,
+    "value": 64,
     "help": "The models batchsize",
     "type": "int"
   },
   "-zdim": {
     "short": "-zd",
     "value": 32,
-    "help": "The latent dimension of the bottleneck."
+    "help": "The latent dimension of the bottleneck.",
     "type": "int"
   },
   "-dropout": {
@@ -75,7 +87,7 @@
     "short": "-bb",
     "value": 0.0,
     "help": "Parameter beta (float)",
-    "type": ""
+    "type": "float"
   },
   "-gamma": {
     "short": "-gg",
