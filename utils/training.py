@@ -171,7 +171,7 @@ class OdirVAETraining(VAETraining):
 
         if self.step_id % 10 == 0:
             self.writer.add_image("target", data[0], self.step_id)
-            self.writer.add_image("reconstruction", reconstructions[0], self.step_id)
+            self.writer.add_image("reconstruction", reconstructions[0].sigmoid(), self.step_id)
         return mean, logvar, reconstructions, data
 
 
