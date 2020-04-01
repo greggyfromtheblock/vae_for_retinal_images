@@ -27,7 +27,7 @@ if __name__ == "__main__":
           "device: : ", device)
 
     if FLAGS.networkname in os.listdir(FLAGS.path_prefix):
-        input1 = input("Network already exists. Are you sure to proceed? ([y]/n)\n")
+        input1 = input("Network already exists. Are you sure to proceed? ([y]/n)")
         if not input1 in ['y', 'yes']:
             sys.exit()
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     print("Start Training...")
     time_start = time.time()
     trained = training.train()
-    print('\nTraining with %i done! Time elapsed: %.2f minutes' % (FLAGS.maxpochs, (time.time() - time_start)/60))
+    print('\nTraining with %i epochs done! Time elapsed: %.2f minutes' % (FLAGS.maxpochs, (time.time() - time_start)/60))
     trained_encoder, _ = training.train()
     # print(trained_encoder)
 

@@ -42,12 +42,12 @@ class Encoder(nn.Module):
 
         self.conv_layers = nn.Sequential(
             # Formula of new "Image" Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
-            *conv_block(3, 32, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
+            *conv_block(3, 8, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
             # -> (188-5+2*2)//1 + 1 = 188  --> Max-Pooling: 188/2 = 94
-            *conv_block(32, 64, kernel_size=5, padding=2),   # New "Image" Size:  48x47
-            *conv_block(64, 128, padding=1),  # New "Image" Size:  24x23
-            *conv_block(128, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
-            *conv_block(256, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
+            *conv_block(8, 16, kernel_size=5, padding=2),   # New "Image" Size:  48x47
+            *conv_block(16, 32, padding=1),  # New "Image" Size:  24x23
+            *conv_block(32, 64, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
+            *conv_block(64, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
             # *conv_block(54, 64),   # New "Image" Size:  2*2
         )
 
@@ -126,11 +126,11 @@ class Decoder(nn.Module):
 
         self.conv_layers = nn.Sequential(
             *conv_block(64, 128, padding=1, size=(11, 10), mode='nearest'),
-            *conv_block(128, 256, padding=1, size=(24, 23), mode='nearest'),
-            *conv_block(256, 128, padding=1, size=(48, 47)),
-            *conv_block(128, 64, padding=1, scale_factor=2),
-            *conv_block(64, 32, kernel_size=5, padding=2, scale_factor=2),
-            nn.Conv2d(in_channels=32, out_channels=3, kernel_size=1),
+            *conv_block(128, 64, padding=1, size=(24, 23), mode='nearest'),
+            *conv_block(64, 32, padding=1, size=(48, 47)),
+            *conv_block(32, 16, padding=1, scale_factor=2),
+            *conv_block(16, 8, kernel_size=5, padding=2, scale_factor=2),
+            nn.Conv2d(in_channels=8, out_channels=3, kernel_size=1),
             nn.BatchNorm2d(3)
         )
 
@@ -173,3 +173,16 @@ class OdirVAETraining(VAETraining):
             self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image("reconstruction", reconstructions[0], self.step_id)
         return mean, logvar, reconstructions, data
+
+
+if __name__ == '__main__':
+    fake_imgs = torch.randn((4, 3, 192, 188))
+    encoder = Encoder()
+    encoder(fake_imgs)
+    fake_latent_vector = torch.randn((10, 32))
+    decoder = Decoder()
+    decoder(fake_latent_vector)
+
+
+
+
