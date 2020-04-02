@@ -61,6 +61,7 @@ if __name__ == "__main__":
 
     # Save network
     PATH = f'{FLAGS.path_prefix}/{FLAGS.networkname}/{FLAGS.networkname}.pth'
+    os.makedirs(os.path.dirname(PATH), exist_ok=True)
     torch.save(trained_encoder.state_dict(), PATH)
 
 
