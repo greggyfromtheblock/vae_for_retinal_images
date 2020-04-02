@@ -7,7 +7,7 @@
   },
   "-input": {
     "short": "-i",
-    "value": "training_set",
+    "value": "../retina/outputs/training_set",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
