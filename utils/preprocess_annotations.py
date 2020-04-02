@@ -191,6 +191,8 @@ def decode_d_k(xsl_file, output_file="odir/odir_train_lr_annotations.csv"):
 
     new_df = pd.concat([left_df, right_df], axis=0)
     new_df = new_df.sort_values(by=["ID", "Side"])
+    dirname = os.path.dirname(output_file)
+    os.makedirs(dirname, exist_ok=True)
     new_df.to_csv(output_file, sep="\t", index=False, header=True)
 
 if __name__ == "__main__":
