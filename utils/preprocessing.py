@@ -40,7 +40,7 @@ if __name__ == "__main__":
         metavar="raw_image_dir",
         help="""The path to the directory which contains
                     the imgages""",
-    ),
+    )
     parser.add_argument(
         "outdir",
         type=str,
@@ -48,13 +48,13 @@ if __name__ == "__main__":
         metavar="output_dir",
         help="""The full path of the new directory where 
                     they will be saved""",
-    ),
+    )
     parser.add_argument(
         "--n_augmentation",
         type=int,
         default=0,
         help="""Number of Augmented images per image""",
-    ),
+    )
     parser.add_argument(
         "--max_rotation",
         type=int,
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         help="""Max rotation degree +- for the images, for example if you pass 10 to
                         this argument then the function will pick {aug_per_image} random values from
                         the range -10 to 10""",
-    ),
+    )
     args = parser.parse_args()
 
     def add_slash(path):
