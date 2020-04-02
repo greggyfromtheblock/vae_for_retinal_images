@@ -33,7 +33,7 @@ if __name__ == "__main__":
     python preprocessing.py ../../data/raw/ODIR_Training_Images/ process/images/ ../../data/train/ ../../data/raw/
     """
     parser = argparse.ArgumentParser(description="Preprocessing")
-        parser.add_argument(
+    parser.add_argument(
         "rawdir",
         type=str,
         default=None,
