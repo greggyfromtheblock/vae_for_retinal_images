@@ -2,12 +2,12 @@
   "-out_directory": {
     "short": "-od",
     "value": "output",
-    "help": "Output directory.",
+    "help": "Output directory. for logger",
     "type": "str"
   },
   "-input": {
     "short": "-i",
-    "value": "train3_right",
+    "value": "training_set",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
@@ -19,9 +19,15 @@
   },
   "-networkname": {
     "short": "-nn",
-    "value": "Retinal VAE",
+    "value": "Retinal_VAE",
     "help": "Some juicy VAE name.",
     "type": "str"
+  },
+  "-path_prefix": {
+      "short": "pathprefix",
+      "value": "nn_output",
+      "help": "where the training torch files are stored?",
+      "type": "str"
   },
   "-device": {
     "short": "-dv",
@@ -58,6 +64,12 @@
     "value": 32,
     "help": "The latent dimension of the bottleneck.",
     "type": "int"
+  },
+  "-image_dim": {
+    "short": "-imdim",
+    "value": "(192,188)",
+    "help": "Dimension of the input images",
+    "type": "str"
   },
   "-dropout": {
     "short": "-do",

@@ -1,29 +1,23 @@
-from decode_diagnostics_keywords import decode_d_k
-from tqdm import tqdm
+import os
+import sys
+import argparse
+import warnings
+from skimage import io, img_as_ubyte
+from skimage.transform import resize
+import numpy as np
 from preprocessing_methods import (
     trim_image_rgb,
     rotate,
     find_optimal_image_size_and_extend_db,
 )
-import os
-from skimage import io, img_as_ubyte
-from skimage.transform import resize
-import numpy as np
-import sys
-import argparse
-
-
-
-
-# Ignore warnings
-import warnings
+from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
 
 # Example command line run from within the utils folder:
 # python preprocessing.py ../../data/raw/ODIR_Training_Images/ process/images/ ../../data/train/ ../../data/raw/
 # the excel file should be in ../../data/raw and the raw images
-# should be inside a subfolder of it. 
+# should be inside a subfolder of it.
 
 if __name__ == "__main__":
     """
@@ -38,24 +32,39 @@ if __name__ == "__main__":
     Example command line, run from within 'utils':
     python preprocessing.py ../../data/raw/ODIR_Training_Images/ process/images/ ../../data/train/ ../../data/raw/
     """
-    parser = argparse.ArgumentParser(
-            description="""Preprocessing""")
-    parser.add_argument('rawdir', type=str, default=None,
-        metavar='raw_image_dir',
-                    help="""The path to the directory which contains
-                    the imgages""")
-    parser.add_argument('outdir_name', type=str, default=None,
-        metavar='output_dir_name',
-                    help="""The name of the new directory where 
-                    they will be saved""")
-    parser.add_argument('dir', type=str, default=None,
-        metavar='root_output_dir',
-                    help="""The path of the new directory where 
-                    they will be saved""")
-    parser.add_argument('root_dir', type=str, default=None,
-        metavar='root_input_dir',
-                    help="""The path of the directory where 
-                    the the odir folder is stored""")
+    parser = argparse.ArgumentParser(description="""Preprocessing""")
+    parser.add_argument(
+        "rawdir",
+        type=str,
+        default=None,
+        metavar="raw_image_dir",
+        help="""The path to the directory which contains
+                    the imgages""",
+    )
+    parser.add_argument(
+        "outdir_name",
+        type=str,
+        default=None,
+        metavar="output_dir_name",
+        help="""The name of the new directory where 
+                    they will be saved""",
+    )
+    parser.add_argument(
+        "dir",
+        type=str,
+        default=None,
+        metavar="root_output_dir",
+        help="""The path of the new directory where 
+                    they will be saved""",
+    )
+    parser.add_argument(
+        "root_dir",
+        type=str,
+        default=None,
+        metavar="root_input_dir",
+        help="""The path of the directory where 
+                    the the odir folder is stored""",
+    )
     args = parser.parse_args()
 
     ddir = "/home/henrik/PycharmProjects/vae_for_retinal_images/data/"
@@ -63,16 +72,15 @@ if __name__ == "__main__":
     outdir = "processed/train/"
 
     def add_slash(path):
-        if path[-1] != '/':
+        if path[-1] != "/":
             return path + "/"
         else:
-            return(path)
+            return path
 
     ddir = add_slash(args.dir)
     odir = add_slash(args.rawdir)
     outdir = add_slash(args.outdir_name)
     rootdir = add_slash(args.root_dir)
-
 
     os.makedirs(ddir + outdir, exist_ok=True)
 
@@ -83,9 +91,8 @@ if __name__ == "__main__":
     print("Finished cropping...")
 
     print("Start finding optimal image size and extend db...")
-    opt_w, opt_h = find_optimal_image_size_and_extend_db(
-            imdir = ddir + outdir)
-#            imdir = ddir + outdir, out="odir/extended.tsv")
+    opt_w, opt_h = find_optimal_image_size_and_extend_db(imdir=ddir + outdir)
+    #            imdir = ddir + outdir, out="odir/extended.tsv")
     print("Finished finding optimal image size and extend db...")
 
     print("Start resizing and data augmentation...")

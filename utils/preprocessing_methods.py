@@ -4,6 +4,7 @@ from skimage import io, img_as_ubyte, transform
 import pandas as pd
 import os
 import sys
+import random
 from tqdm import tqdm
 
 
@@ -21,24 +22,23 @@ def trim_image_rgb(jpg, dir, outdir):
     io.imsave(outdir + jpg, img)
 
 
-def find_optimal_image_size_and_extend_db(
-    imdir="processed/train/"):
+def find_optimal_image_size_and_extend_db(imdir="processed/train/"):
     """
     :param imdir: Directory to cropped images
     :return: Tuple: values for new Image Size
     """
-    #imdir = db + imdir
+    # imdir = db + imdir
 
-    n = len(os.listdir(imdir)) #number of images
+    n = len(os.listdir(imdir))  # number of images
     x = np.zeros(n).astype("int")
     y = np.zeros(n).astype("int")
-#    z = np.zeros(n).astype("int")
-#    w = np.zeros(n).astype("int")
+    #    z = np.zeros(n).astype("int")
+    #    w = np.zeros(n).astype("int")
 
     min_x, min_y = float("inf"), float("inf")
     i = 0
     for f in tqdm(os.listdir(imdir)):
-        img = pil.Image.open(imdir + '/' + f)
+        img = pil.Image.open(imdir + "/" + f)
         x[i] = img.width
         y[i] = img.height
         i += 1
