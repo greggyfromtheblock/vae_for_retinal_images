@@ -80,7 +80,7 @@ def find_optimal_image_size_and_extend_db(xlsx_dir, imdir):
                 return new_w, new_h
 
 
-def rotate(img, outdir, fname):
+def rotate(img, outdir, fname, n_aug_per_image, max_rotation_angle):
     # Prerequisites for rotating: Only those images should be rotated on which the retina is a 'whole' circle
     # They are defined by the distance between two black pixels (values of these pixels are (0, 0, 0)) in the first
     # and last row respectively the column
@@ -90,26 +90,41 @@ def rotate(img, outdir, fname):
         max_distance = 0.225 * l
         min, max = l, 0
         for i, el in enumerate(array):
-            if i == 0 or i == l-1:
+            if i == 0 or i == l - 1:
                 continue
 
-            if i < l //2:
+            if i < l // 2:
                 prev_el = array[i - 1]
-                if el[0] != 0 or el[1] != 0 or el[2] != 0 and prev_el[0] == 0 and prev_el[1] == 0 and prev_el[2] == 0:
+                if (
+                    el[0] != 0
+                    or el[1] != 0
+                    or el[2] != 0
+                    and prev_el[0] == 0
+                    and prev_el[1] == 0
+                    and prev_el[2] == 0
+                ):
                     min = i
 
-            if i > l//2:
+            if i > l // 2:
                 next_el = array[i + 1]
-                if el[0] != 0 or el[1] != 0 or el[2] != 0 and next_el[0] == 0 and next_el[1] == 0 and next_el[2] == 0:
+                if (
+                    el[0] != 0
+                    or el[1] != 0
+                    or el[2] != 0
+                    and next_el[0] == 0
+                    and next_el[1] == 0
+                    and next_el[2] == 0
+                ):
                     max = i
 
-        return abs(max-min) < max_distance
+        return abs(max - min) < max_distance
 
-    if check_prereq(img[0]) and check_prereq(img[-1]) and check_prereq(np.transpose(img)[0]) and \
-            check_prereq(np.transpose(img)[-1]):
-
-        angles = [20, -15, -10, -5, -2.5, 2.5, 5, 10, 15, 20]
-        for angle in angles:
+    if (
+        check_prereq(img[0])
+        and check_prereq(img[-1])
+        and check_prereq(np.transpose(img)[0])
+        and check_prereq(np.transpose(img)[-1])
+    ):
+        rotation_angles = np.random.random_integers(low=-max_rotation_angle, high=max_rotation_angle, size=n_aug_per_image)
+        for angle in rotation_angles:
             io.imsave(outdir + fname + "_rot_%i.jpg" % angle, img_as_ubyte(transform.rotate(img, angle)))
-
-
