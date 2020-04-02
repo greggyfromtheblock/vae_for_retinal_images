@@ -64,14 +64,18 @@ if __name__ == '__main__':
     number_of_diagnoses = len(features)  # not sure if others should be an own category
     targets = np.zeros((len(data), number_of_diagnoses))
 
+    angles = [x for x in range(-FLAGS.max_degree, -9)]
+    angles.extend([x for x in range(10, FLAGS.max_degree+1)])
+    angles.extend([x for x in range(-9, 9)])
+    print("\nPossible Angles: {}".format(angles))
+
     for i, jpg in tqdm(enumerate(os.listdir(imfolder+"/train/"))):
         jpg = jpg.replace("_flipped", "")
-        jpg = jpg.replace("0", "")
+        # jpg = jpg.replace("0", "")
 
-        for angle in range(-FLAGS.max_degree, FLAGS.max_degree+1):
+        for angle in angles:
             if angle != 0:
                 jpg = jpg.replace("_rot_%i" % angle, "")
-        print(jpg)
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
         for j, feature in enumerate(features.keys()):
             targets[i][j] = csv_df.iloc[row_number].at[feature]
