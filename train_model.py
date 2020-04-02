@@ -1,36 +1,26 @@
 """
 Trigger training here
 """
-import argparse
 import os
 import sys
-
+import argparse
 import numpy as np
-
 import torch
 from torchvision import datasets, transforms
-from utils.training import Decoder, Encoder, OdirVAETraining, VAEDataset
-
+from torchvision.utils import save_image
+from torch.utils.data import DataLoader, TensorDataset
+from skimage import io
+from tqdm import tqdm
+from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
+from utils.utils import setup
 
 def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-            description="""Training VAE""")
-    parser.add_argument('imfolder', type=str, default=None,
-        metavar='image_dir',
-                    help="""The path to the directory which contains
-                    the imgge folder. The images themselves must be
-                    in one or more subdirectories of the imfolder""")
-    parser.add_argument('--path_prefix', type=str, default=".",
-        metavar='path_prefix',
-                    help="""The path to the directory which should contain the data for tensorboard.""")
-    parser.add_argument('network_name', type=str, default=None,
-        metavar='network_name',
-                    help="""The name of the network. Use different names for different models!""")
-    args = parser.parse_args()
+    FLAGS, logger = setup(running_script="./utils/training.py", config="config.json")
+    print("FLAGS= ", FLAGS)
 
     def add_slash(path):
         if path[-1] != '/':
@@ -38,33 +28,40 @@ if __name__ == "__main__":
         else:
             return(path)
 
-    imfolder = add_slash(args.imfolder)
-    network_name = args.network_name
-    path_prefix = args.path_prefix  # optional argument. If default: the path is the current one.
+#    imfolder = add_slash(args.imfolder)
+    imfolder = os.path.abspath(FLAGS.input)
+    device = FLAGS.device if torch.cuda.is_available() else "cpu"
 
     if network_name in os.listdir(path_prefix):
         input1 = input("Network already exists. Are you sure to continue? [y/yes]\n")
         if not input1 in ['y', 'yes']:
             sys.exit()
 
+    print("input dir: ", imfolder,
+            "device: : ", device)
+
     print("Load Data as Tensors...")
     transform_data = transforms.Compose([transforms.ToTensor(), normalize])
+
     img_dataset = datasets.ImageFolder(
         imfolder, transform=transform_data
     )
 
     data = VAEDataset(img_dataset)
-    encoder, decoder = Encoder(), Decoder()
+
+    encoder, decoder = Encoder(z=FLAGS.zdim), Decoder(z=FLAGS.zdim)
+
+
     training = OdirVAETraining(
         encoder,
         decoder,
         data,
-        path_prefix=path_prefix,
-        network_name=network_name,
-        device="cuda:3" if torch.cuda.is_available() else "cpu",
-        batch_size=128,
-        max_epochs=100,
-        verbose=True
+        network_name=FLAGS.networkname,
+        path_prefix=FLAGS.path_prefix,
+        device=device,
+        batch_size=FLAGS.batchsize,
+        max_epochs=FLAGS.maxpochs,
+        verbose=True,
     )
 
     print("Start Training...")
