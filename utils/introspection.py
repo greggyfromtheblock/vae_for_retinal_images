@@ -68,7 +68,7 @@ if __name__ == '__main__':
         jpg = jpg.replace("_flipped", "")
 
         for angle in range(-FLAGS.max_degree, FLAGS.max_degree+1):
-            if not angle == 0:
+            if angle:
                 jpg = jpg.replace("_rot_%i" % angle, "")
 
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
