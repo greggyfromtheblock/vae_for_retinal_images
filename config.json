@@ -7,7 +7,7 @@
   },
   "-input": {
     "short": "-i",
-    "value": "train3_right",
+    "value": "training_set",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
