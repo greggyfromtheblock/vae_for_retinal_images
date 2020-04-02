@@ -67,15 +67,15 @@ if __name__ == '__main__':
     angles = [x for x in range(-FLAGS.max_degree, -9)]
     angles.extend([x for x in range(10, FLAGS.max_degree+1)])
     angles.extend([x for x in range(-9, 9)])
-    print("\nPossible Angles: {}".format(angles))
+    print("\nPossible Angles: {}\n".format(angles))
 
     for i, jpg in tqdm(enumerate(os.listdir(imfolder+"/train/"))):
         jpg = jpg.replace("_flipped", "")
         # jpg = jpg.replace("0", "")
 
         for angle in angles:
-            if angle != 0:
-                jpg = jpg.replace("_rot_%i" % angle, "")
+            jpg = jpg.replace("_rot_%i" % angle, "")
+
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
         for j, feature in enumerate(features.keys()):
             targets[i][j] = csv_df.iloc[row_number].at[feature]
@@ -139,33 +139,3 @@ if __name__ == '__main__':
         plt.savefig(f"{path_prefix}/{network_name}/Visualization")
         plt.show()
         plt.close()
-
-
-    """
-     csv_df = pd.read_csv(path, sep='\t')
-    >>> a=list(csv_df.columns)
-    >>> a
-    ['ID', 'Side', 'Patient Age', 'Patient Sex', 'Fundus Image', 'Diagnostic Keywords', 'N',
-     'D', 'G', 'C', 'A', 'H', 'M', 'O', 'anterior', 'no fundus']
-    >>> d=csv_df.'ID'
-      File "<stdin>", line 1
-        d=csv_df.'ID'
-                    ^
-    SyntaxError: invalid syntax
-    >>> d=csv_df['ID']
-    >>> d=csv_df['Fundus Image']
-    >>> d
-    0           0_left.jpg
-    1          0_right.jpg
-    2           1_left.jpg
-    3          1_right.jpg
-    4           2_left.jpg
-                 ...      
-    6995    4689_right.jpg
-    6996     4690_left.jpg
-    6997    4690_right.jpg
-    6998     4784_left.jpg
-    6999    4784_right.jpg
-    Name: Fundus Image, Length: 7000, dtype: object
-    >>> 
-    """
