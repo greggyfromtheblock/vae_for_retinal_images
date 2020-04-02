@@ -101,7 +101,7 @@ if __name__ == "__main__":
     for f in tqdm(os.listdir(rawdir)):
         # Crop image
         #trim_image_rgb(f, ddir + odir, ddir + outdir)
-        trim_image_rgb(f, rawdir, outdir)
+        trim_image_rgb(f, add_slash(rawdir), add_slash(outdir))
     print("Finished cropping...")
 
     print("Start finding optimal image size and extend db...")
