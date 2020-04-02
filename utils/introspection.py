@@ -66,6 +66,7 @@ if __name__ == '__main__':
 
     for i, jpg in tqdm(enumerate(os.listdir(imfolder+"/train/"))):
         jpg = jpg.replace("_flipped", "")
+        jpg = jpg.replace("0", "")
 
         for angle in range(-FLAGS.max_degree, FLAGS.max_degree+1):
             if angle != 0:
