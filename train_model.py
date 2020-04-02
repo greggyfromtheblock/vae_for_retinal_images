@@ -25,6 +25,7 @@ if __name__ == "__main__":
     print("\ninput dir: ", imfolder,
           "\ndevice: ", device)
 
+    os.makedirs(FLAGS.path_prefix, exist_ok=True)
     if FLAGS.networkname in os.listdir(FLAGS.path_prefix):
         input1 = input("\nNetwork already exists. Are you sure to proceed? ([y]/n) ")
         if not input1 in ['y', 'yes']:
