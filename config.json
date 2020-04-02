@@ -13,7 +13,7 @@
   },
   "-input_csv": {
     "short": "-ii",
-    "value": "data/odir/odir_train_lr_annotations.csv",
+    "value": "data/odir_train_lr_annotations.csv",
     "help": "Input file or directory for the csv file, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
