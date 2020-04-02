@@ -1,24 +1,32 @@
+import os
+
 configfile: "./workflow_config.json"
 dataset = config["DATASETS"]
 n_augmentation = config["N_AUGMENTATION"]
 maxdegree = config["MAX_ROTATION_DEGREE"]
 split = config["SPLITS"]
 
+
+rule introspection:
+    input:
+        "../data/processed/annotations/ODIR_Annotations.csv"
+    output:
+        # outputs a plot or something
+    shell:
+        "introspection.py"
+
 # TODO: currently this only works on one dataset, figure out a way to do it on 2 datasets
+# TODO: have a plot as the input of this
+# TODO: rule training: fake a file
+# TODO: introspection poops out the plot
 rule all:
     input:
-        parent=expand("../data/processed/{dataset}_Training_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/",
+        expand("../data/processed/{dataset}_Training_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/images/",
                       dataset = config['DATASETS'],
-                      split= config['SPLITS'],
-                      n_augmentation = config['N_AUGMENTATION'],
-                      maxdegree = config['MAX_ROTATION_DEGREE']),
-        child=expand("../data/processed/{dataset}_Training_Images_n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/images/",
-                      dataset = config['DATASETS'],
-                      split= config['SPLITS'],
                       n_augmentation = config['N_AUGMENTATION'],
                       maxdegree = config['MAX_ROTATION_DEGREE'])
-    shell:
-        "python train_model.py {input.parent} {config[network_name]}"
+    run:
+        shell("python train_model.py {parent_dir} {config[network_name]}")
 
 
 rule preprocess_images:
@@ -43,4 +51,4 @@ rule preprocess_annotations:
     output:
         "../data/processed/annotations/ODIR_Annotations.csv"
     shell:
-        "python decode_diagnostics_keywords.py {input} {output}"
+        "python preprocess_annotations.py {input} {output}"
