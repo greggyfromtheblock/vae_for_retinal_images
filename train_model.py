@@ -4,7 +4,6 @@ Trigger training here
 import os
 import sys
 from torchvision import datasets, transforms
-import numpy as np
 import torch
 from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 from utils.utils import setup
@@ -23,15 +22,15 @@ if __name__ == "__main__":
     imfolder = os.path.abspath(FLAGS.input)
     device = FLAGS.device if torch.cuda.is_available() else "cpu"
 
-    print("input dir: ", imfolder,
-          "device: : ", device)
+    print("\ninput dir: ", imfolder,
+          "\ndevice: ", device)
 
     if FLAGS.networkname in os.listdir(FLAGS.path_prefix):
-        input1 = input("Network already exists. Are you sure to proceed? ([y]/n)")
+        input1 = input("\nNetwork already exists. Are you sure to proceed? ([y]/n) ")
         if not input1 in ['y', 'yes']:
             sys.exit()
 
-    print("Load Data as Tensors...")
+    print("\nLoad Data as Tensors...")
     img_dataset = datasets.ImageFolder(imfolder, transform=transforms.Compose([transforms.ToTensor(), normalize]))
     data = VAEDataset(img_dataset)
 
@@ -50,14 +49,13 @@ if __name__ == "__main__":
         verbose=True,
     )
 
-    print(len(data), data[0][0].shape)
-    print("To check if values are between 0 and 1:\n", data[0][0][0][50][30:180:10])
+    print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
+    print("\nTo check if values are between 0 and 1:\n{}".format(data[0][0][0][50][30:180:10]))
 
-    print("Start Training...")
+    print("\nStart Training...")
     time_start = time.time()
-    trained = training.train()
-    print('\nTraining with %i epochs done! Time elapsed: %.2f minutes' % (FLAGS.maxpochs, (time.time() - time_start)/60))
     trained_encoder, _ = training.train()
+    print('\nTraining with %i epochs done! Time elapsed: %.2f minutes' % (FLAGS.maxpochs, (time.time() - time_start)/60))
     # print(trained_encoder)
 
     # Save network

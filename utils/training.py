@@ -5,8 +5,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
 from torchsupport.training.vae import VAETraining
-# from vae import VAETraining
+import torch.nn.functional as F
 from tensorboardX import SummaryWriter
+
 # Ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -42,13 +43,12 @@ class Encoder(nn.Module):
 
         self.conv_layers = nn.Sequential(
             # Formula of new "Image" Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
-            *conv_block(3, 8, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
+            *conv_block(3, 32, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
             # -> (188-5+2*2)//1 + 1 = 188  --> Max-Pooling: 188/2 = 94
-            *conv_block(8, 16, kernel_size=5, padding=2),   # New "Image" Size:  48x47
-            *conv_block(16, 32, padding=1),  # New "Image" Size:  24x23
-            *conv_block(32, 64, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
-            *conv_block(64, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
-            # *conv_block(54, 64),   # New "Image" Size:  2*2
+            *conv_block(32, 64, kernel_size=5, padding=2),   # New "Image" Size:  48x47
+            *conv_block(64, 128, padding=1),  # New "Image" Size:  24x23
+            *conv_block(128, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
+            *conv_block(256, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
         )
 
         def linear_block(in_feat, out_feat, normalize=True, dropout=None, negative_slope=1e-2):
@@ -59,9 +59,9 @@ class Encoder(nn.Module):
             return layers
 
         self.linear_layers = nn.Sequential(
-            *linear_block(64 * 5 * 4, 128, normalize=True, dropout=None),
-            # *linear_block(512, 256, dropout=None),
-            # *linear_block(256, 128),
+            *linear_block(64 * 5 * 4, 512, normalize=True, dropout=0.5),
+            *linear_block(512, 256, dropout=0.3),
+            *linear_block(256, 128),
             *linear_block(128, 64),
             *linear_block(64, z, negative_slope=0.0)
         )
@@ -104,8 +104,9 @@ class Decoder(nn.Module):
         self.linear_blocks = nn.Sequential(
             *linear_block(z, 64, normalize=True),
             *linear_block(64, 128),
-            # *linear_block(128, 256, dropout=None),
-            *linear_block(128, 1280, dropout=None),  # 5*4*64
+            *linear_block(128, 256, dropout=None),
+            *linear_block(256, 512, dropout=0.3),
+            *linear_block(512, 1280, dropout=0.5),  # 5*4*64
             nn.ReLU()
         )
 
@@ -126,20 +127,18 @@ class Decoder(nn.Module):
 
         self.conv_layers = nn.Sequential(
             *conv_block(64, 128, padding=1, size=(11, 10), mode='nearest'),
-            *conv_block(128, 64, padding=1, size=(24, 23), mode='nearest'),
-            *conv_block(64, 32, padding=1, size=(48, 47)),
-            *conv_block(32, 16, padding=1, scale_factor=2),
-            *conv_block(16, 8, kernel_size=5, padding=2, scale_factor=2),
-            nn.Conv2d(in_channels=8, out_channels=3, kernel_size=1),
-            nn.BatchNorm2d(3),
-            nn.Sigmoid()
+            *conv_block(128, 256, padding=1, size=(24, 23), mode='nearest'),
+            *conv_block(256, 128, padding=1, size=(48, 47)),
+            *conv_block(128, 64, padding=1, scale_factor=2),
+            *conv_block(64, 32, kernel_size=5, padding=2, scale_factor=2),
+            nn.Conv2d(in_channels=32, out_channels=3, kernel_size=1),
+            nn.BatchNorm2d(3)
+            # nn.Sigmoid()
         )
 
     def forward(self, latent_vector):
         dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 5, 4))
-        # print(dec.shape)
         reconstructions = self.conv_layers(dec)
-        # print(7, reconstructions.shape)
         return reconstructions
 
 
@@ -170,9 +169,9 @@ class OdirVAETraining(VAETraining):
             self.epoch = self.epoch_id
             print("%i-Epoch" % self.epoch_id)
 
-        if self.step_id % 10 == 0:
+        if self.step_id % 5 == 0:
             self.writer.add_image("target", data[0], self.step_id)
-            self.writer.add_image("reconstruction", reconstructions[0].sigmoid(), self.step_id)
+            self.writer.add_image("reconstruction", F.sigmoid(reconstructions[0]), self.step_id)
         return mean, logvar, reconstructions, data
 
 
