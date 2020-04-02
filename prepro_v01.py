@@ -12,6 +12,7 @@ import os
 import pandas as pd
 import torch
 import random
+from tqdm import tqdm
 
 # Ignore warnings
 import warnings
