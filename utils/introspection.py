@@ -38,15 +38,15 @@ if __name__ == '__main__':
     sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 2.5})
     RS = 123
 
-    print("Load Data as Tensors...")
+    print("\nLoad Data as Tensors...")
     transform_data = transforms.Compose([transforms.ToTensor(), normalize])
     img_dataset = datasets.ImageFolder(
         imfolder, transform=transform_data
     )
     data = VAEDataset(img_dataset)
-    print(len(data))
+    print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
 
-    print("Build targets...")
+    print("\nBuild targets...")
     csv_df = pd.read_csv(csv_file, sep='\t')
     # print(csv_df['Fundus Image'])
     # print(list(csv_df.columns))
@@ -74,17 +74,18 @@ if __name__ == '__main__':
         for j, feature in enumerate(features.keys()):
             targets[i][j] = csv_df.iloc[row_number].at[feature]
 
-    print("Finished targets...")
+    print("Finished building targets...")
 
     # Load network
     trained_encoder = Encoder()
     trained_encoder.load_state_dict(torch.load(f"{path_prefix}/{network_name}/{network_name}" + ".pth"))
 
-    print("Start encoding of each image...")
+    print("\nStart encoding of each image...")
     encoded_samples = np.zeros((len(data), latent_vector_size))
     for i, sample in tqdm(enumerate(data[0])):
         features, _, _ = trained_encoder(sample[0])
         encoded_samples[i] = features.detach().numpy()
+    print("Finished encoding of each image...")
 
     print("Start Visualization...")
     for i, feature in tqdm(enumerate(features.keys())):
