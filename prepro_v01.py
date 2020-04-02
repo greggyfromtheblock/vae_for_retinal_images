@@ -140,7 +140,7 @@ def crop_image(img, r=0):
 
 
 # Generate the standardized image set
-for f in os.listdir(imdir):
+for f in tqdm(os.listdir(imdir)):
     # image = rgb2gray(io.imread(imdir + f))
     fname = f.replace(".jpg", "")
     image = io.imread(imdir + f)
