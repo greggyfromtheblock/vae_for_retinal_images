@@ -49,7 +49,7 @@
   },
   "-maxpochs": {
     "short": "-me",
-    "value": 1,
+    "value": 30,
     "help": "Maximum nr of epochs to train the model",
     "type": "int"
   },
@@ -73,7 +73,7 @@
   },
   "-batchsize": {
     "short": "-bs",
-    "value": 64,
+    "value": 128,
     "help": "The models batchsize",
     "type": "int"
   },

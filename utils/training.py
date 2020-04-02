@@ -59,10 +59,10 @@ class Encoder(nn.Module):
             return layers
 
         self.linear_layers = nn.Sequential(
-            *linear_block(64 * 5 * 4, 512, normalize=True, dropout=0.5),
-            *linear_block(512, 256, dropout=0.3),
-            *linear_block(256, 128),
-            *linear_block(128, 64),
+            *linear_block(64 * 5 * 4, 64, normalize=True, dropout=0.5),
+            # *linear_block(512, 256, dropout=0.3),
+            # *linear_block(256, 128),
+            # *linear_block(128, 64),
             *linear_block(64, z, negative_slope=0.0)
         )
 
@@ -132,7 +132,7 @@ class Decoder(nn.Module):
             *conv_block(128, 64, padding=1, scale_factor=2),
             *conv_block(64, 32, kernel_size=5, padding=2, scale_factor=2),
             nn.Conv2d(in_channels=32, out_channels=3, kernel_size=1),
-            nn.BatchNorm2d(3)
+            # nn.BatchNorm2d(3)
             # nn.Sigmoid()
         )
 
