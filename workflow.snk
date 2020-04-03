@@ -23,10 +23,12 @@ current_path = os.getcwd()
 network_dir = current_path+f"/{network_name}/"
 
 print(dataset, max_degree, n_aug)
+print("Current Path:", current_path)
 
 # "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/{dataset}_{split}_Images/".format(dataset=dataset, split=split)
 # "/data/analysis/ag-reils/ag-reils-shared-students/retina//data/processed/{dataset}_{split}_Images_{n_aug}_{maxdegree}/images/".format(   dataset=dataset, split=split, n_aug=n_aug, max_degree=max_degree)
 # "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Training_Annotations/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+
 
 
 
@@ -48,7 +50,7 @@ rule preprocess_images:
 
 rule train:
     input:
-        "/home/henrik/vae_for_retinal_images/data/processed/{dataset}_{training}_Images_{n_aug}_{maxdegree}"
+        "/home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/{dataset}_{training}_Images_{n_aug}_{maxdegree}_{grayscale}"
     output:
          network_dir
     run:
@@ -81,10 +83,10 @@ rule preprocess_annotations:
 
 rule introspection:
     input:
-        im_dir = expand(current_path+"/data/processed/{dataset}_{test}_Images/", dataset=dataset, test=validation),
+        im_dir = current_path+"/data/processed/{dataset}_{test}_Images/",
         csv_file = current_path+"/data/processed/annotations/annotations.csv"
     output:
-        network_dir
+        touch("hola.done")
     run:
         "python3 utils/introspection.py {input.im_dir} {input.csv_file} {output} {network_name}"
 
@@ -94,6 +96,8 @@ rule introspection:
 
 rule all:
     input:
-        network_dir + "visualization_for_feature_myopia.png"
+        network_dir,
+        "hola.done"
+
 
 
