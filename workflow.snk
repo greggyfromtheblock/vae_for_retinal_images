@@ -95,4 +95,4 @@ rule introspection:
 rule all:
     input:
         network_dir,
-        current_path+f"{network_name}-visualizations"
+        current_path+"{network_name}-visualizations"
