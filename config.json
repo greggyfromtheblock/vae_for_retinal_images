@@ -1,38 +1,8 @@
 {
-  "-out_directory": {
-    "short": "-od",
-    "value": ".",
-    "help": "Output directory.",
-    "type": "str"
-  },
-  "-input": {
-    "short": "-i",
-    "value": "data/processed/",
-    "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
-    "type": "str"
-  },
-  "-input_csv": {
-    "short": "-ii",
-    "value": "data/odir_train_lr_annotations.csv",
-    "help": "Input file or directory for the csv file, if multiple files are expected comma-separation is assumed.",
-    "type": "str"
-  },
   "-logging_name": {
     "short": "-n",
     "value": "test",
     "help": "Global logger prefix.",
-    "type": "str"
-  },
-  "-networkname": {
-    "short": "-nn",
-    "value": "odir-vae-test",
-    "help": "Some juicy VAE name.",
-    "type": "str"
-  },
-  "-path_prefix": {
-    "short": "-pp",
-    "value": ".",
-    "help": "Path Prefix.",
     "type": "str"
   },
   "-device": {
@@ -49,20 +19,8 @@
   },
   "-maxpochs": {
     "short": "-me",
-    "value": 30,
+    "value": 5,
     "help": "Maximum nr of epochs to train the model",
-    "type": "int"
-  },
-  "-n_augmentation": {
-    "short": "-aug",
-    "value": 10,
-    "help": "Maximum nr of augmenations of the original and flipped images",
-    "type": "int"
-  },
-  "-max_degree": {
-    "short": "-md",
-    "value": 20,
-    "help": "Maximum rotation degree of each image",
     "type": "int"
   },
   "-reportinterval": {
