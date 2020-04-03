@@ -228,3 +228,15 @@ if __name__ == "__main__":
 
 ```
 
+## Branching and Merging Going Forward
+In order to to make the merge to master easy the process should go as follow:
+
+The user that is responsible to add a specific feature should branch out of
+master to a new branch. Then add just that feature to the new branch. Check that
+it works. make a pull request. Then delete the feature branch.
+
+I guess we could keep other branches like henrik, yiftach etc. for testing and
+stuff as long as they don't destract us from the development.
+
+So every change should be in its own branch, incrimental, small, tested, and easy to be integrated
+into the master branch.
