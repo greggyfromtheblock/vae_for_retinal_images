@@ -33,6 +33,7 @@ print("Current Path:", current_path)
 
 
 
+
 ###############################################################
 #        Preprocess training images and train model           #
 ###############################################################
@@ -86,18 +87,12 @@ rule introspection:
         im_dir = current_path+"/data/processed/{dataset}_{test}_Images/",
         csv_file = current_path+"/data/processed/annotations/annotations.csv"
     output:
-        touch("hola.done")
+        current_path+f"{network_name}-visualizations"
     run:
         "python3 utils/introspection.py {input.im_dir} {input.csv_file} {output} {network_name}"
 
 
-
-# Letztes Bild aus der introspection.py soll das Ende markieren
-
 rule all:
     input:
         network_dir,
-        "hola.done"
-
-
-
+        current_path+f"{network_name}-visualizations"
