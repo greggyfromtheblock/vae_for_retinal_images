@@ -2,31 +2,98 @@
 Define the workflow of the project here
 """
 
-
 # run with:   snakemake -s workflow.snk --configfile workflow_config.json
-
 
 ########################################################################################################################
 #                                               ~~~ Workflow ~~~                                                       #
 ########################################################################################################################
+configfile: "./workflow_config.json"
+import os
+
+dataset=config["DATASETS"]
+training=config['Training']
+validation=config['Validation']
+
+max_degree=config['MAX_ROTATION_ANGLE']
+n_aug=config['N_AUGMENTATION']
+network_name=config['network_name']
+grayscale=config['grayscale']
+
+current_path = os.getcwd()
+network_dir = current_path+f"/{network_name}/"
+
+print(dataset, max_degree, n_aug)
+
+# "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/{dataset}_{split}_Images/".format(dataset=dataset, split=split)
+# "/data/analysis/ag-reils/ag-reils-shared-students/retina//data/processed/{dataset}_{split}_Images_{n_aug}_{maxdegree}/images/".format(   dataset=dataset, split=split, n_aug=n_aug, max_degree=max_degree)
+# "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Training_Annotations/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+
+
+
+
+###############################################################
+#        Preprocess training images and train model           #
+###############################################################
+
+rule preprocess_images:
+    input:
+        expand("/home/henrik/PycharmProjects/vae_for_retinal_images/data/odir/{dataset}_{training}_Images",
+        dataset=dataset, training=training)
+    output:
+        expand(current_path+"/data/processed/{dataset}_{training}_Images_{n_aug}_{maxdegree}_{grayscale}/Images",
+        dataset=dataset,  training=training, n_aug=n_aug, maxdegree=max_degree, grayscale=grayscale)
+    run:
+        shell("python3 utils/preprocessing.py {input} {output} -na {n_aug} -mra {max_degree} -gr {grayscale} ")
+
+
+rule train:
+    input:
+        "/home/henrik/vae_for_retinal_images/data/processed/{dataset}_{training}_Images_{n_aug}_{maxdegree}"
+    output:
+         network_dir
+    run:
+        "python3 train_model.py {input} {output} {network_name}"
+
+
+####################################################################################
+#        Preprocess test images, annotations and visualize encoded images          #
+####################################################################################
+
+
+rule preprocess_test_images:
+    input:
+        expand("/home/henrik/PycharmProjects/vae_for_retinal_images/data/odir/{dataset}_{test}_Images",
+        dataset=dataset, test=validation)
+    output:
+        expand(current_path+"/data/processed/{dataset}_{test}_Images/Images",
+        dataset=dataset, test=validation)
+    run:
+        shell("python3 utils/preprocess_test_images.py {input} {output} --resize 192 188 -gr {grayscale}")
+
+rule preprocess_annotations:
+    input:
+        "/home/henrik/PycharmProjects/vae_for_retinal_images/data/odir/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+    output:
+        current_path+"/data/processed/annotations/annotations.csv"
+    shell:
+        "python3 utils/preprocess_annotations.py {input} {output}"
+
+
+rule introspection:
+    input:
+        im_dir = expand(current_path+"/data/processed/{dataset}_{test}_Images/", dataset=dataset, test=validation),
+        csv_file = current_path+"/data/processed/annotations/annotations.csv"
+    output:
+        network_dir
+    run:
+        "python3 utils/introspection.py {input.im_dir} {input.csv_file} {output} {network_name}"
+
+
+
+# Letztes Bild aus der introspection.py soll das Ende markieren
+
 rule all:
-  input:
-    expand("data/processed/{split}/labels.txt",
-       split=config['SPLITS'])
+    input:
+        network_dir + "visualization_for_feature_myopia.png"
 
 
-# EXAMPLE RULE:
-rule process_to_h5ad:
-  input:
-    fieldsfile="umbrella/resources/riskiano_config/ukbb_default_categories.tsv",
-  output:
-    h5ad="../data/ukb_processed/{project}/all/decoded.h5ad",
-  shell:
-    """
-    python -m umbrella.pre.scripts.process_to_h5ad \
-      -i {config[DATA]} \
-      -fu {input.fieldsfile}\
-      -ds {config[DATASHOWCASEMAP]} \
-      -csm {config[CODINGMAP]} \
-      -o {output.h5ad}
-    """

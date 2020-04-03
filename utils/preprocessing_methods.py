@@ -1,7 +1,8 @@
 import numpy as np
 import PIL as pil
 from skimage import io, img_as_ubyte, transform
-import pandas as pd
+from tqdm import tqdm
+import os
 
 
 def trim_image_rgb(jpg, dir, outdir):
@@ -18,76 +19,55 @@ def trim_image_rgb(jpg, dir, outdir):
     io.imsave(outdir + jpg, img)
 
 
-def find_optimal_image_size_and_extend_db(xlsx_dir, imdir):
+def find_optimal_image_size(imdir="processed/train/"):
     """
-    :param db: Directory of data (Directory to .xlsx file, later of extended Database (saving as .tsv file))
-    :param imdir: Directory of cropped images
+    :param imdir: Directory to cropped images
     :return: Tuple: values for new Image Size
     """
 
-    df = pd.read_excel(xlsx_dir+'ODIR-5K_Training_Annotations(Updated)_V2.xlsx')
-    df['Left-Width'] = int(0)
-    df['Left-Height'] = int(0)
-    df['Right-Width'] = int(0)
-    df['Right-Height'] = int(0)
+    n = len(os.listdir(imdir))
+    x = np.zeros(n).astype("int")
+    y = np.zeros(n).astype("int")
 
-    x = np.zeros_like(df['ID']).astype('int')
-    y = np.zeros_like(df['ID']).astype('int')
-    z = np.zeros_like(df['ID']).astype('int')
-    w = np.zeros_like(df['ID']).astype('int')
-
-    min_x, min_y = float('inf'), float('inf')
-    for i, row in enumerate(df['Left-Fundus']):
-        s = imdir + row
-        t = imdir + row.replace("left", "right")
-        img = pil.Image.open(s)
+    min_x, min_y = float("inf"), float("inf")
+    for i, f in tqdm(enumerate(os.listdir(imdir))):
+        img = pil.Image.open(imdir + f)
         x[i] = img.width
         y[i] = img.height
-        if img.width*img.height < min_x * min_y:
+        i += 1
+        if img.width * img.height < min_x * min_y:
             min_x, min_y = img.width, img.height
 
-        img.close
-        img = pil.Image.open(t)
-        z[i] = img.width
-        w[i] = img.height
-        img.close
+    print("\nMinimal/Maximal size (width, height):", (min(x), min(y)), (max(x), max(y)))
 
-    df['Left-Width'] = x
-    df['Left-Height'] = y
-    df['Right-Width'] = z
-    df['Right-Height'] = w
-    print("saving the extended database to: ", xlsx_dir+"extended.tsv")
-    df.to_csv(xlsx_dir+"extended.tsv", index=False, sep='\t')
+    avg_size = np.sum(x) / np.alen(x), np.sum(y) / np.alen(x)
+    print("Average size:     Width %i   Height %i" % (avg_size[0], avg_size[1]))
 
-    print('minimal/maximal size (width-height):',
-            (min(x), min(y)),
-            (max(x),max(y))),
+    print("Minimal/Maximal ratio (height/width):", min(y / x), max(y / x))
 
-    avg_size = np.sum(x)/np.alen(x), np.sum(y)/np.alen(x)
-    print('Average size:     Width %i   Height %i' % (avg_size[0], avg_size[1]))
+    ratio_height_width = np.sum(y) / np.sum(x)
+    print("Total ratio (left_height/left_width):", ratio_height_width)
 
-    print('Minimal/Maximal ratio (height/width):', min(y/x), max(y/x))
-
-    ratio_height_width = np.sum(y)/np.sum(x)
-    print('Total ratio (left_height/left_width):', ratio_height_width)
-
-    print('\nMinimal image size: %ix%i\n' % (int(min_x), int(min_y)))
+    print("\nMinimal image size: %ix%i\n" % (int(min_x), int(min_y)))
 
     for new_w in range(min_x, int(avg_size[0]), 2):
         for new_h in range(min_y, int(avg_size[1]), 2):
-            if ratio_height_width - 0.01 < new_h/new_w < ratio_height_width + 0.01:
-                print('Best minimal image size (close to the average ratio): %ix%i\n' % (new_w, new_h))
+            if ratio_height_width - 0.01 < new_h / new_w < ratio_height_width + 0.01:
+                print(
+                    "Best minimal image size (close to the average ratio): %ix%i\n"
+                    % (new_w, new_h)
+                )
                 return new_w, new_h
 
 
-def rotate(img, outdir, fname, n_aug_per_image, max_rotation_angle):
+def rotate(img, outdir, fname, n_aug, max_rotation_angle):
     # Prerequisites for rotating: Only those images should be rotated on which the retina is a 'whole' circle
     # They are defined by the distance between two black pixels (values of these pixels are (0, 0, 0)) in the first
     # and last row respectively the column
     # Max distance is needed and depends on the image size
     def check_prereq(array):
         l = len(array)
-        max_distance = 0.225 * l
+        max_distance = 0.20 * l
         min, max = l, 0
         for i, el in enumerate(array):
             if i == 0 or i == l - 1:
@@ -125,6 +105,6 @@ def rotate(img, outdir, fname, n_aug_per_image, max_rotation_angle):
         and check_prereq(np.transpose(img)[0])
         and check_prereq(np.transpose(img)[-1])
     ):
-        rotation_angles = np.random.random_integers(low=-max_rotation_angle, high=max_rotation_angle, size=n_aug_per_image)
+        rotation_angles = np.random.random_integers(low=-max_rotation_angle, high=max_rotation_angle, size=n_aug)
         for angle in rotation_angles:
             io.imsave(outdir + fname + "_rot_%i.jpg" % angle, img_as_ubyte(transform.rotate(img, angle)))

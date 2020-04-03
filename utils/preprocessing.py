@@ -1,6 +1,5 @@
-from decode_diagnostics_keywords import decode_d_k
 from tqdm import tqdm
-from preprocessing_methods import trim_image_rgb, rotate, find_optimal_image_size_and_extend_db
+from preprocessing_methods import trim_image_rgb, rotate, find_optimal_image_size
 import os
 from skimage import io, img_as_ubyte
 from skimage.transform import resize
@@ -27,18 +26,17 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
         description="""Preprocessing""")
-    parser.add_argument('imdir', type=str, default=None,
-                        metavar='image_dir',
-                        help="""The path to the directory which contains
-                       the image folder. """)
-    parser.add_argument('outdir', type=str, default=None,
-                        metavar='image_dir',
-                        help="""The path to the directory which should contain
-                        processed augmented images.""")
-    parser.add_argument('xlsx_dir', type=str, default=None,
-                        metavar='image_dir',
-                        help="""The path to the directory which contains
-                       the Annotations of the Odir-Dataset. """)
+    parser.add_argument('imdir', type=str, default=None, metavar='image_dir',
+                        help="""The path to the directory which contains the image folder. """)
+    parser.add_argument('outdir', type=str, default=None, metavar='out_image_dir',
+                        help="""The path to the directory which should contain processed augmented images.""")
+    parser.add_argument('-na', '--n_augmentation', type=int, default=0,
+                        help="""Number of Augmented images per image""")
+    parser.add_argument('-mra', '--max_rotation', type=int, default=0,
+                        help="""Max rotation degree +- for the images, for example if you pass 10 to this argument then 
+                        the function will pick {aug_per_image} random values from the range -10 to 10""")
+    parser.add_argument('-gr', '--grayscale', type=int, default=0,
+                        help="""Grayscale the images. If wished enter an integer (except zero).""")
     args = parser.parse_args()
 
     def add_slash(path):
@@ -49,31 +47,29 @@ if __name__ == '__main__':
 
     dir = add_slash(args.imdir)
     outdir = add_slash(args.outdir)
-    xlsx_dir = add_slash(args.xlsx_dir)
-
-    """
-    python3 utils/preprocessing.py 
-    /home/henrik/PycharmProjects/vae_for_retinal_images/data/odir/ODIR-5K_Training_Dataset/ 
-    /home/henrik/PycharmProjects/vae_for_retinal_images/data/processed
-    /home/henrik/PycharmProjects/vae_for_retinal_images/data/odir
-    """
 
     os.makedirs(outdir, exist_ok=True)
 
     print("Start cropping...")
     for i, f in tqdm(enumerate(os.listdir(dir))):
         # Crop image
-        trim_image_rgb(f, dir, outdir)
+        if i < 50:
+            trim_image_rgb(f, dir, outdir)
     print("Finished cropping...")
 
     print("Start finding optimal image size and extend db...")
-    opt_w, opt_h = find_optimal_image_size_and_extend_db(xlsx_dir, outdir)
+    opt_w, opt_h = find_optimal_image_size(imdir=outdir)
     print("Finished finding optimal image size and extend db...")
 
     print("Start resizing and data augmentation...")
     for f in tqdm(os.listdir(outdir)):
         fname = f.replace(".jpg", "")
         image = io.imread(outdir + f)
+
+        # Check grayscale images
+        if args.grayscale:
+            from skimage.color import rgb2gray
+            image = rgb2gray(image)
 
         # Resize image
         image = resize(image, output_shape=(opt_w, opt_h))
@@ -86,13 +82,8 @@ if __name__ == '__main__':
         io.imsave(outdir + fname + "_flipped.jpg", img_as_ubyte(image_flipped))
 
         # rotate image and save it
-        rotate(image, outdir, fname)
-        rotate(image_flipped, outdir, fname + "_flipped")
+        rotate(image, outdir, fname, args.n_augmentation, args.max_rotation)
+        rotate(image_flipped, outdir, fname + "_flipped", args.n_augmentation, args.max_rotation)
 
     print("Finished resizing and data augmentation...")
-
-    print("Decode diagnostics keywords...")
-    decode_d_k(xlsx_dir)
-    print("Finished decoding diagnostics keywords...")
-
 

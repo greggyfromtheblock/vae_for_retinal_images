@@ -1,4 +1,9 @@
 {
-  "DATADIR": "/path/to/raw/data/",
-  "SOMEPARAM": "param"
+    "DATASETS": ["ODIR"],
+    "Training": "Training",
+    "Validation": "Test",
+    "N_AUGMENTATION": 2,
+    "MAX_ROTATION_ANGLE": 20,
+    "network_name": "odir-vae-test-test",
+    "grayscale": 0
 }

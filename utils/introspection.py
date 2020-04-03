@@ -14,6 +14,7 @@ import os
 from tqdm import tqdm
 from training import Encoder, VAEDataset
 from utils import setup
+import argparse
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -23,13 +24,28 @@ def normalize(image):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description="""Introspection""")
+    parser.add_argument('imdir', type=str, default=None, metavar='image_dir',
+                        help="""The path to the directory which contains the preprocessed image folder.""")
+    parser.add_argument('network_dir', type=str, default=None, metavar='network_dir',
+                        help="""Directory which contains the trained encoder, the event files and torch files.""")
+    parser.add_argument('csv_file', type=str, default=None, metavar='csv_file',
+                        help="""The path to the preprocessed csv file.""")
+    parser.add_argument('network_dir', type=str, default=".",
+                        help="""Directory which contains the trained encoder, the event files and torch files.""")
+    parser.add_argument('network_name', type=str, default="vae",
+                        help="""Network Name.""")
+    args = parser.parse_args()
 
     FLAGS, logger = setup(running_script="./utils/introspection.py", config="config.json")
     print("FLAGS= ", FLAGS)
 
-    imfolder = os.path.abspath(FLAGS.input)
-    csv_file = FLAGS.input_csv
-    network_name = FLAGS.networkname
+    imfolder = os.path.abspath(args.imdir)
+    csv_file = os.path.abspath(args.csv_file)
+    network_dir = os.path.abspath(args.network_dir)
+    network_name = args.networkname
+
     latent_vector_size = FLAGS.zdim
     path_prefix = FLAGS.path_prefix
 
@@ -50,6 +66,7 @@ if __name__ == '__main__':
     csv_df = pd.read_csv(csv_file, sep='\t')
     # print(csv_df['Fundus Image'])
     # print(list(csv_df.columns))
+
     features = {
         "N": "normal fundus",
         "D": "proliferative retinopathy",
@@ -69,9 +86,8 @@ if __name__ == '__main__':
     angles.extend([x for x in range(-9, 9)])
     print("\nPossible Angles: {}\n".format(angles))
 
-    for i, jpg in tqdm(enumerate(os.listdir(imfolder+"/train/"))):
+    for i, jpg in tqdm(enumerate(os.listdir(imfolder))):
         jpg = jpg.replace("_flipped", "")
-        # jpg = jpg.replace("0", "")
 
         for angle in angles:
             jpg = jpg.replace("_rot_%i" % angle, "")
@@ -84,7 +100,7 @@ if __name__ == '__main__':
 
     # Load network
     trained_encoder = Encoder()
-    trained_encoder.load_state_dict(torch.load(f"{path_prefix}/{network_name}/{network_name}" + ".pth"))
+    trained_encoder.load_state_dict(torch.load(network_dir+f"/{network_name}" + ".pth"))
 
     print("\nStart encoding of each image...")
     encoded_samples = np.zeros((len(data), latent_vector_size))
@@ -103,7 +119,7 @@ if __name__ == '__main__':
 
         tsne_df = pd.DataFrame({'X': tsne[:, 0],
                                 'Y': tsne[:, 1],
-                                feature: np.transpose(targets[i])})
+                                features[feature]: np.transpose(targets[i])})
 
         # U-Map Visualization
         clusterable_embedding = UMAP(
@@ -114,7 +130,7 @@ if __name__ == '__main__':
         ).fit_transform(encoded_samples)
         umap_df = pd.DataFrame({'X': clusterable_embedding[:, 0],
                                 'Y': clusterable_embedding[:, 1],
-                                feature: np.transpose(targets[i])})
+                                features[feature]: np.transpose(targets[i])})
 
         plt.subplot(2, 1, 1)
         sns.scatterplot(x="X", y="Y",
@@ -136,6 +152,37 @@ if __name__ == '__main__':
         # plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=targets, s=0.1, cmap='Spectral');
         plt.title("UMAP-Visualization")
 
-        plt.savefig(f"{path_prefix}/{network_name}/Visualization")
+        fea = features[feature]
+        plt.savefig(f"{path_prefix}/{network_name}/visualization_for_feature_{fea}.png")
         plt.show()
         plt.close()
+
+
+    """
+     csv_df = pd.read_csv(path, sep='\t')
+    >>> a=list(csv_df.columns)
+    >>> a
+    ['ID', 'Side', 'Patient Age', 'Patient Sex', 'Fundus Image', 'Diagnostic Keywords', 'N',
+     'D', 'G', 'C', 'A', 'H', 'M', 'O', 'anterior', 'no fundus']
+    >>> d=csv_df.'ID'
+      File "<stdin>", line 1
+        d=csv_df.'ID'
+                    ^
+    SyntaxError: invalid syntax
+    >>> d=csv_df['ID']
+    >>> d=csv_df['Fundus Image']
+    >>> d
+    0           0_left.jpg
+    1          0_right.jpg
+    2           1_left.jpg
+    3          1_right.jpg
+    4           2_left.jpg
+                 ...      
+    6995    4689_right.jpg
+    6996     4690_left.jpg
+    6997    4690_right.jpg
+    6998     4784_left.jpg
+    6999    4784_right.jpg
+    Name: Fundus Image, Length: 7000, dtype: object
+    >>> 
+    """

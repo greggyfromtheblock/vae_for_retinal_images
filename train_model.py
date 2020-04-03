@@ -8,6 +8,7 @@ import torch
 from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 from utils.utils import setup
 import time
+import argparse
 
 
 def normalize(image):
@@ -16,10 +17,20 @@ def normalize(image):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(
+        description="""Train Model""")
+    parser.add_argument('imdir', type=str, default=None, metavar='image_dir',
+                        help="""The path to the directory which contains the preprocessed image folder.""")
+    parser.add_argument('network_dir', type=str, default=".",
+                        help="""Directory which contains the trained encoder, the event files and torch files.""")
+    parser.add_argument('network_name', type=str, default="vae",
+                        help="""Network Name.""")
+    args = parser.parse_args()
+
     FLAGS, logger = setup(running_script="./utils/training.py", config="config.json")
     print("FLAGS= ", FLAGS)
 
-    imfolder = os.path.abspath(FLAGS.input)
+    imfolder = args.imdir
     device = FLAGS.device if torch.cuda.is_available() else "cpu"
 
     print("\ninput dir: ", imfolder,
@@ -40,8 +51,8 @@ if __name__ == "__main__":
         encoder,
         decoder,
         data,
-        path_prefix=FLAGS.path_prefix,
-        network_name=FLAGS.networkname,
+        network_dir=args.network_dir,
+        network_name=args.network_name,
         device=device,
         optimizer_kwargs={"lr": FLAGS.learningrate},
         batch_size=FLAGS.batchsize,
@@ -59,24 +70,7 @@ if __name__ == "__main__":
     # print(trained_encoder)
 
     # Save network
-    PATH = f'{FLAGS.path_prefix}/{FLAGS.networkname}/{FLAGS.networkname}.pth'
+    os.makedirs(args.network_dir)
+    PATH = args.network_dir+f'/{args.networkname}.pth'
     torch.save(trained_encoder.state_dict(), PATH)
 
-
-"""    
-def prepare_datasets(logger, path_to_splits):
-datasets = {'train': ''}
-return datasets
-
-FLAGS, logger = setup(running_script="train_ECG_vae.py",
-                      config='config.json')
-
-# input
-split_data_path = FLAGS.input.strip().split(',')
-
-datasets, eids = prepare_datasets(logger, split_data_path)
-
-trained = train(logger, FLAGS, datasets['train'])
-
-logger.info('Done.')
-"""
