@@ -3,11 +3,12 @@ Trigger training here
 """
 import os
 import sys
-from torchvision import datasets, transforms
-import torch
-from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
-from utils.utils import setup
 import time
+
+import torch
+from torchvision import datasets, transforms
+from utils.training import Decoder, Encoder, OdirVAETraining, VAEDataset
+from utils.utils import setup
 
 
 def normalize(image):
@@ -19,6 +20,7 @@ if __name__ == "__main__":
     FLAGS, logger = setup(running_script="./utils/training.py", config="config.json")
     print("FLAGS= ", FLAGS)
 
+    # TODO: Refactor input folder here into argparse
     imfolder = os.path.abspath(FLAGS.input)
     device = FLAGS.device if torch.cuda.is_available() else "cpu"
 
@@ -59,6 +61,7 @@ if __name__ == "__main__":
     print('\nTraining with %i epochs done! Time elapsed: %.2f minutes' % (FLAGS.maxpochs, (time.time() - time_start)/60))
     # print(trained_encoder)
 
+    # TODO: Also refactor path_prefix/networkname into args
     # Save network
     PATH = f'{FLAGS.path_prefix}/{FLAGS.networkname}/{FLAGS.networkname}.pth'
     os.makedirs(os.path.dirname(PATH), exist_ok=True)

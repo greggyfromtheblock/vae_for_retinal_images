@@ -11,8 +11,6 @@ rule all:
                dataset = config['DATASETS'],
                n_augmentation = config['N_AUGMENTATION'],
                maxdegree = config['MAX_ROTATION_ANGLE'])
-    output:
-        touch("my_body")
     run:
         # Because dataloader asks for the parent directory
         childdir = str(input)
@@ -24,21 +22,21 @@ rule preprocess_training_images:
     input:
         expand("../data/raw/{dataset}_Training_Images/", dataset = config['DATASETS'])
     output:
-        training = directory(expand("../data/processed/training/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/{dataset}/",
-                                    dataset = config['DATASETS'],
-                                    n_augmentation = config['N_AUGMENTATION'],
-                                    maxdegree = config['MAX_ROTATION_ANGLE']))
+        directory(expand("../data/processed/training/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/{dataset}/",
+                         dataset = config['DATASETS'],
+                         n_augmentation = config['N_AUGMENTATION'],
+                         maxdegree = config['MAX_ROTATION_ANGLE']))
     run:
-            shell("python ./utils/preprocessing.py {input} {output.training} -na {n_augmentation} -mra {maxdegree}")
+            shell("python ./utils/preprocessing.py {input} {output} -na {n_augmentation} -mra {maxdegree}")
 
 
 rule preprocess_testing_images:
     input:
-        expand("../data/raw/{dataset}_Training_Images/", dataset = config['DATASETS'])
+        expand("../data/raw/{dataset}_Testing_Images/", dataset = config['DATASETS'])
     output:
-        training = directory(expand("../data/processed/training/{dataset}/", dataset = config['DATASETS']))
+        directory(expand("../data/processed/testing/{dataset}/", dataset = config['DATASETS']))
     run:
-        shell("python ./utils/preprocessing.py {input} {output.training} -na {n_augmentation} -mra {maxdegree}")
+        shell("python ./utils/preprocessing.py {input} {output} -na {n_augmentation} -mra {maxdegree}")
 
 
 rule preprocess_annotations:

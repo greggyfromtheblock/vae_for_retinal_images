@@ -46,7 +46,7 @@ def find_optimal_image_size_and_extend_db(imdir="processed/train/"):
         if img.width * img.height < min_x * min_y:
             min_x, min_y = img.width, img.height
         img.close
-
+ 
     print("minimal/maximal size (width-height):", (min(x), min(y)), (max(x), max(y))),
 
     avg_size = np.sum(x) / np.alen(x), np.sum(y) / np.alen(x)
@@ -116,4 +116,4 @@ def rotate(img, outdir, fname, n_aug_per_image, max_rotation_angle):
     ):
         rotation_angles = [random.randrange(-max_rotation_angle, max_rotation_angle) for x in range(n_aug_per_image)]
         for angle in rotation_angles:
-            io.imsave(outdir + fname + "_rot_%i.jpg" % angle, img_as_ubyte(transform.rotate(img, angle)))
+            io.imsave(outdir + '/' + fname + "_rot_%i.jpg" % angle, img_as_ubyte(transform.rotate(img, angle)))

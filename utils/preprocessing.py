@@ -1,16 +1,15 @@
+import argparse
 import os
 import sys
-import argparse
 import warnings
-from skimage import io, img_as_ubyte
-from skimage.transform import resize
+
 import numpy as np
-from preprocessing_methods import (
-    trim_image_rgb,
-    rotate,
-    find_optimal_image_size_and_extend_db,
-)
+from skimage import img_as_ubyte, io
+from skimage.transform import resize
 from tqdm import tqdm
+
+from preprocessing_methods import (find_optimal_image_size_and_extend_db,
+                                   rotate, trim_image_rgb)
 
 warnings.filterwarnings("ignore")
 
@@ -50,12 +49,14 @@ if __name__ == "__main__":
                     they will be saved""",
     )
     parser.add_argument(
+        "-na",
         "--n_augmentation",
         type=int,
         default=0,
         help="""Number of Augmented images per image""",
     )
     parser.add_argument(
+        "-mra",
         "--max_rotation",
         type=int,
         default=0,
@@ -102,33 +103,16 @@ if __name__ == "__main__":
         #io.imsave(ddir + outdir + f, img_as_ubyte(image))
         io.imsave(outdir + '/' + f, img_as_ubyte(image))
 
-        # flip image
-        image_flipped = np.fliplr(image)
-        #io.imsave(ddir + outdir + fname + "_flipped.jpg", img_as_ubyte(image_flipped))
-        io.imsave(outdir + '/' + fname + "_flipped.jpg", img_as_ubyte(image_flipped))
+        # TODO: shall we create a flag for flipping as well? 
+        if args.n_augmentation > 0:
+            # flip image
+            image_flipped = np.fliplr(image)
+            #io.imsave(ddir + outdir + fname + "_flipped.jpg", img_as_ubyte(image_flipped))
+            io.imsave(outdir + '/' + fname + "_flipped.jpg", img_as_ubyte(image_flipped))
 
-        # rotate image and save it
-        #rotate(image, ddir + outdir, fname)
-        #rotate(image,outdir, fname)
-        #rotate(image_flipped, ddir + outdir, fname + "_flipped")
-        #rotate(image_flipped, outdir, fname + "_flipped")
-       
-    # rotate image and save it
-        # Rotation might be broken so 
-        # Comment it out for now
-        # old rotate:
-        #rotate(image, ddir + outdir, fname)
-        #rotate(image_flipped, ddir + outdir, fname + "_flipped")
-        # new rotate (gregg):
-        #rotate(image, outdir, fname, args.n_augmentation, args.max_rotation)
-        #rotate(
-        #    image_flipped,
-        #    outdir,
-        #    fname + "_flipped",
-        #    args.n_augmentation,
-        #    args.max_rotation,
-        #)
+            # rotate image and save it, the saving is 
+            rotate(image, outdir, fname, args.n_augmentation, args.max_rotation)
+            rotate(image_flipped, outdir, fname + "_flipped", args.n_augmentation, args.max_rotation)
 
-        
 
     print("Finished resizing and data augmentation...")
