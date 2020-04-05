@@ -1,8 +1,9 @@
-import logging
 import argparse
 import json
+import logging
 import os
 import sys
+
 import torch
 
 
@@ -54,7 +55,6 @@ def set_default_options(config_file, parser):
     Read the config.JSON and set the default options accordingly.
     :return:
     """
-
     with open(config_file, "r") as open_config_file:
         config_dict = json.load(open_config_file)
 
@@ -105,6 +105,7 @@ def setup(running_script, config, args=None, logging_name=None):
     For all command-line exposed scripts. Prepares logger and arguments parser
     :return:
     """
+
     # Get parser
     parser = argparse.ArgumentParser(
         description="Options to run {}".format(running_script)

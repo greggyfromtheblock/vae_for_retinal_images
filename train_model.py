@@ -1,6 +1,7 @@
 """
 Trigger training here
 """
+import argparse
 import os
 import sys
 import time
@@ -17,11 +18,19 @@ def normalize(image):
 
 if __name__ == "__main__":
 
-    FLAGS, logger = setup(running_script="./utils/training.py", config="config.json")
+    parser = argparse.ArgumentParser(description = """Training VAE""")
+    parser.add_argument('imfolder', type=str, default=None,
+                        metavar='image_dir',
+                        help="""The path to the directory which contains
+                        the imgge folder. The images themselves must be
+                        in one or more subdirectories of the imfolder""")
+    args, rest = parser.parse_known_args()
+
+    FLAGS, logger = setup(running_script="./utils/training.py", args=rest, config="config.json")
     print("FLAGS= ", FLAGS)
 
-    # TODO: Refactor input folder here into argparse
-    imfolder = os.path.abspath(FLAGS.input)
+
+    imfolder = os.path.abspath(args.imfolder)
     device = FLAGS.device if torch.cuda.is_available() else "cpu"
 
     print("\ninput dir: ", imfolder,

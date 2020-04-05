@@ -4,18 +4,24 @@ dataset = config["DATASETS"]
 n_augmentation = config["N_AUGMENTATION"]
 maxdegree = config["MAX_ROTATION_ANGLE"]
 
-# DONE: currently this only works on one dataset, figure out a way to do it on 2 or more datasets
+# TODO: test if this flag works on training
+# TODO: still have to make argparse for input though
+# FLAGS, _ = setup(running_script="./utils/training.py", config="config.json")
+
+
 rule all:
     input:
         expand('../data/processed/training/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/{dataset}/',
                dataset = config['DATASETS'],
                n_augmentation = config['N_AUGMENTATION'],
                maxdegree = config['MAX_ROTATION_ANGLE'])
+    # output:
+    #     "..%s/%s" % (FLAGS.path_prefix, FLAGS.networkname)
     run:
         # Because dataloader asks for the parent directory
         childdir = str(input)
         parentdir = os.path.dirname(os.path.dirname(childdir))
-        shell("python train_model.py %s {config[network_name]}" % parentdir)
+        shell("python train_model.py %s" % parentdir)
 
 
 rule preprocess_training_images:
