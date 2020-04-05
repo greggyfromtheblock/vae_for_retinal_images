@@ -1,28 +1,45 @@
 import os
+
 configfile: "./workflow_config.json"
 dataset = config["DATASETS"]
 n_augmentation = config["N_AUGMENTATION"]
 maxdegree = config["MAX_ROTATION_ANGLE"]
+path_prefix = config['PATH_PREFIX']
+networkname = config['NETWORKNAME']
 
-# TODO: test if this flag works on training
-# TODO: still have to make argparse for input though
-# FLAGS, _ = setup(running_script="./utils/training.py", config="config.json")
-
-
-rule all:
+rule introspectin:
     input:
-        expand('../data/processed/training/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/{dataset}/',
+        dummyfile = expand('dummy{dataset}{n_augmentation}{maxdegree}.txt',
+                           dataset = config['DATASETS'],
+                           n_augmentation = config['N_AUGMENTATION'],
+                           maxdegree = config['MAX_ROTATION_ANGLE']),
+        annotations = "../data/processed/annotations/ODIR_Annotations.csv",
+        imdir = expand("../data/processed/training/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/ODIR/",
+               n_augmentation = config['N_AUGMENTATION'],
+               maxdegree = config['MAX_ROTATION_ANGLE'])
+    shell:
+        'python utils/introspection.py {input.imdir} {path_prefix} {input.annotations} {networkname}'
+
+rule training:
+    input:
+        expand("../data/processed/training/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/{dataset}/",
+                         dataset = config['DATASETS'],
+                         n_augmentation = config['N_AUGMENTATION'],
+                         maxdegree = config['MAX_ROTATION_ANGLE'])
+    output:
+        expand('dummy{dataset}{n_augmentation}{maxdegree}.txt',
                dataset = config['DATASETS'],
                n_augmentation = config['N_AUGMENTATION'],
                maxdegree = config['MAX_ROTATION_ANGLE'])
-    # output:
-    #     "..%s/%s" % (FLAGS.path_prefix, FLAGS.networkname)
     run:
         # Because dataloader asks for the parent directory
         childdir = str(input)
         parentdir = os.path.dirname(os.path.dirname(childdir))
-        shell("python train_model.py %s" % parentdir)
-
+        shell("python train_model.py %s {path_prefix} {networkname}" % parentdir)
+        touch(expand('dummy{dataset}{n_augmentation}{maxdegree}.txt',
+               dataset = config['DATASETS'],
+               n_augmentation = config['N_AUGMENTATION'],
+               maxdegree = config['MAX_ROTATION_ANGLE']))
 
 rule preprocess_training_images:
     input:

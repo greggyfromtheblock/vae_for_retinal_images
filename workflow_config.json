@@ -4,5 +4,6 @@
     "SPLITS": ["Training"],
     "N_AUGMENTATION": 0,
     "MAX_ROTATION_ANGLE": 0,
-    "network_name": "gregnet"
+    "NETWORKNAME": "gregnet",
+    "PATH_PREFIX": "../models/"
 }
