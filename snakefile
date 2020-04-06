@@ -1,3 +1,8 @@
+"""
+to run this, modify the config file as you wish and run `snakemake --cores <cores>`
+note that the raw annotations file need to be renamed to '../data/processed/annotations/ODIR_Annotations.csv'
+"""
+
 import os
 
 configfile: "./workflow_config.json"
@@ -6,10 +11,23 @@ n_augmentation = config["N_AUGMENTATION"]
 maxdegree = config["MAX_ROTATION_ANGLE"]
 path_prefix = config['PATH_PREFIX']
 networkname = config['NETWORKNAME']
+port = config['PORT']
 
-rule introspectin:
+rule all:
     input:
-        dummyfile = expand('dummy{dataset}{n_augmentation}{maxdegree}.txt',
+        expand('../dummyfiles/dummy{port}{networkname}{dataset}{n_augmentation}{maxdegree}.txt',
+               port = config['PORT'],
+               networkname = config['NETWORKNAME'],
+               dataset = config['DATASETS'],
+               n_augmentation = config['N_AUGMENTATION'],
+               maxdegree = config['MAX_ROTATION_ANGLE'])
+    run:
+        path = str(path_prefix) + str(networkname)
+        shell("tensorboard --logdir %s --port {port}" % path)
+
+rule introspection:
+    input:
+        dummyfile = expand('../dummyfiles/dummy{dataset}{n_augmentation}{maxdegree}.txt',
                            dataset = config['DATASETS'],
                            n_augmentation = config['N_AUGMENTATION'],
                            maxdegree = config['MAX_ROTATION_ANGLE']),
@@ -17,8 +35,21 @@ rule introspectin:
         imdir = expand("../data/processed/training/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}/ODIR/",
                n_augmentation = config['N_AUGMENTATION'],
                maxdegree = config['MAX_ROTATION_ANGLE'])
-    shell:
-        'python utils/introspection.py {input.imdir} {path_prefix} {input.annotations} {networkname}'
+    output:
+        expand('../dummyfiles/dummy{port}{networkname}{dataset}{n_augmentation}{maxdegree}.txt',
+               port = config['PORT'],
+               networkname = config['NETWORKNAME'],
+               dataset = config['DATASETS'],
+               n_augmentation = config['N_AUGMENTATION'],
+               maxdegree = config['MAX_ROTATION_ANGLE'])
+    run:
+        shell('python utils/introspection.py {input.imdir} {path_prefix} {input.annotations} {networkname}')
+        touch(expand('../dummyfiles/dummy{port}{networkname}{dataset}.txt',
+                     port = config['PORT'],
+                     networkname = config['NETWORKNAME'],
+                     dataset = config['DATASETS'],
+                     n_augmentation = config['N_AUGMENTATION'],
+                     maxdegree = config['MAX_ROTATION_ANGLE']))
 
 rule training:
     input:
@@ -27,7 +58,7 @@ rule training:
                          n_augmentation = config['N_AUGMENTATION'],
                          maxdegree = config['MAX_ROTATION_ANGLE'])
     output:
-        expand('dummy{dataset}{n_augmentation}{maxdegree}.txt',
+        expand('../dummyfiles/dummy{dataset}{n_augmentation}{maxdegree}.txt',
                dataset = config['DATASETS'],
                n_augmentation = config['N_AUGMENTATION'],
                maxdegree = config['MAX_ROTATION_ANGLE'])
@@ -36,7 +67,7 @@ rule training:
         childdir = str(input)
         parentdir = os.path.dirname(os.path.dirname(childdir))
         shell("python train_model.py %s {path_prefix} {networkname}" % parentdir)
-        touch(expand('dummy{dataset}{n_augmentation}{maxdegree}.txt',
+        touch(expand('../dummyfiles/dummy{dataset}{n_augmentation}{maxdegree}.txt',
                dataset = config['DATASETS'],
                n_augmentation = config['N_AUGMENTATION'],
                maxdegree = config['MAX_ROTATION_ANGLE']))
@@ -64,27 +95,12 @@ rule preprocess_testing_images:
 
 rule preprocess_annotations:
     input:
-        "../data/raw/ODIR_Training_Annotations/ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+        "../data/raw/ODIR_Training_Annotations/ODIR-5K_Training_Annotations.xlsx"
     output:
         "../data/processed/annotations/ODIR_Annotations.csv"
-    shell:
-        "python preprocess_annotations.py {input} {output}"
+    run:
+        shell("python utils/preprocess_annotations.py {input} {output}")
 
-# rule preprocess_annotations:
-#     input:
-#         # some input
-#     output:
-#         # some output
-#     run:
-#         # some command
-
-# rule introspection:
-#     input:
-#         # some delicious input
-#     output:
-#         # some tasty output
-#     run:
-#         # some juicy command
 
 
 

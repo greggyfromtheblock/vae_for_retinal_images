@@ -5,5 +5,6 @@
     "N_AUGMENTATION": 0,
     "MAX_ROTATION_ANGLE": 0,
     "NETWORKNAME": "gregnet",
-    "PATH_PREFIX": "../models/"
+    "PATH_PREFIX": "../models/",
+    "PORT": 2508
 }
