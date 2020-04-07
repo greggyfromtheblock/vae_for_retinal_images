@@ -6,5 +6,6 @@
     "MAX_ROTATION_ANGLE": 0,
     "NETWORKNAME": "gregnet",
     "PATH_PREFIX": "../models/",
-    "PORT": 2508
+    "PORT": 2508,
+    "RESIZE_DIMENSIONS": [192,188]
 }

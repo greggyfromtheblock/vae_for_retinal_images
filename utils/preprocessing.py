@@ -1,13 +1,15 @@
-from tqdm import tqdm
-from preprocessing_methods import trim_image_rgb, rotate
-import os
-from skimage import io, img_as_ubyte
-from skimage.transform import resize
-import numpy as np
 import argparse
-
+import os
 # Ignore warnings
 import warnings
+
+import numpy as np
+from skimage import img_as_ubyte, io
+from skimage.transform import resize
+from tqdm import tqdm
+
+from preprocessing_methods import rotate, trim_image_rgb
+
 warnings.filterwarnings("ignore")
 
 
@@ -53,9 +55,11 @@ if __name__ == '__main__':
 
     print("Start cropping...")
     for i, f in tqdm(enumerate(os.listdir(dir))):
-
-        # Crop image
-        trim_image_rgb(f, dir, outdir)
+        try:
+            # Crop image
+            trim_image_rgb(f, dir, outdir)
+        except (ValueError, SyntaxError) as e:
+            print('Bad file:', e)
     print("Finished cropping...")
 
     print("Start resizing and data augmentation...")
@@ -84,4 +88,3 @@ if __name__ == '__main__':
             rotate(image_flipped, outdir, fname + "_flipped", args.n_augmentation, args.max_rotation)
 
     print("Finished resizing and data augmentation...")
-

@@ -24,14 +24,6 @@ if __name__ == "__main__":
                         help="""The path to the directory which contains
                         the imgge folder. The images themselves must be
                         in one or more subdirectories of the imfolder""")
-    parser.add_argument('path_prefix', type=str, default=None,
-                        metavar='output_dir',
-                        help="""Path to the directory where the torch and eventfiles
-                        would be saved to""")
-    parser.add_argument('networkname', type=str, default=None,
-                        metavar='network_name',
-                        help="""Path to the directory where the torch and eventfiles
-                        would be saved to""")
     args, rest = parser.parse_known_args()
 
     FLAGS, logger = setup(running_script="./utils/training.py", args=rest, config="config.json")
@@ -45,8 +37,8 @@ if __name__ == "__main__":
     print("\ninput dir: ", imfolder,
           "\ndevice: ", device)
 
-    os.makedirs(args.path_prefix, exist_ok=True)
-    if args.networkname in os.listdir(args.path_prefix):
+    os.makedirs(FLAGS.path_prefix, exist_ok=True)
+    if FLAGS.networkname in os.listdir(FLAGS.path_prefix):
         input1 = input("\nNetwork already exists. Are you sure to proceed? ([y]/n) ")
         if not input1 in ['y', 'yes']:
             sys.exit()
@@ -61,8 +53,8 @@ if __name__ == "__main__":
         encoder,
         decoder,
         data,
-        path_prefix=args.path_prefix,
-        network_name=args.networkname,
+        path_prefix=FLAGS.path_prefix,
+        network_name=FLAGS.networkname,
         device=device,
         optimizer_kwargs={"lr": FLAGS.learningrate},
         batch_size=FLAGS.batchsize,
@@ -79,9 +71,8 @@ if __name__ == "__main__":
     print('\nTraining with %i epochs done! Time elapsed: %.2f minutes' % (FLAGS.maxpochs, (time.time() - time_start)/60))
     # print(trained_encoder)
 
-    # TODO: Also refactor path_prefix/networkname into args
     # Save network
-    PATH = f'{args.path_prefix}/{args.networkname}/{args.networkname}.pth'
+    PATH = f'{FLAGS.path_prefix}/{FLAGS.networkname}/{FLAGS.networkname}.pth'
     os.makedirs(os.path.dirname(PATH), exist_ok=True)
     torch.save(trained_encoder.state_dict(), PATH)
 

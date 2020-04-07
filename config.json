@@ -19,13 +19,13 @@
   },
   "-networkname": {
     "short": "-nn",
-    "value": "Retinal_VAE",
+    "value": "Juice_VAE",
     "help": "Some juicy VAE name.",
     "type": "str"
   },
   "-path_prefix": {
       "short": "-pathprefix",
-      "value": "nn_output",
+      "value": "../models/",
       "help": "where the training torch files are stored?",
       "type": "str"
   },
