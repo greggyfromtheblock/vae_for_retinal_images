@@ -134,7 +134,6 @@ if __name__ == '__main__':
 
         plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=1, label=colormap)
         plt.legend(handles=[orange_patch, blue_patch])
-        plt.legend(colormap)
         plt.title(f"UMAP-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
 
         plt.savefig(f"{path_prefix}/{network_name}/Visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
