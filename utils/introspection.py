@@ -47,7 +47,7 @@ if __name__ == '__main__':
     print("\nLoad Data as Tensors...")
     transform_data = transforms.Compose([transforms.ToTensor(), normalize])
     img_dataset = datasets.ImageFolder(
-        os.path.dirname(imfolder), transform=transform_data
+        os.path.dirname(os.path.dirname(imfolder)), transform=transform_data
     )
     data = VAEDataset(img_dataset)
     print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
