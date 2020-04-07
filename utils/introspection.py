@@ -47,7 +47,7 @@ if __name__ == '__main__':
     print("\nLoad Data as Tensors...")
     transform_data = transforms.Compose([transforms.ToTensor(), normalize])
     img_dataset = datasets.ImageFolder(
-        imfolder, transform=transform_data
+        os.path.dirname(imfolder), transform=transform_data
     )
     data = VAEDataset(img_dataset)
     print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     angles.extend([x for x in range(-9, 9)])
     print("\nPossible Angles: {}\n".format(angles))
 
-    for i, jpg in tqdm(enumerate(os.listdir(imfolder+"/Images"))):
+    for i, jpg in tqdm(enumerate(os.listdir(imfolder))):
         jpg = jpg.replace("_flipped", "")
 
         for angle in angles:
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     encoded_samples = features.detach().numpy()
     print("Finished encoding of each image...")
 
-    os.makedirs(network_dir+"/Visualizations/", exist_ok=True)
+    os.makedirs(network_dir+"visualizations/", exist_ok=True)
     print("Start Visualization...")
     colormap = np.array(['darkorange', 'royalblue'])
 
@@ -128,7 +128,7 @@ if __name__ == '__main__':
         plt.legend(handles=[orange_patch, blue_patch])
         plt.title(f"tSNE-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
 
-        plt.savefig(f"{path_prefix}/{network_name}/Visualizations/tsne_visualization_of_diagnosis_{diagnosis_name}.png")
+        plt.savefig(f"{path_prefix}/{network_name}/visualizations/tsne_visualization_of_diagnosis_{diagnosis_name}.png")
         plt.show()
         plt.close()
 
@@ -136,10 +136,11 @@ if __name__ == '__main__':
         plt.legend(handles=[orange_patch, blue_patch])
         plt.title(f"UMAP-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
 
-        plt.savefig(f"{path_prefix}/{network_name}/Visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
+        plt.savefig(f"{path_prefix}/{network_name}/visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
         plt.show()
         plt.close()
 
+        """
         tsne_df = pd.DataFrame({'X': tsne[:, 0],
                                 'Y': tsne[:, 1],
                                 f'{diagnoses[diagnosis]}': targets[:, i]})
@@ -147,3 +148,5 @@ if __name__ == '__main__':
         umap_df = pd.DataFrame({'X': clusterable_embedding[:, 0],
                                 'Y': clusterable_embedding[:, 1],
                                 diagnoses[diagnosis]: targets[:, i]})
+        
+        """
