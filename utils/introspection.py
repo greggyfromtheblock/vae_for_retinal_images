@@ -74,13 +74,15 @@ if __name__ == '__main__':
     angles.extend([x for x in range(10, FLAGS.max_degree+1)])
     angles.extend([x for x in range(-9, 9)])
     print("\nPossible Angles: {}\n".format(angles))
-
+    print(os.getcwd)
+    print(imfolder)
     for i, jpg in tqdm(enumerate(os.listdir(imfolder))):
         jpg = jpg.replace("_flipped", "")
 
         for angle in angles:
             jpg = jpg.replace("_rot_%i" % angle, "")
-
+        
+        print(jpg)
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
         for j, feature in enumerate(diagnoses.keys()):
             targets[i][j] = csv_df.iloc[row_number].at[feature]
