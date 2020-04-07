@@ -1,13 +1,13 @@
 {
   "-out_directory": {
     "short": "-od",
-    "value": "output",
-    "help": "Output directory. for logger",
+    "value": "./output",
+    "help": "Output directory.",
     "type": "str"
   },
   "-input": {
     "short": "-i",
-    "value": "../retina/outputs/training_set",
+    "value": "",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
@@ -19,19 +19,13 @@
   },
   "-networkname": {
     "short": "-nn",
-    "value": "Retinal_VAE",
+    "value": "YourVanillaVAE",
     "help": "Some juicy VAE name.",
     "type": "str"
   },
-  "-path_prefix": {
-      "short": "-pathprefix",
-      "value": "nn_output",
-      "help": "where the training torch files are stored?",
-      "type": "str"
-  },
   "-device": {
     "short": "-dv",
-    "value": "cuda",
+    "value": "cuda:7",
     "help": "Device to work on",
     "type": "str"
   },
@@ -43,7 +37,7 @@
   },
   "-maxpochs": {
     "short": "-me",
-    "value": 1005,
+    "value": 10,
     "help": "Maximum nr of epochs to train the model",
     "type": "int"
   },
@@ -55,7 +49,7 @@
   },
   "-batchsize": {
     "short": "-bs",
-    "value": 64,
+    "value": 32,
     "help": "The models batchsize",
     "type": "int"
   },
@@ -64,12 +58,6 @@
     "value": 32,
     "help": "The latent dimension of the bottleneck.",
     "type": "int"
-  },
-  "-image_dim": {
-    "short": "-imdim",
-    "value": "(192,188)",
-    "help": "Dimension of the input images",
-    "type": "str"
   },
   "-dropout": {
     "short": "-do",
