@@ -43,8 +43,6 @@ if __name__ == '__main__':
     network_name = FLAGS.network_name
     path_prefix = FLAGS.path_prefix
     network_dir = f'{path_prefix}/{network_name}/'
-    network_vis_dir = f'{path_prefix}/{network_name}/visualizations/'
-
 
     print("\nLoad Data as Tensors...")
     transform_data = transforms.Compose([transforms.ToTensor(), normalize])
@@ -104,7 +102,7 @@ if __name__ == '__main__':
     encoded_samples = features.detach().numpy()
     print("Finished encoding of each image...")
 
-    os.makedirs(network_dir+"/Visualizations", exist_ok=True)
+    os.makedirs(network_dir+"/Visualizations/", exist_ok=True)
     print("Start Visualization...")
     colormap = np.array(['darkorange', 'royalblue'])
 
@@ -114,10 +112,6 @@ if __name__ == '__main__':
         time_start = time.time()
         tsne = TSNE(random_state=123).fit_transform(encoded_samples)
 
-        tsne_df = pd.DataFrame({'X': tsne[:, 0],
-                                'Y': tsne[:, 1],
-                                f'{diagnoses[diagnosis]}': targets[:, i]})
-
         # U-Map Visualization
         clusterable_embedding = UMAP(
             n_neighbors=30,
@@ -126,15 +120,11 @@ if __name__ == '__main__':
             random_state=42,
         ).fit_transform(encoded_samples)
 
-        umap_df = pd.DataFrame({'X': clusterable_embedding[:, 0],
-                                'Y': clusterable_embedding[:, 1],
-                                diagnoses[diagnosis]: targets[:, i]})
-
         orange_patch = mpatches.Patch(color=colormap[0], label=f'No {diagnoses[diagnosis]}')
         blue_patch = mpatches.Patch(color=colormap[1], label=f'{diagnoses[diagnosis]}')
         diagnosis_name = diagnoses[diagnosis]
 
-        plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap[targets[:, i]], s=100)
+        plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap[targets[:, i]], s=1)
         plt.legend(handles=[orange_patch, blue_patch])
         plt.title(f"tSNE-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
 
@@ -142,10 +132,19 @@ if __name__ == '__main__':
         plt.show()
         plt.close()
 
-        plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=100, label=colormap)
+        plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=1, label=colormap)
+        plt.legend(handles=[orange_patch, blue_patch])
         plt.legend(colormap)
         plt.title(f"UMAP-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
 
         plt.savefig(f"{path_prefix}/{network_name}/Visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
         plt.show()
         plt.close()
+
+        tsne_df = pd.DataFrame({'X': tsne[:, 0],
+                                'Y': tsne[:, 1],
+                                f'{diagnoses[diagnosis]}': targets[:, i]})
+
+        umap_df = pd.DataFrame({'X': clusterable_embedding[:, 0],
+                                'Y': clusterable_embedding[:, 1],
+                                diagnoses[diagnosis]: targets[:, i]})
