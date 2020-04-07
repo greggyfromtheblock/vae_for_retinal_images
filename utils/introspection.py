@@ -38,17 +38,19 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="""Introspection""")
     parser.add_argument('imdir', type=str, default=None, metavar='image_dir',
                         help="""The path to the directory which contains the preprocessed image folder.""")
+    parser.add_argument('csv_file', type=str, default=None, metavar='csv_file',
+                        help="""Processed annotations fileeeee""")
 
     args, rest = parser.parse_known_args()
     imfolder = add_slash(os.path.abspath(args.imdir))
+    csv_file = os.path.abspath(args.csv_file)
 
     FLAGS, logger = setup(running_script="./utils/introspection.py",args=rest, config="config.json")
     print("FLAGS= ", FLAGS)
 
-    csv_file = os.path.abspath(FLAGS.csv_input)
     latent_vector_size = FLAGS.zdim
 
-    network_name = FLAGS.network_name
+    network_name = FLAGS.networkname
     path_prefix = FLAGS.path_prefix
     network_dir = f'{path_prefix}/{network_name}/'
 
@@ -83,7 +85,7 @@ if __name__ == '__main__':
     angles.extend([x for x in range(-9, 9)])
     print("\nPossible Angles: {}\n".format(angles))
 
-    for i, jpg in tqdm(enumerate(os.listdir(imfolder+"/Images"))):
+    for i, jpg in tqdm(enumerate(os.listdir(imfolder+"images"))):
         jpg = jpg.replace("_flipped", "")
 
         for angle in angles:

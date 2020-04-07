@@ -29,6 +29,12 @@
       "help": "where the training torch files are stored?",
       "type": "str"
   },
+  "-max_degree": {
+    "short": "-md",
+    "value": 0,
+    "help": "max rotation degree",
+    "type": "int"
+  },
   "-device": {
     "short": "-dv",
     "value": "cuda",
