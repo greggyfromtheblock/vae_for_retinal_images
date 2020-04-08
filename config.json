@@ -14,13 +14,13 @@
   },
   "-logging_name": {
     "short": "-n",
-    "value": "test",
+    "value": "test_y_rightonly",
     "help": "Global logger prefix.",
     "type": "str"
   },
   "-networkname": {
     "short": "-nn",
-    "value": "Retinal_VAE_y",
+    "value": "Retinal_VAE_y_rightonly",
     "help": "Some juicy VAE name.",
     "type": "str"
   },
