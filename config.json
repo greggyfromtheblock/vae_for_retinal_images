@@ -25,7 +25,7 @@
     "type": "str"
   },
   "-path_prefix": {
-      "short": "pathprefix",
+      "short": "-pathprefix",
       "value": "nn_output_y",
       "help": "where the training torch files are stored?",
       "type": "str"
