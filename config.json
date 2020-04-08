@@ -18,7 +18,7 @@
     "help": "Global logger prefix.",
     "type": "str"
   },
-  "-networkname": {
+  "-network_name": {
     "short": "-nn",
     "value": "Retinal_VAE_y_rightonly",
     "help": "Some juicy VAE name.",
