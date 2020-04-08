@@ -260,9 +260,9 @@ class Encoder(nn.Module):
                 dropout=0,
                 kernel_maxpool=2,
                 stride_maxpool=2,
-            ),  # 72x5x7
+            ),  # 42x5x7
             nn.Flatten(1),
-            nn.Linear(42 * 5 * 7, z),
+            nn.Linear(72 * 5 * 7, z),
             nn.ReLU(),
         )
         self.mean = nn.Linear(z, z)
