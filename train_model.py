@@ -15,34 +15,39 @@ def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
 
 
-if __name__ == "__main__":
+def add_slash(path):
+    if path[-1] != '/':
+        return path + "/"
+    else:
+        return(path)
 
-    parser = argparse.ArgumentParser(
-        description="""Train Model""")
-    parser.add_argument('imdir', type=str, default=None, metavar='image_dir',
-                        help="""The path to the directory which contains the preprocessed image folder.""")
-    parser.add_argument('network_dir', type=str, default=".",
-                        help="""Directory which contains the trained encoder, the event files and torch files.""")
-    parser.add_argument('network_name', type=str, default="vae",
-                        help="""Network Name.""")
-    args = parser.parse_args()
+
+if __name__ == "__main__":
 
     FLAGS, logger = setup(running_script="./utils/training.py", config="config.json")
     print("FLAGS= ", FLAGS)
 
-    imfolder = args.imdir
+    imfolder = add_slash(FLAGS.input)
+    network_name = FLAGS.network_name
+    path_prefix = FLAGS.path_prefix
+
+    network_dir = f'{path_prefix}/{network_name}/'
+
     device = FLAGS.device if torch.cuda.is_available() else "cpu"
 
     print("\ninput dir: ", imfolder,
           "\ndevice: ", device)
-
-    if FLAGS.networkname in os.listdir(FLAGS.path_prefix):
+    os.makedirs(network_dir, exist_ok=True)
+    if FLAGS.network_name in os.listdir(network_dir):
         input1 = input("\nNetwork already exists. Are you sure to proceed? ([y]/n) ")
         if not input1 in ['y', 'yes']:
             sys.exit()
 
     print("\nLoad Data as Tensors...")
-    img_dataset = datasets.ImageFolder(imfolder, transform=transforms.Compose([transforms.ToTensor(), normalize]))
+    img_dataset = datasets.ImageFolder(
+        # Because dataloader asks for the parent directory
+        os.path.dirname(os.path.dirname(imfolder)),
+                        transform=transforms.Compose([transforms.ToTensor(), normalize]))
     data = VAEDataset(img_dataset)
 
     encoder, decoder = Encoder(z=FLAGS.zdim), Decoder(z=FLAGS.zdim)
@@ -51,8 +56,8 @@ if __name__ == "__main__":
         encoder,
         decoder,
         data,
-        network_dir=args.network_dir,
-        network_name=args.network_name,
+        path_prefix=path_prefix,
+        network_name=network_name,
         device=device,
         optimizer_kwargs={"lr": FLAGS.learningrate},
         batch_size=FLAGS.batchsize,
@@ -70,7 +75,7 @@ if __name__ == "__main__":
     # print(trained_encoder)
 
     # Save network
-    os.makedirs(args.network_dir)
-    PATH = args.network_dir+f'/{args.networkname}.pth'
+    # os.makedirs(network_dir)
+    PATH = network_dir+f'{network_name}.pth'
     torch.save(trained_encoder.state_dict(), PATH)
 

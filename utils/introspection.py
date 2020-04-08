@@ -45,14 +45,13 @@ if __name__ == '__main__':
     network_dir = f'{path_prefix}/{network_name}/'
 
     print("\nLoad Data as Tensors...")
-    transform_data = transforms.Compose([transforms.ToTensor(), normalize])
     img_dataset = datasets.ImageFolder(
-        os.path.dirname(os.path.dirname(imfolder)), transform=transform_data
+        os.path.dirname(os.path.dirname(imfolder)),
+        transform=transforms.Compose([transforms.ToTensor(), normalize])
     )
     data = VAEDataset(img_dataset)
     print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
 
-    print("\nBuild targets...")
     csv_df = pd.read_csv(csv_file, sep='\t')
 
     diagnoses = {
@@ -74,13 +73,13 @@ if __name__ == '__main__':
     angles.extend([x for x in range(10, FLAGS.max_degree+1)])
     angles.extend([x for x in range(-9, 10)])
     print("\nPossible Angles: {}\n".format(angles))
- 
+    print("\nBuild targets...")
     for i, jpg in tqdm(enumerate(os.listdir(imfolder))):
         jpg = jpg.replace("_flipped", "")
 
         for angle in angles:
             jpg = jpg.replace("_rot_%i" % angle, "")
-        
+
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
         for j, feature in enumerate(diagnoses.keys()):
             targets[i][j] = csv_df.iloc[row_number].at[feature]

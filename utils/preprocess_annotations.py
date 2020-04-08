@@ -60,9 +60,9 @@ special keywords: 'anterior segment image',  'no fonndus image'
 """
 
 
-def decode_d_k(xslxx_file, output_file="./data/odir/odir_train_lr_annotations.csv"):
+def decode_d_k(xslx_file, output_file):
 
-    df = pd.read_excel(xsl_file)
+    df = pd.read_excel(xslx_file)
 
     # get all the unique diagnostics as a list
     l = df["Left-Diagnostic Keywords"].tolist()
@@ -103,7 +103,7 @@ def decode_d_k(xslxx_file, output_file="./data/odir/odir_train_lr_annotations.cs
     df["R-ant"] = np.zeros_like(df["O"])
     df["R-no"] = np.zeros_like(df["O"])
 
-    ### Find All Diagnostic Keywords and Encode Them with:
+    # Find All Diagnostic Keywords and Encode Them with:
     feature = {
         "N": "normal fundus",
         "D": "proliferative retinopathy",
@@ -135,7 +135,7 @@ def decode_d_k(xslxx_file, output_file="./data/odir/odir_train_lr_annotations.cs
             df.loc[testl, "L" + key] = 1
             df.loc[testr, "R" + key] = 1
 
-    # remove feature keywors off the list of diagnostics
+    # remove feature keywords off the list of diagnostics
     # so only 'O' Diagnostics remain:
     olist = l.copy()
     for w in l:
@@ -200,4 +200,4 @@ def decode_d_k(xslxx_file, output_file="./data/odir/odir_train_lr_annotations.cs
 if __name__ == "__main__":
     xsl_file = sys.argv[1]
     output_file = sys.argv[2]
-    decode_d_k(xsl_file=xsl_file, output_file=output_file)
+    decode_d_k(xslx_file=xsl_file, output_file=output_file)

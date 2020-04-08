@@ -5,6 +5,42 @@
     "help": "Output directory. for logger",
     "type": "str"
   },
+    "-device": {
+    "short": "-dv",
+    "value": "cuda:3",
+    "help": "Device to work on",
+    "type": "str"
+  },
+  "-learningrate": {
+    "short": "-lr",
+    "value": 1e-5,
+    "help": "The models learningrate",
+    "type": "float"
+  },
+  "-maxpochs": {
+    "short": "-me",
+    "value": 10,
+    "help": "Maximum nr of epochs to train the model",
+    "type": "int"
+  },
+  "-batchsize": {
+    "short": "-bs",
+    "value": 128,
+    "help": "The models batchsize",
+    "type": "int"
+  },
+  "-zdim": {
+    "short": "-zd",
+    "value": 32,
+    "help": "The latent dimension of the bottleneck.",
+    "type": "int"
+  },
+    "-max_degree": {
+    "short": "-md",
+    "value": 20,
+    "help": "Max. rotation degree.",
+    "type": "int"
+  },
   "-input": {
     "short": "-i",
     "value": "/home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/ODIR_Training_Images_2_20_0/",
@@ -13,20 +49,8 @@
   },
   "-csv_input": {
     "short": "-csv",
-    "value": "/home/henrik/PycharmProjects/vae_for_retinal_images/data/odir/odir_train_lr_annotations.csv",
+    "value": "/home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/ODIR_Annotations.csv",
     "help": "Preprocessed annotations",
-    "type": "str"
-  },
-  "-network_dir": {
-    "short": "-nd",
-    "value": "/home/henrik/PycharmProjects/vae_for_retinal_images/odir-vae-test-test",
-    "help": "Directory to event, torch files and trained encoder.",
-    "type": "str"
-  },
-    "-network_vis_dir": {
-    "short": "-nvd",
-    "value": "/home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/visualizations_odir-vae-test-test",
-    "help": "Directory to visualizations",
     "type": "str"
   },
     "-path_prefix": {
@@ -47,46 +71,22 @@
     "help": "Global logger prefix.",
     "type": "str"
   },
-  "-device": {
-    "short": "-dv",
-    "value": "cuda:3",
-    "help": "Device to work on",
+    "-network_dir": {
+    "short": "-nd",
+    "value": "/home/henrik/PycharmProjects/vae_for_retinal_images/odir-vae-test-test",
+    "help": "Directory to event, torch files and trained encoder.",
     "type": "str"
   },
-  "-learningrate": {
-    "short": "-lr",
-    "value": 1e-5,
-    "help": "The models learningrate",
-    "type": "float"
-  },
-  "-maxpochs": {
-    "short": "-me",
-    "value": 30,
-    "help": "Maximum nr of epochs to train the model",
-    "type": "int"
+    "-network_vis_dir": {
+    "short": "-nvd",
+    "value": "/home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/visualizations_odir-vae-test-test",
+    "help": "Directory to visualizations",
+    "type": "str"
   },
   "-reportinterval": {
     "short": "-rp",
     "value": 100,
     "help": "Report after {reprotinterval}-steps",
-    "type": "int"
-  },
-  "-batchsize": {
-    "short": "-bs",
-    "value": 128,
-    "help": "The models batchsize",
-    "type": "int"
-  },
-  "-zdim": {
-    "short": "-zd",
-    "value": 32,
-    "help": "The latent dimension of the bottleneck.",
-    "type": "int"
-  },
-    "-max_degree": {
-    "short": "-md",
-    "value": 20,
-    "help": "Max. rotation degree.",
     "type": "int"
   },
   "-dropout": {

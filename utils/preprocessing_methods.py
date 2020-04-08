@@ -1,8 +1,5 @@
 import numpy as np
-import PIL as pil
 from skimage import io, img_as_ubyte, transform
-from tqdm import tqdm
-import os
 
 
 def trim_image_rgb(jpg, dir, outdir):
@@ -17,47 +14,6 @@ def trim_image_rgb(jpg, dir, outdir):
     ts = ts.sum(axis=1) != 0
     img = img[:,ts,:]
     io.imsave(outdir + jpg, img)
-
-
-def find_optimal_image_size(imdir="processed/train/"):
-    """
-    :param imdir: Directory to cropped images
-    :return: Tuple: values for new Image Size
-    """
-
-    n = len(os.listdir(imdir))
-    x = np.zeros(n).astype("int")
-    y = np.zeros(n).astype("int")
-
-    min_x, min_y = float("inf"), float("inf")
-    for i, f in tqdm(enumerate(os.listdir(imdir))):
-        img = pil.Image.open(imdir + f)
-        x[i] = img.width
-        y[i] = img.height
-        i += 1
-        if img.width * img.height < min_x * min_y:
-            min_x, min_y = img.width, img.height
-
-    print("\nMinimal/Maximal size (width, height):", (min(x), min(y)), (max(x), max(y)))
-
-    avg_size = np.sum(x) / np.alen(x), np.sum(y) / np.alen(x)
-    print("Average size:     Width %i   Height %i" % (avg_size[0], avg_size[1]))
-
-    print("Minimal/Maximal ratio (height/width):", min(y / x), max(y / x))
-
-    ratio_height_width = np.sum(y) / np.sum(x)
-    print("Total ratio (left_height/left_width):", ratio_height_width)
-
-    print("\nMinimal image size: %ix%i\n" % (int(min_x), int(min_y)))
-
-    for new_w in range(min_x, int(avg_size[0]), 2):
-        for new_h in range(min_y, int(avg_size[1]), 2):
-            if ratio_height_width - 0.01 < new_h / new_w < ratio_height_width + 0.01:
-                print(
-                    "Best minimal image size (close to the average ratio): %ix%i\n"
-                    % (new_w, new_h)
-                )
-                return new_w, new_h
 
 
 def rotate(img, outdir, fname, n_aug, max_rotation_angle):
