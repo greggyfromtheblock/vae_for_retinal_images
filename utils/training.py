@@ -221,7 +221,7 @@ class Encoder(nn.Module):
             ),  # 33x8x10
             *conv_block(
                 in_channels=33,
-                out_channels=36,
+                out_channels=46,
                 kernel_size=2,
                 stride=1,
                 padding=0,
@@ -234,8 +234,8 @@ class Encoder(nn.Module):
                 stride_maxpool=2,
             ),  # 36x7x9
             *conv_block(
-                in_channels=36,
-                out_channels=39,
+                in_channels=46,
+                out_channels=59,
                 kernel_size=2,
                 stride=1,
                 padding=0,
@@ -248,8 +248,8 @@ class Encoder(nn.Module):
                 stride_maxpool=2,
             ),  # 39x6x8
             *conv_block(
-                in_channels=39,
-                out_channels=42,
+                in_channels=59,
+                out_channels=72,
                 kernel_size=2,
                 stride=1,
                 padding=0,
@@ -260,7 +260,7 @@ class Encoder(nn.Module):
                 dropout=0,
                 kernel_maxpool=2,
                 stride_maxpool=2,
-            ),  # 42x5x7
+            ),  # 72x5x7
             nn.Flatten(1),
             nn.Linear(42 * 5 * 7, z),
             nn.ReLU(),

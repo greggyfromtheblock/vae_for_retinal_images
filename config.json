@@ -44,13 +44,13 @@
   },
   "-learningrate": {
     "short": "-lr",
-    "value": 1e-5,
+    "value": 1.2e-5,
     "help": "The models learningrate",
     "type": "float"
   },
   "-maxpochs": {
     "short": "-me",
-    "value": 1250,
+    "value": 2250,
     "help": "Maximum nr of epochs to train the model",
     "type": "int"
   },
@@ -62,7 +62,7 @@
   },
   "-batchsize": {
     "short": "-bs",
-    "value": 64,
+    "value": 84,
     "help": "The models batchsize",
     "type": "int"
   },
