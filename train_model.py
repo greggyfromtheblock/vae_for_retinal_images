@@ -4,6 +4,7 @@ Trigger training here
 import argparse
 import os
 import sys
+import time
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 from torch.utils.data import DataLoader, TensorDataset
