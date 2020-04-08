@@ -8,7 +8,6 @@ import torch
 from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 from utils.utils import setup
 import time
-import argparse
 
 
 def normalize(image):
@@ -47,7 +46,7 @@ if __name__ == "__main__":
     img_dataset = datasets.ImageFolder(
         # Because dataloader asks for the parent directory
         os.path.dirname(os.path.dirname(imfolder)),
-                        transform=transforms.Compose([transforms.ToTensor(), normalize]))
+        transform=transforms.Compose([transforms.ToTensor(), normalize]))
     data = VAEDataset(img_dataset)
 
     encoder, decoder = Encoder(z=FLAGS.zdim), Decoder(z=FLAGS.zdim)

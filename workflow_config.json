@@ -1,9 +1,12 @@
 {
+    "USER": "henrik",
     "DATASETS": ["ODIR"],
-    "Training": "Training",
-    "Validation": "Test",
-    "N_AUGMENTATION": 2,
+    "SPLITS": ["Training"],
+    "N_AUGMENTATION": 12,
     "MAX_ROTATION_ANGLE": 20,
-    "network_name": "odir-vae-test-test",
-    "grayscale": 0
+    "NETWORKNAME": "henrik-odir-vae",
+    "PATH_PREFIX": "../vae_for_retinal_images/models",
+    "PORT": 1244,
+    "RESIZE": [192, 188],
+    "GRAYSCALE": 0
 }

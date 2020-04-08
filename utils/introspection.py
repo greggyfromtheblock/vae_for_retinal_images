@@ -65,7 +65,7 @@ if __name__ == '__main__':
         # "ant": "anterior segment",
         # "no": "no fundus image",
     }
-    number_of_diagnoses = len(diagnoses)  # not sure if others should be an own category
+    number_of_diagnoses = len(diagnoses)
     data_size = len(data)
     targets = np.zeros((data_size, number_of_diagnoses),  dtype=np.int8)
 
@@ -103,9 +103,13 @@ if __name__ == '__main__':
 
     os.makedirs(network_dir+"visualizations/", exist_ok=True)
     print("Start Visualization...")
-    colormap = np.array(['darkorange', 'royalblue'])
+    # colormap = np.array(['darkorange', 'royalblue'])
+    colormap = np.array(['g', 'r'])
+    colormap_rev = np.array(['r', 'g'])
 
     for i, diagnosis in tqdm(enumerate(diagnoses.keys())):
+
+        diagnosis_name = diagnoses[diagnosis]
 
         # tSNE Visualization of the encoded latent vector
         time_start = time.time()
@@ -119,33 +123,56 @@ if __name__ == '__main__':
             random_state=42,
         ).fit_transform(encoded_samples)
 
-        orange_patch = mpatches.Patch(color=colormap[0], label=f'No {diagnoses[diagnosis]}')
-        blue_patch = mpatches.Patch(color=colormap[1], label=f'{diagnoses[diagnosis]}')
-        diagnosis_name = diagnoses[diagnosis]
+        # orange_patch = mpatches.Patch(color=colormap[0], label=f'No {diagnoses[diagnosis]}')
+        # blue_patch = mpatches.Patch(color=colormap[1], label=f'{diagnoses[diagnosis]}
 
-        plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap[targets[:, i]], s=1)
-        plt.legend(handles=[orange_patch, blue_patch])
-        plt.title(f"tSNE-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
+        if diagnosis_name == "normal fundus":
+            red_patch = mpatches.Patch(color=colormap_rev[0], label=f'no {diagnosis_name}')
+            green_patch = mpatches.Patch(color=colormap_rev[1], label=f' {diagnosis_name}')
 
-        plt.savefig(f"{path_prefix}/{network_name}/visualizations/tsne_visualization_of_diagnosis_{diagnosis_name}.png")
-        plt.show()
-        plt.close()
+            plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap_rev[targets[:, i]], s=100)
+            # plt.legend(handles=[orange_patch, blue_patch])
+            plt.legend(handles=[red_patch, green_patch])
+            plt.title(f"tSNE-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
 
-        plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=1, label=colormap)
-        plt.legend(handles=[orange_patch, blue_patch])
-        plt.title(f"UMAP-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
+            plt.savefig(
+                f"{path_prefix}/{network_name}/visualizations/tsne_visualization_of_diagnosis_{diagnosis_name}.png")
+            plt.show()
+            plt.close()
 
-        plt.savefig(f"{path_prefix}/{network_name}/visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
-        plt.show()
-        plt.close()
+            plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap_rev[targets[:, i]], s=100,
+                        label=colormap)
 
-        """
-        tsne_df = pd.DataFrame({'X': tsne[:, 0],
-                                'Y': tsne[:, 1],
-                                f'{diagnoses[diagnosis]}': targets[:, i]})
+            # plt.legend(handles=[orange_patch, blue_patch])
+            plt.legend(handles=[red_patch, green_patch])
+            plt.title(f"UMAP-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
 
-        umap_df = pd.DataFrame({'X': clusterable_embedding[:, 0],
-                                'Y': clusterable_embedding[:, 1],
-                                diagnoses[diagnosis]: targets[:, i]})
-        
-        """
+            plt.savefig(
+                f"{path_prefix}/{network_name}/visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
+            plt.show()
+            plt.close()
+
+        else:
+            green_patch = mpatches.Patch(color=colormap[0], label=f'no {diagnoses[diagnosis]}')
+            red_patch = mpatches.Patch(color=colormap[1], label=f'{diagnoses[diagnosis]}')
+            plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap[targets[:, i]], s=100)
+
+            plt.legend(handles=[green_patch, red_patch])
+            plt.title(f"tSNE-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
+
+            plt.savefig(
+                f"{path_prefix}/{network_name}/visualizations/tsne_visualization_of_diagnosis_{diagnosis_name}.png")
+            plt.show()
+            plt.close()
+
+            plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=100,
+                        label=colormap)
+
+            # plt.legend(handles=[orange_patch, blue_patch])
+            plt.legend(handles=[green_patch, red_patch])
+            plt.title(f"UMAP-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
+
+            plt.savefig(f"{path_prefix}/{network_name}/visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
+            plt.show()
+            plt.close()
+

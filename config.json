@@ -13,13 +13,13 @@
   },
   "-learningrate": {
     "short": "-lr",
-    "value": 1e-5,
+    "value": 5e-5,
     "help": "The models learningrate",
     "type": "float"
   },
   "-maxpochs": {
     "short": "-me",
-    "value": 10,
+    "value": 100,
     "help": "Maximum nr of epochs to train the model",
     "type": "int"
   },

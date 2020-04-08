@@ -53,9 +53,8 @@ if __name__ == '__main__':
 
     print("Start cropping...")
     for i, f in tqdm(enumerate(os.listdir(dir))):
-        if i < 4:
-            # Crop image
-            trim_image_rgb(f, dir, outdir)
+        # Crop image
+        trim_image_rgb(f, dir, outdir)
     print("Finished cropping...")
 
     print("Start resizing and data augmentation...")
