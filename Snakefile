@@ -25,7 +25,7 @@ rule introspection:
     input:
         dummyfile = "data/mytask.done",
         annotations = expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv",
-                                user=config["USER"])
+                                user=config["USER"]),
         imdir = expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/testing/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}_resize_{resize1}_{resize2}_grayscale_{grayscale}/{dataset}/",
              user = config["USER"],
              dataset = config['DATASETS'],
@@ -58,32 +58,32 @@ rule training:
 
 rule preprocess_training_images:
     input:
-        expand("data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/{dataset}_Training_Images/", dataset = config['DATASETS'])
+        expand("/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/{dataset}_Training_Images/", dataset = config['DATASETS'])
     output:
-        expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/training/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}_resize_{resize1}_{resize2}_grayscale_{grayscale}/{dataset}/",
+        directory(expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/training/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}_resize_{resize1}_{resize2}_grayscale_{grayscale}/{dataset}/",
                  user = config["USER"],
                  dataset = config['DATASETS'],
                  n_augmentation = config['N_AUGMENTATION'],
                  maxdegree = config['MAX_ROTATION_ANGLE'],
                  resize1 = config['RESIZE'][0],
                  resize2 = config['RESIZE'][1],
-                 grayscale = config['GRAYSCALE'])
+                 grayscale = config['GRAYSCALE']))
     run:
          shell("python utils/preprocessing.py {input} {output} -na {n_augmentation} -mra {maxdegree} -r {resize1} {resize2} -gr {grayscale}")
 
 
 rule preprocess_testing_images:
     input:
-        expand("data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/{dataset}_Testing_Images/", dataset = config['DATASETS'])
+        expand("/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/{dataset}_Testing_Images/", dataset = config['DATASETS'])
     output:
-       expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/testing/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}_resize_{resize1}_{resize2}_grayscale_{grayscale}/{dataset}/",
+       directory(expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/testing/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}_resize_{resize1}_{resize2}_grayscale_{grayscale}/{dataset}/",
              user = config["USER"],
              dataset = config['DATASETS'],
              n_augmentation = config['N_AUGMENTATION'],
              maxdegree = config['MAX_ROTATION_ANGLE'],
              resize1 = config['RESIZE'][0],
              resize2 = config['RESIZE'][1],
-             grayscale = config['GRAYSCALE'])
+             grayscale = config['GRAYSCALE']))
     run:
         shell("python utils/preprocessing.py {input} {output} -na {n_augmentation} -mra {maxdegree} -r {resize1} {resize2} -gr 0")
 
