@@ -16,14 +16,14 @@ grayscale = config['GRAYSCALE']
 
 rule all:
     input:
-        "mybody"
+        "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mybody"
     run:
         path = "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images" + str(path_prefix)[2:] + str(networkname)
         shell("tensorboard --logdir %s --port {port}" % path)
 
 rule introspection:
     input:
-        dummyfile = "data/mytask.done",
+        dummyfile = "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mytask.done",
         annotations = expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv",
                                 user=config["USER"]),
         imdir = expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/testing/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}_resize_{resize1}_{resize2}_grayscale_{grayscale}/{dataset}/",
@@ -35,7 +35,7 @@ rule introspection:
              resize2 = config['RESIZE'][1],
              grayscale = config['GRAYSCALE'])
     output:
-        touch('mybody')
+        touch('/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mybody')
     run:
         shell('python utils/introspection.py -i {input.imdir} -csv {input.annotations} -pp {path_prefix} -nn {networkname} -md {maxdegree}')
 
@@ -51,7 +51,7 @@ rule training:
                  resize2 = config['RESIZE'][1],
                  grayscale = config['GRAYSCALE'])
     output:
-        touch("data/mytask.done")
+        touch("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mytask.done")
     run:
         shell("python train_model.py -i {input} -pp {path_prefix} -nn {networkname}" )
 
@@ -96,3 +96,4 @@ rule preprocess_annotations:
         user=config["USER"])
     run:
         shell("python utils/preprocess_annotations.py {input} {output}")
+
