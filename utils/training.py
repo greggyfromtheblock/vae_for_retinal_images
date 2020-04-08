@@ -5,10 +5,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, TensorDataset
 from torchsupport.training.vae import VAETraining
+import torch.nn.functional as F
+from tensorboardX import SummaryWriter
 
 # Ignore warnings
 import warnings
-
 warnings.filterwarnings("ignore")
 
 
@@ -347,8 +348,28 @@ class Decoder(nn.Module):
 
 
 class OdirVAETraining(VAETraining):
+    def __init__(self, encoder, decoder, data, path_prefix, network_name,
+                 # alpha=0.25, beta=0.5, m=120,
+                 optimizer=torch.optim.Adam,
+                 optimizer_kwargs={"lr": 5e-5},
+                 **kwargs):
+        super(OdirVAETraining, self).__init__(
+            encoder, decoder, data,
+            optimizer=optimizer,
+            optimizer_kwargs=optimizer_kwargs,
+            **kwargs
+        )
+        self.checkpoint_path = f"{path_prefix}/{network_name}/{network_name}-checkpoint"
+        self.writer = SummaryWriter(f"{path_prefix}/{network_name}/")
+        self.epoch = None
+
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
+        #what is that?
+        if self.epoch != self.epoch_id:
+            self.epoch = self.epoch_id
+            print("%i-Epoch" % (self.epoch_id+1))
+
         if self.step_id % 4 == 0:
             self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image("reconstruction",

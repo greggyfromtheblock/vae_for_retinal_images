@@ -24,6 +24,12 @@
     "help": "Some juicy VAE name.",
     "type": "str"
   },
+    "-network_dir": {
+    "short": "-nd",
+    "value": "Retinal_VAE_y_rightonly",
+    "help": "Directory to event, torch files and trained encoder.",
+    "type": "str"
+  },
   "-path_prefix": {
       "short": "-pathprefix",
       "value": "nn_output_y_rightonly",

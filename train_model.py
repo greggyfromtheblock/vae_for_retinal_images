@@ -33,12 +33,17 @@ if __name__ == "__main__":
 
     #    imfolder = add_slash(args.imfolder)
     imfolder = os.path.abspath(FLAGS.input)
+    network_name = FLAGS.network_name
+    path_prefix = FLAGS.path_prefix
+    network_dir = f'{path_prefix}/{network_name}/'
     device = FLAGS.device if torch.cuda.is_available() else "cpu"
 
     print("input dir: ", imfolder, "device: : ", device)
 
-    os.makedirs(FLAGS.path_prefix, exist_ok=True)
-    if FLAGS.networkname in os.listdir(FLAGS.path_prefix):
+    #os.makedirs(FLAGS.path_prefix, exist_ok=True)
+    os.makedirs(network_dir, exist_ok=True)
+    #if FLAGS.networkname in os.listdir(FLAGS.path_prefix):
+    if FLAGS.network_name in os.listdir(network_dir):
         input1 = input("\nNetwork already exists. Are you sure to proceed? ([y]/n) ")
         if not input1 in ["y", "yes"]:
             sys.exit()
@@ -59,7 +64,8 @@ if __name__ == "__main__":
         encoder,
         decoder,
         data,
-        network_name=FLAGS.networkname,
+        path_prefix=path_prefix,
+        network_name=network_name,
         device=device,
         optimizer_kwargs={"lr": FLAGS.learningrate},
         batch_size=FLAGS.batchsize,
@@ -90,7 +96,8 @@ if __name__ == "__main__":
 
     # TODO: Also refactor path_prefix/networkname into args/FLAGS
     # Save network
-    PATH = f"{FLAGS.path_prefix}/{FLAGS.networkname}/{FLAGS.networkname}.pth"
+    #PATH = f"{FLAGS.path_prefix}/{FLAGS.networkname}/{FLAGS.networkname}.pth"
+    PATH = network_dir+f'{network_name}.pth'
     os.makedirs(os.path.dirname(PATH), exist_ok=True)
     torch.save(trained_encoder.state_dict(), PATH)
 
