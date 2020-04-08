@@ -1,14 +1,14 @@
 {
   "-out_directory": {
     "short": "-od",
-    "value": "output_y",
+    "value": "output_y_rightonly",
     "help": "Output directory. for logger",
     "type": "str"
   },
   "-input": {
     "short": "-i",
     "value": "training_set_y",
-    "value": "../retina/outputs/training_set_y",
+    "value": "../retina/outputs/training_set_y_rightonly",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
@@ -26,7 +26,7 @@
   },
   "-path_prefix": {
       "short": "-pathprefix",
-      "value": "nn_output_y",
+      "value": "nn_output_y_rightonly",
       "help": "where the training torch files are stored?",
       "type": "str"
   },
