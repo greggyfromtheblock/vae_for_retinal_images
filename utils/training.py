@@ -62,7 +62,7 @@ class Encoder(nn.Module):
             *linear_block(64 * 5 * 4, 512, normalize=True, dropout=0.5),
             # *linear_block(512, 256, dropout=0.3),
             # *linear_block(256, 128),
-            *linear_block(128, 64),
+            *linear_block(512, 64),
             *linear_block(64, z, negative_slope=0.0)
         )
 
@@ -182,7 +182,3 @@ if __name__ == '__main__':
     fake_latent_vector = torch.randn((10, 32))
     decoder = Decoder()
     decoder(fake_latent_vector)
-
-
-
-
