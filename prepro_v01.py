@@ -62,6 +62,14 @@ parser.add_argument(
                     of the images"""
 )
 parser.add_argument(
+    "--flip_left_to_right",
+    action="store_true",
+    help="""if this flag is on 
+                    the script FLIPS each left image so it 
+                    looks like a right fundus image.
+                    """
+)
+parser.add_argument(
     "--rgb2gray",
     action="store_true",
     help="""if this flag is on 
@@ -154,10 +162,15 @@ for f in tqdm(os.listdir(imdir)):
     image = (255*image).astype(np.uint8)
     if args.rgb2gray:
         image = (rgb2gray(image)*256).astype(np.uint8)
-    io.imsave(outdir + f, image)
+#    io.imsave(outdir + f, image)
     if args.flip:
         image_flipped = np.fliplr(image)
         io.imsave(outdir + fname + "_flipped.jpg", image_flipped)
+    if args.flip_left_to_right and "left" in fname:
+        image_flipped = np.fliplr(image)
+        io.imsave(outdir + f, image_flipped)
+    else:
+        io.imsave(outdir + f, image)
     if args.rotate > 0:
         rot = args.rotate * random.random()
         image_rotated = transform.rotate(image, rot)
