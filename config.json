@@ -1,13 +1,13 @@
 {
   "-out_directory": {
     "short": "-od",
-    "value": "output",
+    "value": "output_y",
     "help": "Output directory. for logger",
     "type": "str"
   },
   "-input": {
     "short": "-i",
-    "value": "training_set",
+    "value": "training_set_y",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
@@ -19,13 +19,13 @@
   },
   "-networkname": {
     "short": "-nn",
-    "value": "Retinal_VAE",
+    "value": "Retinal_VAE_y",
     "help": "Some juicy VAE name.",
     "type": "str"
   },
   "-path_prefix": {
       "short": "pathprefix",
-      "value": "nn_output",
+      "value": "nn_output_y",
       "help": "where the training torch files are stored?",
       "type": "str"
   },

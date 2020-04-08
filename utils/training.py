@@ -21,8 +21,6 @@ class VAEDataset(Dataset):
         data, label = self.data[index]
         return (data,)
 
-    #        return (data[0].unsqueeze(0),)
-
     def __len__(self):
         return len(self.data)
         pass
@@ -340,8 +338,7 @@ class Decoder(nn.Module):
 
     def forward(self, sample):
         #        return self.decoder(sample).view(-1, 3, 256, 320)
-        dec = torch.reshape(self.linear_blocks(sample),
-                (sample.shape[0], 64, 4, 5))
+        dec = torch.reshape(self.linear_blocks(sample), (sample.shape[0], 64, 4, 5))
         # print(dec.shape)
         reconstructions = self.conv_layers(dec)
         print(reconstructions.shape)
@@ -351,8 +348,11 @@ class Decoder(nn.Module):
 class OdirVAETraining(VAETraining):
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
-        if self.step_id % 4 == 0:
-            self.writer.add_image("target", data[0], self.step_id)
-            self.writer.add_image("reconstruction",
-                    nn.functional.sigmoid(reconstructions[0]), self.step_id)
+        if self.step_id % 10 == 0:
+            self.writer.add_image("target", data[0:5], self.step_id)
+            self.writer.add_image(
+                "reconstruction",
+                nn.functional.sigmoid(reconstructions[0:5]),
+                self.step_id,
+            )
         return mean, logvar, reconstructions, data

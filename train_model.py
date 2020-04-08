@@ -14,22 +14,33 @@ import torch
 from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
 from utils.utils import setup
 
+
+def normalize(image):
+    return (image - image.min()) / (image.max() - image.min())
+
+
+def add_slash(path):
+    if path[-1] != "/":
+        return path + "/"
+    else:
+        return path
+
+
 if __name__ == "__main__":
     FLAGS, logger = setup(running_script="./utils/training.py", config="config.json")
     print("FLAGS= ", FLAGS)
 
-    def add_slash(path):
-        if path[-1] != "/":
-            return path + "/"
-        else:
-            return path
-
-#    imfolder = add_slash(args.imfolder)
+    #    imfolder = add_slash(args.imfolder)
     imfolder = os.path.abspath(FLAGS.input)
     device = FLAGS.device if torch.cuda.is_available() else "cpu"
 
-    print("input dir: ", imfolder,
-            "device: : ", device)
+    print("input dir: ", imfolder, "device: : ", device)
+
+    os.makedirs(FLAGS.path_prefix, exist_ok=True)
+    if FLAGS.networkname in os.listdir(FLAGS.path_prefix):
+        input1 = input("\nNetwork already exists. Are you sure to proceed? ([y]/n) ")
+        if not input1 in ["y", "yes"]:
+            sys.exit()
 
     print("Load Data as Tensors...")
     img_dataset = datasets.ImageFolder(
@@ -49,13 +60,38 @@ if __name__ == "__main__":
         data,
         network_name=FLAGS.networkname,
         device=device,
+        optimizer_kwargs={"lr": FLAGS.learningrate},
         batch_size=FLAGS.batchsize,
         max_epochs=FLAGS.maxpochs,
         verbose=True,
     )
 
-    training.train()
+    print(
+        "\nSize of the dataset: {}\nShape of the single tensors: {}".format(
+            len(data), data[0][0].shape
+        )
+    )
+    print(
+        "\nTo check if values are between 0 and 1:\n{}".format(
+            data[0][0][0][50][30:180:10]
+        )
+    )
 
+    print("\nStart Training...")
+    time_start = time.time()
+    trained_encoder, _ = training.train()
+    print(
+        "\nTraining with %i epochs done! Time elapsed: %.2f minutes"
+        % (FLAGS.maxpochs, (time.time() - time_start) / 60)
+    )
+
+    # print(trained_encoder)
+
+    # TODO: Also refactor path_prefix/networkname into args/FLAGS
+    # Save network
+    PATH = f"{FLAGS.path_prefix}/{FLAGS.networkname}/{FLAGS.networkname}.pth"
+    os.makedirs(os.path.dirname(PATH), exist_ok=True)
+    torch.save(trained_encoder.state_dict(), PATH)
 
 """    
 def prepare_datasets(logger, path_to_splits):
