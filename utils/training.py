@@ -353,4 +353,5 @@ class OdirVAETraining(VAETraining):
             self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image("reconstruction",
                     nn.functional.sigmoid(reconstructions[0]), self.step_id)
+            print("output shape: ", reconstructions[0].shape)
         return mean, logvar, reconstructions, data
