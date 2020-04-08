@@ -8,6 +8,7 @@
   "-input": {
     "short": "-i",
     "value": "training_set_y",
+    "value": "../retina/outputs/training_set_y",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
@@ -67,7 +68,7 @@
   },
   "-image_dim": {
     "short": "-imdim",
-    "value": "(192,188)",
+    "value": "(256,320)",
     "help": "Dimension of the input images",
     "type": "str"
   },
