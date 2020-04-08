@@ -72,11 +72,11 @@ if __name__ == "__main__":
             len(data), data[0][0].shape
         )
     )
-    print(
-        "\nTo check if values are between 0 and 1:\n{}".format(
-            data[0][0][0][50][30:180:10]
-        )
-    )
+#    print(
+#        "\nTo check if values are between 0 and 1:\n{}".format(
+#            data[0][0][0][50][30:180:10]
+#        )
+#    )
 
     print("\nStart Training...")
     time_start = time.time()
