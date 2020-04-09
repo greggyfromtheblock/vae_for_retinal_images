@@ -36,6 +36,18 @@
       "help": "where the training torch files are stored?",
       "type": "str"
   },
+  "-network_vis_dir": {
+    "short": "-nvd",
+    "value": "visualizations_odir-vae-y-rightonly",
+    "help": "Directory to visualizations",
+    "type": "str"
+  },
+  "-csv_input": {
+    "short": "-csv",
+    "value": "../retina/outputs/odir_training_extended_annotations.csv",
+    "help": "Preprocessed annotations",
+    "type": "str"
+  },
   "-device": {
     "short": "-dv",
     "value": "cuda",
@@ -77,6 +89,12 @@
     "value": "(256,320)",
     "help": "Dimension of the input images",
     "type": "str"
+  },
+    "-max_degree": {
+    "short": "-md",
+    "value": 20,
+    "help": "Max. rotation degree.",
+    "type": "int"
   },
   "-dropout": {
     "short": "-do",
