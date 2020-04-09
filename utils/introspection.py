@@ -105,16 +105,16 @@ if __name__ == '__main__':
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
         for j, feature in enumerate(diagnoses.keys()):
             targets[i][j] = csv_df.iloc[row_number].at[feature]
-        if i % 100 == 0:
-            img = skimage.io.imread(imfolder + '/images/' + jpg)
-            print("image size: ", img.shape)
+#        if i % 100 == 0:
+#            img = skimage.io.imread(imfolder + '/images/' + jpg)
+#            print("image size: ", img.shape)
 
     print("Finished building targets...")
-    quit()
 
     # Load network
     trained_encoder = Encoder()
     trained_encoder.load_state_dict(torch.load(network_dir+f"{network_name}.pth"))
+    quit()
 
     print("Generate samples..")
     print('data shape: ', data[0][0].shape)
