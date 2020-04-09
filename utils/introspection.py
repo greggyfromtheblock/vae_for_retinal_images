@@ -84,7 +84,7 @@ if __name__ == '__main__':
     number_of_diagnoses = len(diagnoses)
     data_size = len(data)
     print("data size = ", data_size, "len of the df = ", len(csv_df),
-            "files in image folder: ", len(os.listdir(imfolder)))
+            "files in image folder: ", len(os.listdir(imfolder + '/images')))
     quit()
     targets = np.zeros((data_size, number_of_diagnoses),  dtype=np.int8)
 
