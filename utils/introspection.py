@@ -58,8 +58,8 @@ if __name__ == '__main__':
         transform=transforms.Compose([transforms.ToTensor(), normalize])
     )
     data = VAEDataset(img_dataset)
-    #print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
-    print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0].shape))
+    print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
+    #print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0].shape))
 
     csv_df = pd.read_csv(csv_file, sep='\t')
 
@@ -100,9 +100,9 @@ if __name__ == '__main__':
     trained_encoder.load_state_dict(torch.load(network_dir+f"{network_name}.pth"))
 
     print("Generate samples..")
-    print('data shape: ', data[0].shape)
-    #samples = torch.zeros((data_size, *data[0][0].shape))
-    samples = torch.zeros((data_size, *data[0].shape))
+    print('data shape: ', data[0][0].shape)
+    #samples = torch.zeros((data_size, *data[0].shape))
+    samples = torch.zeros((data_size, *data[0][0].shape))
     encoded_samples = np.zeros((data_size, latent_vector_size))
     for i in tqdm(range(0, data_size, data_size)):
         samples[i] = data[i][0]
