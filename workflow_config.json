@@ -1,5 +1,5 @@
 {
-    "USER": "henrik"
+    "USER": "henrik",
     "DATASETS": ["ODIR"],
     "N_AUGMENTATION": 8,
     "MAX_ROTATION_ANGLE": 18,
