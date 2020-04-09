@@ -60,8 +60,6 @@ if __name__ == '__main__':
             #                transforms.Normalize((0.5,), (0.5,))]
         ),
     )
-    print(FLAGS)
-    quit()
     data = VAEDataset(img_dataset)
     print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
     #print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0].shape))
@@ -71,6 +69,7 @@ if __name__ == '__main__':
 #    print("sys.argv = ", sys.argv)
 
     csv_df = pd.read_csv(csv_file, sep='\t')
+    quit()
 
     diagnoses = {
         "N": "normal fundus",
