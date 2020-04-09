@@ -50,7 +50,8 @@ if __name__ == '__main__':
         transform=transforms.Compose([transforms.ToTensor(), normalize])
     )
     data = VAEDataset(img_dataset)
-    print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
+    #print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
+    print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0].shape))
 
     csv_df = pd.read_csv(csv_file, sep='\t')
 
