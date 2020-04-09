@@ -108,7 +108,6 @@ if __name__ == '__main__':
         if i % 100 == 0:
             img = skimage.io.imread(imfolder + '/images/' + jpg)
             print("image size: ", img.shape)
-            img.close()
 
     print("Finished building targets...")
     quit()
