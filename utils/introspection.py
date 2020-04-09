@@ -14,6 +14,7 @@ import os
 from tqdm import tqdm
 import argparse
 import sys
+import skimage
 
 from training import Encoder, VAEDataset
 from utils import setup
@@ -85,7 +86,6 @@ if __name__ == '__main__':
     data_size = len(data)
     print("data size = ", data_size, "len of the df = ", len(csv_df),
             "files in image folder: ", len(os.listdir(imfolder + '/images')))
-    quit()
     targets = np.zeros((data_size, number_of_diagnoses),  dtype=np.int8)
 
     angles = [x for x in range(-FLAGS.max_degree, -9)]
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     angles.extend([x for x in range(-9, 10)])
     print("\nPossible Angles: {}\n".format(angles))
     print("\nBuild targets...")
-    for i, jpg in tqdm(enumerate(os.listdir(imfolder))):
+    for i, jpg in tqdm(enumerate(os.listdir(imfolder + '/images'))):
         if "flipped" in jpg:
             jpg = jpg.replace("_flipped", "")
             if "angle" in jpg:
@@ -105,8 +105,13 @@ if __name__ == '__main__':
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
         for j, feature in enumerate(diagnoses.keys()):
             targets[i][j] = csv_df.iloc[row_number].at[feature]
+        if i % 100 == 0:
+            img = skimage.io.imread(jpg)
+            print("image size: ", img.shape)
+            img.close()
 
     print("Finished building targets...")
+    quit()
 
     # Load network
     trained_encoder = Encoder()
