@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     list_not_suitable_jpgs_for_introspection_because_of_absence_in_annotations = []
     for jpg in tqdm(os.listdir(imfolder)):
-        if not csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]:
+        if len(csv_df.loc[csv_df['Fundus Image'] == jpg].index) == 0:
             list_not_suitable_jpgs_for_introspection_because_of_absence_in_annotations.append(jpg)
     list_not_suitable_jpgs_for_introspection_because_of_absence_in_annotations=list_not_suitable_jpgs_for_introspection_because_of_absence_in_annotations.sort()
     print(len(list_not_suitable_jpgs_for_introspection_because_of_absence_in_annotations))
