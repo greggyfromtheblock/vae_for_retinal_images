@@ -60,7 +60,7 @@ if __name__ == '__main__':
             #                transforms.Normalize((0.5,), (0.5,))]
         ),
     )
-    prit(FLAGS)
+    print(FLAGS)
     quit()
     data = VAEDataset(img_dataset)
     print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
