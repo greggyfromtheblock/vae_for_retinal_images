@@ -12,6 +12,8 @@ import numpy as np
 import torch
 import os
 from tqdm import tqdm
+import argparse
+import sys
 
 from training import Encoder, VAEDataset
 from utils import setup
@@ -32,6 +34,12 @@ def add_slash(path):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="""Visualization of the Encoder""")
+    parser.add_argument("--no_augmentations",
+            action="store_true",
+            help="""in case there are no augmentations (flips, rotations...),
+            ignores the parts in the script that expect them""")
+    args = parser.parse_args()
 
     FLAGS, logger = setup(running_script="./utils/introspection.py", config="config.json")
     print("FLAGS= ", FLAGS)
@@ -76,10 +84,10 @@ if __name__ == '__main__':
     print("\nPossible Angles: {}\n".format(angles))
     print("\nBuild targets...")
     for i, jpg in tqdm(enumerate(os.listdir(imfolder))):
-        jpg = jpg.replace("_flipped", "")
-
-        for angle in angles:
-            jpg = jpg.replace("_rot_%i" % angle, "")
+        if not args.no_augmentations:
+            jpg = jpg.replace("_flipped", "")
+            for angle in angles:
+                jpg = jpg.replace("_rot_%i" % angle, "")
 
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
         for j, feature in enumerate(diagnoses.keys()):
@@ -92,7 +100,9 @@ if __name__ == '__main__':
     trained_encoder.load_state_dict(torch.load(network_dir+f"{network_name}.pth"))
 
     print("Generate samples..")
-    samples = torch.zeros((data_size, *data[0][0].shape))
+    print('data shape: ', data[0].shape)
+    #samples = torch.zeros((data_size, *data[0][0].shape))
+    samples = torch.zeros((data_size, *data[0].shape))
     encoded_samples = np.zeros((data_size, latent_vector_size))
     for i in tqdm(range(0, data_size, data_size)):
         samples[i] = data[i][0]
