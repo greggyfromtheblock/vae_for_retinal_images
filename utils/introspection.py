@@ -35,11 +35,11 @@ def add_slash(path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="""Visualization of the Encoder""")
-    parser.add_argument("--no_augmentations",
+    parser.add_argument("--no_aug",
             action="store_true",
             help="""in case there are no augmentations (flips, rotations...),
-            ignores the parts in the script that expect them""")
-    args = parser.parse_args()
+            ignores the parts in the script that expect them""",
+            )
 
     FLAGS, logger = setup(running_script="./utils/introspection.py", config="config.json")
     print("FLAGS= ", FLAGS)
@@ -60,6 +60,9 @@ if __name__ == '__main__':
     data = VAEDataset(img_dataset)
     print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
     #print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0].shape))
+
+    args = parser.parse_args()
+    print("args =", args)
 
     csv_df = pd.read_csv(csv_file, sep='\t')
 
@@ -84,7 +87,7 @@ if __name__ == '__main__':
     print("\nPossible Angles: {}\n".format(angles))
     print("\nBuild targets...")
     for i, jpg in tqdm(enumerate(os.listdir(imfolder))):
-        if not args.no_augmentations:
+        if not args.no_aug:
             jpg = jpg.replace("_flipped", "")
             for angle in angles:
                 jpg = jpg.replace("_rot_%i" % angle, "")
