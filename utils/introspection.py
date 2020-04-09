@@ -114,10 +114,10 @@ if __name__ == '__main__':
     # Load network
     trained_encoder = Encoder()
     trained_encoder.load_state_dict(torch.load(network_dir+f"{network_name}.pth"))
-    quit()
 
     print("Generate samples..")
     print('data shape: ', data[0][0].shape)
+    quit()
     #samples = torch.zeros((data_size, *data[0].shape))
     samples = torch.zeros((data_size, *data[0][0].shape))
     encoded_samples = np.zeros((data_size, latent_vector_size))
