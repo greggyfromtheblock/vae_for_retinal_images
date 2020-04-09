@@ -120,7 +120,6 @@ if __name__ == '__main__':
     #samples = torch.zeros((data_size, *data[0].shape))
     samples = torch.zeros((data_size, *data[0][0].shape))
     print('sample shape: ', samples[0][0].shape)
-    quit()
     encoded_samples = np.zeros((data_size, latent_vector_size))
     for i in tqdm(range(0, data_size, data_size)):
         samples[i] = data[i][0]
@@ -129,6 +128,7 @@ if __name__ == '__main__':
     features, _, _ = trained_encoder(samples)
     encoded_samples = features.detach().numpy()
     print("Finished encoding of each image...")
+    quit()
 
     os.makedirs(network_dir+"visualizations/", exist_ok=True)
     print("Start Visualization...")
