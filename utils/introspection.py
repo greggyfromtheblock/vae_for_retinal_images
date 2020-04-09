@@ -117,9 +117,10 @@ if __name__ == '__main__':
 
     print("Generate samples..")
     print('data shape: ', data[0][0].shape)
-    quit()
     #samples = torch.zeros((data_size, *data[0].shape))
     samples = torch.zeros((data_size, *data[0][0].shape))
+    print('sample shape: ', samples[0][0].shape)
+    quit()
     encoded_samples = np.zeros((data_size, latent_vector_size))
     for i in tqdm(range(0, data_size, data_size)):
         samples[i] = data[i][0]
