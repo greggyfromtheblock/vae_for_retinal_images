@@ -106,7 +106,7 @@ if __name__ == '__main__':
         for j, feature in enumerate(diagnoses.keys()):
             targets[i][j] = csv_df.iloc[row_number].at[feature]
         if i % 100 == 0:
-            img = skimage.io.imread(jpg)
+            img = skimage.io.imread(imfolder + '/images/' + jpg)
             print("image size: ", img.shape)
             img.close()
 
