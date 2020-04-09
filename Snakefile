@@ -16,7 +16,7 @@ grayscale = config['GRAYSCALE']
 
 rule all:
     input:
-        "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mybody"
+        expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mybody", user = config['USER'])
     run:
         path = "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images" + str(path_prefix)[2:] + str(networkname)
         shell("tensorboard --logdir %s --port {port}" % path)
