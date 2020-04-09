@@ -93,7 +93,9 @@ if __name__ == '__main__':
             if "angle" in jpg:
                 for angle in angles:
                     jpg = jpg.replace("_rot_%i" % angle, "")
-
+        test = csv_df.loc[csv_df['Fundus Image'] == jpg]
+        if test.empty:
+            continue
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
         for j, feature in enumerate(diagnoses.keys()):
             targets[i][j] = csv_df.iloc[row_number].at[feature]
