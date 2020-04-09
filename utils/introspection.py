@@ -69,7 +69,6 @@ if __name__ == '__main__':
 #    print("sys.argv = ", sys.argv)
 
     csv_df = pd.read_csv(csv_file, sep='\t')
-    quit()
 
     diagnoses = {
         "N": "normal fundus",
@@ -84,6 +83,8 @@ if __name__ == '__main__':
     }
     number_of_diagnoses = len(diagnoses)
     data_size = len(data)
+    print("data size = ", data_size, "len of the df = ", len(csv_df))
+    quit()
     targets = np.zeros((data_size, number_of_diagnoses),  dtype=np.int8)
 
     angles = [x for x in range(-FLAGS.max_degree, -9)]
