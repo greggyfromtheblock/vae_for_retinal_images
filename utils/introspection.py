@@ -152,8 +152,8 @@ if __name__ == '__main__':
             n_components=2,
             random_state=42,
         ).fit_transform(encoded_samples)
-    print("spawned diagnosis keys")
-    quit()
+        print("spawned diagnosis keys")
+        quit()
 
         # orange_patch = mpatches.Patch(color=colormap[0], label=f'No {diagnoses[diagnosis]}')
         # blue_patch = mpatches.Patch(color=colormap[1], label=f'{diagnoses[diagnosis]}
