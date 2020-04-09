@@ -167,7 +167,7 @@ if __name__ == '__main__':
 
             plt.savefig(
                 f"{path_prefix}/{network_name}/visualizations/tsne_visualization_of_diagnosis_{diagnosis_name}.png")
-            plt.show()
+            #plt.show()
             plt.close()
 
             plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap_rev[targets[:, i]], s=100,
@@ -179,7 +179,7 @@ if __name__ == '__main__':
 
             plt.savefig(
                 f"{path_prefix}/{network_name}/visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
-            plt.show()
+            #plt.show()
             plt.close()
 
         else:
@@ -192,7 +192,7 @@ if __name__ == '__main__':
 
             plt.savefig(
                 f"{path_prefix}/{network_name}/visualizations/tsne_visualization_of_diagnosis_{diagnosis_name}.png")
-            plt.show()
+            #plt.show()
             plt.close()
 
             plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=100,
@@ -203,6 +203,6 @@ if __name__ == '__main__':
             plt.title(f"UMAP-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
 
             plt.savefig(f"{path_prefix}/{network_name}/visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
-            plt.show()
+            #plt.show()
             plt.close()
 
