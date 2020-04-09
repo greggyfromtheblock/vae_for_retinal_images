@@ -34,12 +34,12 @@ def add_slash(path):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="""Visualization of the Encoder""")
-    parser.add_argument("--no_aug",
-            action="store_true",
-            help="""in case there are no augmentations (flips, rotations...),
-            ignores the parts in the script that expect them""",
-            )
+#    parser = argparse.ArgumentParser(description="""Visualization of the Encoder""")
+#    parser.add_argument("--no_aug",
+#            action="store_true",
+#            help="""in case there are no augmentations (flips, rotations...),
+#            ignores the parts in the script that expect them""",
+#            )
 
     FLAGS, logger = setup(running_script="./utils/introspection.py", config="config.json")
     print("FLAGS= ", FLAGS)
@@ -61,9 +61,9 @@ if __name__ == '__main__':
     print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
     #print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0].shape))
 
-    args = parser.parse_args()
-    print("args =", args)
-    print(sys.argv)
+#    args = parser.parse_args()
+#    print("args =", args)
+    print("sys.argv = ", sys.argv)
 
     csv_df = pd.read_csv(csv_file, sep='\t')
 
