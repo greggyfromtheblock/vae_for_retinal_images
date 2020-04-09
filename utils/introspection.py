@@ -128,10 +128,12 @@ if __name__ == '__main__':
     features, _, _ = trained_encoder(samples)
     encoded_samples = features.detach().numpy()
     print("Finished encoding of each image...")
-    quit()
 
     os.makedirs(network_dir+"visualizations/", exist_ok=True)
+    print('created dir: ',
+            network_dir + '/' + 'visualizations/')
     print("Start Visualization...")
+    quit()
     # colormap = np.array(['darkorange', 'royalblue'])
     colormap = np.array(['g', 'r'])
     colormap_rev = np.array(['r', 'g'])
