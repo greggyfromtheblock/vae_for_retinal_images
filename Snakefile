@@ -24,8 +24,7 @@ rule all:
 rule introspection:
     input:
         dummyfile = "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mytask.done",
-        annotations = expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv",
-                                user=config["USER"]),
+        annotations = expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv", user=config["USER"]),
         imdir = expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/testing/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}_resize_{resize1}_{resize2}_grayscale_{grayscale}/{dataset}/",
              user = config["USER"],
              dataset = config['DATASETS'],
@@ -74,7 +73,7 @@ rule preprocess_training_images:
 
 rule preprocess_testing_images:
     input:
-        expand("/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/{dataset}_Testing_Images/", dataset = config['DATASETS'])
+        expand("/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/{dataset}_Testing_Introspection_Images", dataset = config['DATASETS'])
     output:
        directory(expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/testing/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}_resize_{resize1}_{resize2}_grayscale_{grayscale}/{dataset}/",
              user = config["USER"],
@@ -90,7 +89,7 @@ rule preprocess_testing_images:
 
 rule preprocess_annotations:
     input:
-        "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Training_Annotations/ODIR-5K_Training_Annotations.xlsx"
+        "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Testing_Annotations/ODIR-5K_Training_Annotations.xlsx"
     output:
         expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv",
         user=config["USER"])
