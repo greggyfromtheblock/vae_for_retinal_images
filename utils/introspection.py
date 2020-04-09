@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
 #    args = parser.parse_args()
 #    print("args =", args)
-    print("sys.argv = ", sys.argv)
+#    print("sys.argv = ", sys.argv)
 
     csv_df = pd.read_csv(csv_file, sep='\t')
 
@@ -88,10 +88,11 @@ if __name__ == '__main__':
     print("\nPossible Angles: {}\n".format(angles))
     print("\nBuild targets...")
     for i, jpg in tqdm(enumerate(os.listdir(imfolder))):
-        if not args.no_aug:
+        if "flipped" in jpg:
             jpg = jpg.replace("_flipped", "")
-            for angle in angles:
-                jpg = jpg.replace("_rot_%i" % angle, "")
+            if "angle" in jpg:
+                for angle in angles:
+                    jpg = jpg.replace("_rot_%i" % angle, "")
 
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
         for j, feature in enumerate(diagnoses.keys()):
