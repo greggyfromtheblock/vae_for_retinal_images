@@ -63,6 +63,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     print("args =", args)
+    print(sys.argv)
 
     csv_df = pd.read_csv(csv_file, sep='\t')
 
