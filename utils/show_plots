@@ -31,6 +31,7 @@
     "    for plot_name in tqdm(os.listdir(dir)):\n",
     "        p = plt.imread(dir+plot_name)\n",
     "        plt.imshow(p)\n"
+    "        plt.close()\n"
    ]
   },
   {
