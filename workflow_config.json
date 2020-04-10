@@ -1,8 +1,8 @@
 {
     "YOURNAME": "YOURNAME",
     "DATASETS": ["ODIR"],
-    "N_AUGMENTATION": 8,
-    "MAX_ROTATION_ANGLE": 18,
+    "N_AUGMENTATION": 16,
+    "MAX_ROTATION_ANGLE": 22,
     "NETWORKNAME": "odir-vae",
     "PATH_PREFIX": "../models",
     "PORT": 1244,
