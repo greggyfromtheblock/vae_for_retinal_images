@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     network_name = FLAGS.network_name
     path_prefix = FLAGS.path_prefix
-    network_dir = f'{path_prefix}/{network_name}/'
+    network_dir = os.path.abspath(f'{path_prefix}/{network_name}/')
 
     print("\nLoad Data as Tensors...")
     img_dataset = datasets.ImageFolder(
