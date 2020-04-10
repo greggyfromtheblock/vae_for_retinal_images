@@ -1,9 +1,9 @@
 {
     "YOURNAME": "henrik",
     "DATASETS": ["ODIR"],
-    "N_AUGMENTATION": 8,
-    "MAX_ROTATION_ANGLE": 18,
-    "NETWORKNAME": "odir-vae",
+    "N_AUGMENTATION": 16,
+    "MAX_ROTATION_ANGLE": 22,
+    "NETWORKNAME": "hope",
     "PATH_PREFIX": "../vae_for_retinal_images/models",
     "PORT": 1244,
     "RESIZE": [192, 188],
