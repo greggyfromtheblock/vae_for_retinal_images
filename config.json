@@ -19,7 +19,7 @@
   },
   "-maxpochs": {
     "short": "-me",
-    "value": 100,
+    "value": 1000,
     "help": "Maximum nr of epochs to train the model",
     "type": "int"
   },
