@@ -97,18 +97,38 @@ if __name__ == '__main__':
     trained_encoder.load_state_dict(torch.load(network_dir+f"{network_name}.pth"))
 
     print("Generate samples..")
-    samples = torch.zeros((data_size, *data[0][0].shape))
-    encoded_samples = np.zeros((data_size, latent_vector_size))
-    for i in tqdm(range(0, data_size, data_size)):
-        samples[i] = data[i][0]
+    def calc_batch_size(batch_size=8):
+        global data_size
+        if data_size % batch_size == 0:
+            return batch_size
+        if batch_size == 3:
+            return batch_size
+        else:
+            return calc_batch_size(batch_size-1)
 
-    print("\nStart encoding of each image...")
-    features, _, _ = trained_encoder(samples)
-    encoded_samples = features.detach().numpy()
+    # calculate batch_size
+    batch_size = calc_batch_size(batch_size=8)
+    samples = torch.zeros((batch_size, *data[0][0].shape))
+    d_mod_b = data_size % batch_size
+    encoded_samples = np.zeros((data_size, latent_vector_size))
+
+    for i in tqdm(range(0, data_size, batch_size)):
+        if (i + batch_size) < data_size:
+            for j in range(batch_size):
+                samples[j] = data[i+j][0]
+            features, _, _ = trained_encoder(samples)
+            encoded_samples[i:(i+batch_size)] = features.detach().numpy()
+        else:
+            # for uncompleted last batch
+            samples = torch.zeros((d_mod_b, *data[0][0].shape))
+            for i in range(data_size-d_mod_b, data_size, d_mod_b):
+                for j in range(d_mod_b):
+                    samples[j] = data[i+j][0]
+                features, _, _ = trained_encoder(samples)
+                encoded_samples[i:(i + d_mod_b)] = features.detach().numpy()
     print("Finished encoding of each image...")
 
-    os.makedirs(network_dir+"visualizations/", exist_ok=True)
-    print("Start Visualization...")
+    print("\nStart Visualization...")
     # colormap = np.array(['darkorange', 'royalblue'])
     colormap = np.array(['g', 'r'])
     colormap_rev = np.array(['r', 'g'])
