@@ -156,7 +156,7 @@ if __name__ == '__main__':
             red_patch = mpatches.Patch(color=colormap_rev[0], label=f'no {diagnosis_name}')
             green_patch = mpatches.Patch(color=colormap_rev[1], label=f' {diagnosis_name}')
 
-            plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap_rev[targets[:, i]], s=100)
+            plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap_rev[targets[:, i]], s=0.1)
             # plt.legend(handles=[orange_patch, blue_patch])
             plt.legend(handles=[red_patch, green_patch])
             plt.title(f"tSNE-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
@@ -166,7 +166,7 @@ if __name__ == '__main__':
             plt.show()
             plt.close()
 
-            plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap_rev[targets[:, i]], s=100,
+            plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap_rev[targets[:, i]], s=0.1,
                         label=colormap)
 
             # plt.legend(handles=[orange_patch, blue_patch])
@@ -181,7 +181,7 @@ if __name__ == '__main__':
         else:
             green_patch = mpatches.Patch(color=colormap[0], label=f'no {diagnoses[diagnosis]}')
             red_patch = mpatches.Patch(color=colormap[1], label=f'{diagnoses[diagnosis]}')
-            plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap[targets[:, i]], s=100)
+            plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap[targets[:, i]], s=0.1)
 
             plt.legend(handles=[green_patch, red_patch])
             plt.title(f"tSNE-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
@@ -191,7 +191,7 @@ if __name__ == '__main__':
             plt.show()
             plt.close()
 
-            plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=100,
+            plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=0.1,
                         label=colormap)
 
             # plt.legend(handles=[orange_patch, blue_patch])
