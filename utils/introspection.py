@@ -74,7 +74,12 @@ if __name__ == '__main__':
     angles.extend([x for x in range(-9, 10)])
     print("\nPossible Angles: {}\n".format(angles))
     print("\nBuild targets...")
+
+    marker = None
     for i, jpg in tqdm(enumerate(os.listdir(imfolder))):
+        if jpg == '.snakemake_timestamp':
+            marker = True
+            continue
         jpg = jpg.replace("_flipped", "")
 
         for angle in angles:
@@ -82,9 +87,10 @@ if __name__ == '__main__':
 
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
         for j, feature in enumerate(diagnoses.keys()):
-            targets[i][j] = csv_df.iloc[row_number].at[feature]
-
-    print("Finished building targets...")
+            if not marker:
+                targets[i][j] = csv_df.iloc[row_number].at[feature]
+            else:
+                targets[i-1][j] = csv_df.iloc[row_number].at[feature]
 
     # Load network
     trained_encoder = Encoder()
