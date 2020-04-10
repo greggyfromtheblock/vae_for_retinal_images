@@ -24,7 +24,6 @@ def add_slash(path):
 if __name__ == "__main__":
 
     FLAGS, logger = setup(running_script="./utils/training.py", config="config.json")
-    print("FLAGS= ", FLAGS)
 
     imfolder = add_slash(FLAGS.input)
     network_name = FLAGS.network_name
@@ -33,9 +32,17 @@ if __name__ == "__main__":
     network_dir = f'{path_prefix}/{network_name}/'
 
     device = FLAGS.device if torch.cuda.is_available() else "cpu"
-
+    
     print("\ninput dir: ", imfolder,
+          "\npath prefix: ", path_prefix,
+          "\nnetwork name: ", network_name,
+          "\nlearningrate: ", FLAGS.learningrate,
+          "\nbatch size: ", FLAGS.batchsize,
+          "\nmax epochs: ", FLAGS.maxepochs,
+          "\nz-dim: ", FLAGS.zdim,
+          "\nmax degree: ", FLAGS.maxdegree,
           "\ndevice: ", device)
+    
     os.makedirs(network_dir, exist_ok=True)
     if FLAGS.network_name in os.listdir(network_dir):
         input1 = input("\nNetwork already exists. Are you sure to proceed? ([y]/n) ")
