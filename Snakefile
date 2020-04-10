@@ -20,7 +20,8 @@ rule all:
         expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mybody", user = config['YOURNAME'])
     run:
         path = "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images" + str(path_prefix)[2:] + str(networkname)
-        shell("tensorboard --logdir %s --port {port}" % path)
+        print("path to the eventfiles: %s" % path) 
+        # shell("tensorboard --logdir %s --port {port}" % path)
 
 rule introspection:
     input:
