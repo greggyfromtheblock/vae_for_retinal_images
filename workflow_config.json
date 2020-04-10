@@ -1,5 +1,5 @@
 {
-    "USER": "____",
+    "YOURNAME": "YOURNAME",
     "DATASETS": ["ODIR"],
     "N_AUGMENTATION": 8,
     "MAX_ROTATION_ANGLE": 18,
