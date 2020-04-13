@@ -32,7 +32,7 @@ if __name__ == "__main__":
     network_dir = f'{path_prefix}/{network_name}/'
 
     device = FLAGS.device if torch.cuda.is_available() else "cpu"
-    
+
     print("\ninput dir: ", imfolder,
           "\npath prefix: ", path_prefix,
           "\nnetwork name: ", network_name,
@@ -42,7 +42,7 @@ if __name__ == "__main__":
           "\nz-dim: ", FLAGS.zdim,
           "\nmax degree: ", FLAGS.maxdegree,
           "\ndevice: ", device)
-    
+
     os.makedirs(network_dir, exist_ok=True)
     if FLAGS.network_name in os.listdir(network_dir):
         input1 = input("\nNetwork already exists. Are you sure to proceed? ([y]/n) ")
@@ -67,7 +67,7 @@ if __name__ == "__main__":
         device=device,
         optimizer_kwargs={"lr": FLAGS.learningrate},
         batch_size=FLAGS.batchsize,
-        max_epochs=FLAGS.maxpochs,
+        max_epochs=FLAGS.maxepochs,
         verbose=True,
     )
 
