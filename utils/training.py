@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 from torchsupport.training.vae import VAETraining
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
-
+import numpy as np
 # Ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -48,7 +48,8 @@ class Encoder(nn.Module):
             *conv_block(32, 64, kernel_size=5, padding=2),   # New "Image" Size:  48x47
             *conv_block(64, 128, padding=1),  # New "Image" Size:  24x23
             *conv_block(128, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
-            *conv_block(256, 64, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
+            *conv_block(256, 512, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
+            *conv_block(512, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  2x2
         )
 
         def linear_block(in_feat, out_feat, normalize=True, dropout=None, negative_slope=1e-2):
@@ -66,16 +67,16 @@ class Encoder(nn.Module):
             *linear_block(64, z, negative_slope=0.0)
         )
 
-        self.mean = nn.Linear(z, z)
-        self.logvar = nn.Linear(z, z)
+        self.mean = nn.Linear(1024, z)
+        self.logvar = nn.Linear(1024, z)
 
     def forward(self, inputs):
         features = self.conv_layers(inputs)
         # print(features.shape)
-        features = features.view(-1, self.num_flat_features(features))
+        # features = features.view(-1, self.num_flat_features(features))
+        features = features.view(-1, np.prod(features.shape[1:]))
         # print(features.shape)
-
-        features = self.linear_layers(features)
+        # features = self.linear_layers(features)
         # print(8,features.shape)
         mean = self.mean(features)
         logvar = self.logvar(features)
@@ -126,19 +127,20 @@ class Decoder(nn.Module):
             return layers
 
         self.conv_layers = nn.Sequential(
-            *conv_block(64, 128, padding=1, size=(11, 10), mode='nearest'),
+            *conv_block(8, 64, padding=1, size=(5, 4)),
+            *conv_block(64, 128, padding=1, size=(11, 10)),
             *conv_block(128, 256, padding=1, size=(24, 23), mode='nearest'),
-            *conv_block(256, 128, padding=1, size=(48, 47)),
+            *conv_block(256, 128, padding=1, size=(48, 47), mode='nearest'),
             *conv_block(128, 64, padding=1, scale_factor=2),
-            *conv_block(64, 32, kernel_size=5, padding=2, scale_factor=2),
+            *conv_block(64, 32, kernel_size=5, padding=2, scale_factor=2, mode='nearest'),
             nn.Conv2d(in_channels=32, out_channels=3, kernel_size=1),
             # nn.BatchNorm2d(3)
             # nn.Sigmoid()
         )
 
-    def forward(self, latent_vector):
-        dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 5, 4))
-        reconstructions = self.conv_layers(dec)
+    def forward(self, latent_vectors):
+        # dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 64, 5, 4))
+        reconstructions = self.conv_layers(torch.reshape(latent_vectors, (latent_vectors.shape[0], 8, 2, 2)))
         return reconstructions
 
 
@@ -179,6 +181,6 @@ if __name__ == '__main__':
     fake_imgs = torch.randn((4, 3, 192, 188))
     encoder = Encoder()
     encoder(fake_imgs)
-    fake_latent_vector = torch.randn((10, 32))
+    fake_latent_vectors = torch.randn((10, 32))
     decoder = Decoder()
-    decoder(fake_latent_vector)
+    decoder(fake_latent_vectors)
