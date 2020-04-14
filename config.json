@@ -1,62 +1,92 @@
 {
-  "-out_directory": {
+    "-out_directory": {
     "short": "-od",
-    "value": "./",
-    "help": "Output directory.",
+    "value": ".",
+    "help": "Output directory. for logger",
     "type": "str"
   },
-  "-input": {
-    "short": "-i",
-    "value": "",
-    "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
-    "type": "str"
-  },
-  "-logging_name": {
-    "short": "-n",
-    "value": "test",
-    "help": "Global logger prefix.",
-    "type": "str"
-  },
-  "-networkname": {
-    "short": "-nn",
-    "value": "YourVanillaVAE",
-    "help": "Some juicy VAE name.",
-    "type": "str"
-  },
-  "-device": {
+    "-device": {
     "short": "-dv",
-    "value": "cuda:7",
+    "value": "cuda:3",
     "help": "Device to work on",
     "type": "str"
   },
   "-learningrate": {
     "short": "-lr",
-    "value": 1e-5,
+    "value": 5e-5,
     "help": "The models learningrate",
     "type": "float"
   },
-  "-maxpochs": {
+  "-maxepochs": {
     "short": "-me",
-    "value": 10,
+    "value": 1000,
     "help": "Maximum nr of epochs to train the model",
-    "type": "int"
-  },
-  "-reportinterval": {
-    "short": "-rp",
-    "value": 100,
-    "help": "Report after {reprotinterval}-steps",
     "type": "int"
   },
   "-batchsize": {
     "short": "-bs",
-    "value": 32,
+    "value": 128,
     "help": "The models batchsize",
     "type": "int"
   },
   "-zdim": {
     "short": "-zd",
     "value": 32,
-    "help": "The latent dimension of the bottleneck."
+    "help": "The latent dimension of the bottleneck.",
+    "type": "int"
+  },
+    "-maxdegree": {
+    "short": "-md",
+    "value": 20,
+    "help": "Max. rotation degree.",
+    "type": "int"
+  },
+  "-input": {
+    "short": "-i",
+    "value": "/home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/ODIR_Training_Images_2_20_0/",
+    "help": "Global logger prefix.",
+    "type": "str"
+  },
+  "-csv_input": {
+    "short": "-csv",
+    "value": "/home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/ODIR_Annotations.csv",
+    "help": "Preprocessed annotations",
+    "type": "str"
+  },
+    "-path_prefix": {
+    "short": "-pp",
+    "value": ".",
+    "help": "Path prrefix.",
+    "type": "str"
+  },
+  "-network_name": {
+    "short": "-nn",
+    "value": "net_works",
+    "help": "Global logger prefix.",
+    "type": "str"
+  },
+  "-logging_name": {
+    "short": "-ln",
+    "value": "test",
+    "help": "Global logger prefix.",
+    "type": "str"
+  },
+    "-network_dir": {
+    "short": "-nd",
+    "value": "../models/net_works",
+    "help": "Directory to event, torch files and trained encoder.",
+    "type": "str"
+  },
+    "-network_vis_dir": {
+    "short": "-nvd",
+    "value": "/home/henrik/PycharmProjects/vae_for_retinal_images/data/processed/visualizations_odir-vae-test-test",
+    "help": "Directory to visualizations",
+    "type": "str"
+  },
+  "-reportinterval": {
+    "short": "-rp",
+    "value": 100,
+    "help": "Report after {reprotinterval}-steps",
     "type": "int"
   },
   "-dropout": {
@@ -75,7 +105,7 @@
     "short": "-bb",
     "value": 0.0,
     "help": "Parameter beta (float)",
-    "type": ""
+    "type": "float"
   },
   "-gamma": {
     "short": "-gg",

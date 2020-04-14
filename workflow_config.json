@@ -1,4 +1,11 @@
 {
-  "Datasets": ["ODIR", "Palm"],
-  "Splits": ["Train", "Test"]
+    "YOURNAME": "greg",
+    "DATASETS": ["ODIR"],
+    "N_AUGMENTATION": 16,
+    "MAX_ROTATION_ANGLE": 22,
+    "NETWORKNAME": "net_works",
+    "PATH_PREFIX": "../vae_for_retinal_images/models",
+    "PORT": 2608,
+    "RESIZE": [192, 188],
+    "GRAYSCALE": 0
 }
