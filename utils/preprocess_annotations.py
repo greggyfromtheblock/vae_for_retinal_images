@@ -196,7 +196,33 @@ def decode_d_k(xsl_file, output_file="odir/odir_train_lr_annotations.csv"):
     new_df.to_csv(output_file, sep="\t", index=False, header=True)
 
 if __name__ == "__main__":
-    xsl_file = sys.argv[1]
-    output_file = sys.argv[2]
+    parser = argparse.ArgumentParser(description=""""
+        Reads (arg: input) the original annotations file, expected is the path
+        to the odir excel file, so excel format! Returns a csv file written
+        to the path provided by the second argument (arg: output) where each
+        fundus (left/right) is on its own line with its own diagnostic keywords
+        and label vector, instead of the combined format of the original file.
+        Also adds the tags "no fundus" and "anterior" for the few images that
+        aren't actually relevant fundus images.
+        """
+        )
+    parser.add_argument(
+        "input",
+        type=str,
+        default=None,
+        help="""The path to the excel file which contains
+                        the annotation"""
+    )
+    parser.add_argument(
+        "output",
+        type=str,
+        default=None,
+        help="""path for the output csv file to be saved"""
+    )
+    args = parser.parse_args()
+    xsl_file = args.input
+    #xsl_file = sys.argv[1]
+    output_file = args.output
+    #output_file = sys.argv[2]
     decode_d_k(xsl_file=xsl_file, output_file=output_file)
 
