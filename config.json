@@ -19,7 +19,7 @@
   },
   "-maxepochs": {
     "short": "-me",
-    "value": 1000,
+    "value": 20,
     "help": "Maximum nr of epochs to train the model",
     "type": "int"
   },
@@ -55,7 +55,7 @@
   },
     "-path_prefix": {
     "short": "-pp",
-    "value": ".",
+    "value": "../models",
     "help": "Path prrefix.",
     "type": "str"
   },

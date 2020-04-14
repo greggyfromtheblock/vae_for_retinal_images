@@ -3,7 +3,7 @@ to run this, modify the config file as you wish and run `snakemake --cores <core
 note that the raw annotations file need to be renamed to '../data/processed/annotations/ODIR_Annotations.csv'
 """
 
-configfile: "./workflow_config.json"
+configfile: "workflow_config.json"
 dataset = config["DATASETS"]
 n_augmentation = config["N_AUGMENTATION"]
 maxdegree = config["MAX_ROTATION_ANGLE"]
@@ -91,7 +91,7 @@ rule preprocess_testing_images:
 
 rule preprocess_annotations:
     input:
-        "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Testing_Annotations/ODIR-5K_Training_Annotations.xlsx"
+        "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Training_Annotations/ODIR-5K_Training_Annotations.xlsx"
     output:
         expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv",
         user=config["YOURNAME"])
