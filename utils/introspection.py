@@ -105,11 +105,13 @@ if __name__ == '__main__':
                     targets[i-1][j] = not csv_df.iloc[row_number].at[feature]
                 else:
                     if feature == "Patient Sex":
-                        targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                        targets[i-1][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                     else:
-                        targets[i][j] = csv_df.iloc[row_number].at[feature]
-
-        age_targets[i] = csv_df.iloc[row_number].at["Patient Age"]
+                        targets[i-1][j] = csv_df.iloc[row_number].at[feature]
+        if marker:
+            age_targets[i-1] = csv_df.iloc[row_number].at["Patient Age"]
+        else:
+            age_targets[i-1] = csv_df.iloc[row_number].at["Patient Age"]
 
     # Load network
     trained_encoder = Encoder()
@@ -137,7 +139,7 @@ if __name__ == '__main__':
                 samples[j] = data[i+j][0]
             features, _, _ = trained_encoder(samples)
             encoded_samples[i:(i+batch_size)] = features.detach().numpy()
-        elif d_mod_b != 0:
+        else:
             # for uncompleted last batch
             samples = torch.zeros((d_mod_b, *data[0][0].shape))
             for i in range(data_size-d_mod_b, data_size, d_mod_b):
