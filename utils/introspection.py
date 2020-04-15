@@ -211,6 +211,8 @@ if __name__ == '__main__':
     plt.title("tSNE Clustering - Patient Age")
     cbar = plt.colorbar()
     cbar.set_label("Age", labelpad=+1)
+    plt.savefig(
+            f"{path_prefix}/{network_name}/visualizations/tsne_visualization_of_Patient Age.png")
     plt.show()
     plt.close()
     
@@ -218,6 +220,8 @@ if __name__ == '__main__':
     plt.title("UMAP Clustering - Patient Age")
     cbar = plt.colorbar()
     cbar.set_label("Age", labelpad=+1)
+    plt.savefig(
+            f"{path_prefix}/{network_name}/visualizations/umap_visualization_of_Patient Age.png")
     plt.show()
     plt.close()
 
