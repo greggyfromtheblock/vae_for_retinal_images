@@ -139,7 +139,7 @@ if __name__ == '__main__':
                 samples[j] = data[i+j][0]
             features, _, _ = trained_encoder(samples)
             encoded_samples[i:(i+batch_size)] = features.detach().numpy()
-        else:
+        elif d_mod_b != 0:
             # for uncompleted last batch
             samples = torch.zeros((d_mod_b, *data[0][0].shape))
             for i in range(data_size-d_mod_b, data_size, d_mod_b):
