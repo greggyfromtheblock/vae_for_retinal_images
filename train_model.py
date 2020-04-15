@@ -77,7 +77,7 @@ if __name__ == "__main__":
     print("\nStart Training...")
     time_start = time.time()
     trained_encoder, _ = training.train()
-    print('\nTraining with %i epochs done! Time elapsed: %.2f minutes' % (FLAGS.maxpochs, (time.time() - time_start)/60))
+    print('\nTraining with %i epochs done! Time elapsed: %.2f minutes' % (FLAGS.maxepochs, (time.time() - time_start)/60))
     # print(trained_encoder)
 
     # Save network
