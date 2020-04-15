@@ -41,7 +41,7 @@ if __name__ == '__main__':
     latent_vector_size = FLAGS.zdim
 
     network_name = FLAGS.network_name
-    path_prefix = os.path.abspath(FLAGS.path_prefix)
+    path_prefix = FLAGS.path_prefix
     network_dir = os.path.abspath(f'{path_prefix}/{network_name}/')
 
     print("\nLoad Data as Tensors...")
@@ -67,14 +67,16 @@ if __name__ == '__main__':
     }
     number_of_diagnoses = len(diagnoses)
     data_size = len(data)
-    targets = np.zeros((data_size, number_of_diagnoses),  dtype=np.int8)
+
+    targets = np.zeros((data_size, number_of_diagnoses+1),  dtype=np.uint8)
+    age_targets = np.zeros(data_size,  dtype=np.uint8)
 
     angles = [x for x in range(-FLAGS.maxdegree, -9)]
     angles.extend([x for x in range(10, FLAGS.maxdegree+1)])
     angles.extend([x for x in range(-9, 10)])
     print("\nPossible Angles: {}\n".format(angles))
-    print("\nBuild targets...")
 
+    print("\nBuild targets...")
     marker = None
     for i, jpg in tqdm(enumerate(os.listdir(imfolder))):
         if jpg == '.snakemake_timestamp':
@@ -86,15 +88,32 @@ if __name__ == '__main__':
             jpg = jpg.replace("_rot_%i" % angle, "")
 
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
-        for j, feature in enumerate(diagnoses.keys()):
+
+        diagnoses_list = list(diagnoses.keys())
+        diagnoses_list.extend(["Patient Sex"])
+        for j, feature in enumerate(diagnoses_list):
             if not marker:
-                targets[i][j] = csv_df.iloc[row_number].at[feature]
+                if feature == "N":
+                    targets[i][j] = not csv_df.iloc[row_number].at[feature]
+                else:
+                    if feature == "Patient Sex":
+                        targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                    else:
+                        targets[i][j] = csv_df.iloc[row_number].at[feature]
             else:
-                targets[i-1][j] = csv_df.iloc[row_number].at[feature]
+                if feature == "N":
+                    targets[i-1][j] = not csv_df.iloc[row_number].at[feature]
+                else:
+                    if feature == "Patient Sex":
+                        targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                    else:
+                        targets[i][j] = csv_df.iloc[row_number].at[feature]
+
+        age_targets[i] = csv_df.iloc[row_number].at["Patient Age"]
 
     # Load network
     trained_encoder = Encoder()
-    trained_encoder.load_state_dict(torch.load(network_dir+f"{network_name}.pth"))
+    # trained_encoder.load_state_dict(torch.load(network_dir+f"/{network_name}.pth"))
 
     print("Generate samples..")
     def calc_batch_size(batch_size=8):
@@ -107,7 +126,7 @@ if __name__ == '__main__':
             return calc_batch_size(batch_size-1)
 
     # calculate batch_size
-    batch_size = calc_batch_size(batch_size=64)
+    batch_size = calc_batch_size(batch_size=8)
     samples = torch.zeros((batch_size, *data[0][0].shape))
     d_mod_b = data_size % batch_size
     encoded_samples = np.zeros((data_size, latent_vector_size))
@@ -118,7 +137,7 @@ if __name__ == '__main__':
                 samples[j] = data[i+j][0]
             features, _, _ = trained_encoder(samples)
             encoded_samples[i:(i+batch_size)] = features.detach().numpy()
-        elif d_mod_b != 0:
+        else:
             # for uncompleted last batch
             samples = torch.zeros((d_mod_b, *data[0][0].shape))
             for i in range(data_size-d_mod_b, data_size, d_mod_b):
@@ -128,78 +147,68 @@ if __name__ == '__main__':
                 encoded_samples[i:(i + d_mod_b)] = features.detach().numpy()
     print("Finished encoding of each image...")
 
-    print("\nStart Visualization...")
+    # tSNE Visualization of the encoded latent vector
+    tsne = TSNE(random_state=123).fit_transform(encoded_samples)
+
+    # U-Map Visualization
+    clusterable_embedding = UMAP(
+        n_neighbors=30,
+        min_dist=0.0,
+        n_components=2,
+        random_state=42,
+    ).fit_transform(encoded_samples)
+
     os.makedirs(f'{network_dir}/visualizations/', exist_ok = True)
-    # colormap = np.array(['darkorange', 'royalblue'])
-    colormap = np.array(['g', 'r'])
-    colormap_rev = np.array(['r', 'g'])
-
-    for i, diagnosis in tqdm(enumerate(diagnoses.keys())):
-
-        diagnosis_name = diagnoses[diagnosis]
-
-        # tSNE Visualization of the encoded latent vector
-        time_start = time.time()
-        tsne = TSNE(random_state=123).fit_transform(encoded_samples)
-
-        # U-Map Visualization
-        clusterable_embedding = UMAP(
-            n_neighbors=30,
-            min_dist=0.0,
-            n_components=2,
-            random_state=42,
-        ).fit_transform(encoded_samples)
-
-        # orange_patch = mpatches.Patch(color=colormap[0], label=f'No {diagnoses[diagnosis]}')
-        # blue_patch = mpatches.Patch(color=colormap[1], label=f'{diagnoses[diagnosis]}
-
-        if diagnosis_name == "normal fundus":
-            red_patch = mpatches.Patch(color=colormap_rev[0], label=f'no {diagnosis_name}')
-            green_patch = mpatches.Patch(color=colormap_rev[1], label=f' {diagnosis_name}')
-
-            plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap_rev[targets[:, i]], s=0.1)
-            # plt.legend(handles=[orange_patch, blue_patch])
-            plt.legend(handles=[red_patch, green_patch])
-            plt.title(f"tSNE-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
-
-            plt.savefig(
-                f"{path_prefix}/{network_name}/visualizations/tsne_visualization_of_diagnosis_{diagnosis_name}.png")
-            plt.show()
-            plt.close()
-
-            plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap_rev[targets[:, i]], s=0.1,
-                        label=colormap)
-
-            # plt.legend(handles=[orange_patch, blue_patch])
-            plt.legend(handles=[red_patch, green_patch])
-            plt.title(f"UMAP-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
-
-            plt.savefig(
-                f"{path_prefix}/{network_name}/visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
-            plt.show()
-            plt.close()
-
+    print("\nStart Visualization...")
+    for i, diagnosis in tqdm(enumerate(diagnoses_list)):
+        if diagnosis != "Patient Sex":
+            colormap = np.array(['g', 'r'])
+            diagnosis_name = diagnoses[diagnosis]
+            if diagnosis != "N":
+                red_patch = mpatches.Patch(color=colormap[0], label=f'no {diagnosis_name}')
+                green_patch = mpatches.Patch(color=colormap[1], label=f' {diagnosis_name}')
+            else:
+                red_patch = mpatches.Patch(color=colormap[0], label=f'{diagnosis_name}')
+                green_patch = mpatches.Patch(color=colormap[1], label=f'no {diagnosis_name}')
         else:
-            green_patch = mpatches.Patch(color=colormap[0], label=f'no {diagnoses[diagnosis]}')
-            red_patch = mpatches.Patch(color=colormap[1], label=f'{diagnoses[diagnosis]}')
-            plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap[targets[:, i]], s=0.1)
+            colormap = np.array(['darkorange', 'royalblue'])
+            orange_patch = mpatches.Patch(color=colormap[0], label=f'Female')
+            blue_patch = mpatches.Patch(color=colormap[1], label=f'Male')
+            diagnosis_name = "Patient Sex"
 
-            plt.legend(handles=[green_patch, red_patch])
-            plt.title(f"tSNE-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
+        plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap[targets[:, i]], s=1)
+        if diagnosis != "Patient Sex":
+            plt.legend(handles=[red_patch, green_patch])
+        else:
+            plt.legend(handles=[orange_patch, blue_patch])
 
-            plt.savefig(
-                f"{path_prefix}/{network_name}/visualizations/tsne_visualization_of_diagnosis_{diagnosis_name}.png")
-            plt.show()
-            plt.close()
+        plt.title(f"tSNE-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
 
-            plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=0.1,
-                        label=colormap)
+        plt.savefig(
+            f"{path_prefix}/{network_name}/visualizations/tsne_visualization_of_diagnosis_{diagnosis_name}.png")
+        plt.show()
+        plt.close()
 
-            # plt.legend(handles=[orange_patch, blue_patch])
-            plt.legend(handles=[green_patch, red_patch])
-            plt.title(f"UMAP-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
+        plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=1,
+                    label=colormap)
 
-            plt.savefig(f"{path_prefix}/{network_name}/visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
-            plt.show()
-            plt.close()
+        if diagnosis != "Patient Sex":
+            plt.legend(handles=[red_patch, green_patch])
+        else:
+            plt.legend(handles=[orange_patch, blue_patch])
+
+        plt.title(f"UMAP-Visualization of diagnosis: {diagnosis_name}\n", fontsize=16, fontweight='bold')
+
+        plt.savefig(
+            f"{path_prefix}/{network_name}/visualizations/umap_visualization_of_diagnosis_{diagnosis_name}.png")
+        plt.show()
+        plt.close()
+
+    # Plot feature "Patient Age"
+    plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], s=1, c=age_targets)
+    plt.title("Point observations")
+    cbar = plt.colorbar()
+    cbar.set_label("Age", labelpad=+1)
+    plt.show()
+    plt.close()
 
