@@ -41,7 +41,7 @@ if __name__ == '__main__':
     latent_vector_size = FLAGS.zdim
 
     network_name = FLAGS.network_name
-    path_prefix = FLAGS.path_prefix
+    path_prefix = os.path.abspath(FLAGS.path_prefix)
     network_dir = os.path.abspath(f'{path_prefix}/{network_name}/')
 
     print("\nLoad Data as Tensors...")
@@ -107,7 +107,7 @@ if __name__ == '__main__':
             return calc_batch_size(batch_size-1)
 
     # calculate batch_size
-    batch_size = calc_batch_size(batch_size=8)
+    batch_size = calc_batch_size(batch_size=64)
     samples = torch.zeros((batch_size, *data[0][0].shape))
     d_mod_b = data_size % batch_size
     encoded_samples = np.zeros((data_size, latent_vector_size))
@@ -118,7 +118,7 @@ if __name__ == '__main__':
                 samples[j] = data[i+j][0]
             features, _, _ = trained_encoder(samples)
             encoded_samples[i:(i+batch_size)] = features.detach().numpy()
-        else:
+        elif d_mod_b != 0:
             # for uncompleted last batch
             samples = torch.zeros((d_mod_b, *data[0][0].shape))
             for i in range(data_size-d_mod_b, data_size, d_mod_b):
@@ -129,6 +129,7 @@ if __name__ == '__main__':
     print("Finished encoding of each image...")
 
     print("\nStart Visualization...")
+    os.makedirs(f'{network_dir}/visualizations/', exist_ok = True)
     # colormap = np.array(['darkorange', 'royalblue'])
     colormap = np.array(['g', 'r'])
     colormap_rev = np.array(['r', 'g'])
