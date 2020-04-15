@@ -69,8 +69,8 @@ if __name__ == '__main__':
     data_size = len(data)
     targets = np.zeros((data_size, number_of_diagnoses),  dtype=np.int8)
 
-    angles = [x for x in range(-FLAGS.max_degree, -9)]
-    angles.extend([x for x in range(10, FLAGS.max_degree+1)])
+    angles = [x for x in range(-FLAGS.maxdegree, -9)]
+    angles.extend([x for x in range(10, FLAGS.maxdegree+1)])
     angles.extend([x for x in range(-9, 10)])
     print("\nPossible Angles: {}\n".format(angles))
     print("\nBuild targets...")
