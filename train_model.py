@@ -84,4 +84,6 @@ if __name__ == "__main__":
     # os.makedirs(network_dir)
     PATH = network_dir+f'{network_name}.pth'
     torch.save(trained_encoder.state_dict(), PATH)
+    os.system(f"cp utils/training.py models/{network_name}/training.py ")
+
 
