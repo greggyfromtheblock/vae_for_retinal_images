@@ -1,8 +1,8 @@
 {
     "YOURNAME": "",
     "DATASETS": ["ODIR"],
-    "N_AUGMENTATION": 16,
-    "MAX_ROTATION_ANGLE": 22,
+    "N_AUGMENTATION": 6,
+    "MAX_ROTATION_ANGLE": 20,
     "NETWORKNAME": "hope",
     "PATH_PREFIX": "../vae_for_retinal_images/models",
     "PORT": 1244,
