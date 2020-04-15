@@ -19,7 +19,7 @@ rule all:
     input:
         expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mybody", user = config['YOURNAME'])
     run:
-        path = "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images" + str(path_prefix)[2:] + str(networkname)
+        path = "/data/analysis/ag-reils/ag-reils-shared-students/yourname/vae_for_retinal_images" + str(path_prefix)[2:] + "/" + str(networkname)
         print("path to the eventfiles: %s" % path) 
         # shell("tensorboard --logdir %s --port {port}" % path)
 
