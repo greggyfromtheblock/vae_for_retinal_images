@@ -207,8 +207,15 @@ if __name__ == '__main__':
         plt.close()
 
     # Plot feature "Patient Age"
+    plt.scatter(tsne[:, 0], tsne[:, 1], s=1, c=age_targets)
+    plt.title("tSNE Clustering - Patient Age")
+    cbar = plt.colorbar()
+    cbar.set_label("Age", labelpad=+1)
+    plt.show()
+    plt.close()
+    
     plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], s=1, c=age_targets)
-    plt.title("Point observations")
+    plt.title("UMAP Clustering - Patient Age")
     cbar = plt.colorbar()
     cbar.set_label("Age", labelpad=+1)
     plt.show()
