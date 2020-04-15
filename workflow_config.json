@@ -1,5 +1,5 @@
 {
-    "YOURNAME": "henrik",
+    "YOURNAME": "",
     "DATASETS": ["ODIR"],
     "N_AUGMENTATION": 16,
     "MAX_ROTATION_ANGLE": 22,
