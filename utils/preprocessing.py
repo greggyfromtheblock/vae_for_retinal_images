@@ -36,6 +36,8 @@ if __name__ == '__main__':
                         the function will pick {aug_per_image} random values from the range -10 to 10""")
     parser.add_argument('-r', '--resize', type=int, default=[192, 188], nargs=2,
                         help="""Enter wished Size. Example use: -r 192 188""")
+    parser.add_argument('-ex', '--exlude_imgs_with_strange_wh_ratio', type=float, nargs=2, default=None,
+                        help="""Enter minimial and maximal Ratio. Example use: -ex 0.85 1.15""")
     parser.add_argument('-gr', '--grayscale', type=int, default=0,
                         help="""Grayscale the images. If wished enter an integer (except zero).""")
     args = parser.parse_args()
@@ -61,6 +63,12 @@ if __name__ == '__main__':
     for f in tqdm(os.listdir(outdir)):
         fname = f.replace(".jpg", "")
         image = io.imread(outdir + f)
+
+        if args.exlude_imgs_with_strange_wh_ratio:
+            if not args.exlude_imgs_with_strange_wh_ratio[0] < image.shape[0] / image.shape[1] \
+                   < args.exlude_imgs_with_strange_wh_ratio[1]:
+                os.system(f'rm {outdir}/{fname}.jpg')
+                continue
 
         # Grayscale images if stated
         if args.grayscale:
