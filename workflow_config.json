@@ -7,5 +7,6 @@
     "PATH_PREFIX": "../vae_for_retinal_images/models",
     "PORT": 1244,
     "RESIZE": [192, 188],
-    "GRAYSCALE": 0
+    "GRAYSCALE": 0,
+    "exlude_imgs_with_strange_wh_ratio": [0.85, 1.15]
 }

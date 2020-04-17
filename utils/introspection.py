@@ -178,7 +178,7 @@ if __name__ == '__main__':
             blue_patch = mpatches.Patch(color=colormap[1], label=f'Male')
             diagnosis_name = "Patient Sex"
 
-        plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap[targets[:, i]], s=1)
+        plt.scatter(tsne[:, 0], tsne[:, 1], c=colormap[targets[:, i]], s=0.1)
         if diagnosis != "Patient Sex":
             plt.legend(handles=[red_patch, green_patch])
         else:
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         plt.show()
         plt.close()
 
-        plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=1,
+        plt.scatter(clusterable_embedding[:, 0], clusterable_embedding[:, 1], c=colormap[targets[:, i]], s=0.1,
                     label=colormap)
 
         if diagnosis != "Patient Sex":
