@@ -128,7 +128,7 @@ if __name__ == '__main__':
             return calc_batch_size(batch_size-1)
 
     # calculate batch_size
-    batch_size = calc_batch_size(batch_size=8)
+    batch_size = calc_batch_size(batch_size=64)
     samples = torch.zeros((batch_size, *data[0][0].shape))
     d_mod_b = data_size % batch_size
     encoded_samples = np.zeros((data_size, latent_vector_size))
