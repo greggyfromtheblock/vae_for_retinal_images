@@ -12,6 +12,11 @@ from tensorboardX import SummaryWriter
 import warnings
 warnings.filterwarnings("ignore")
 
+#for Resnet
+from functools import partial
+from dataclasses import dataclass
+from collections import OrderedDict
+
 
 class VAEDataset(Dataset):
     def __init__(self, data):

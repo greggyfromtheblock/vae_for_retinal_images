@@ -12,7 +12,8 @@ import numpy as np
 from skimage import io
 from tqdm import tqdm
 import torch
-from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
+#from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
+from utils.training_resnet import Encoder, Decoder, OdirVAETraining, VAEDataset
 from utils.utils import setup
 
 
