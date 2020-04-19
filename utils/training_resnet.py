@@ -392,7 +392,7 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.z = z
 
-        model = resnet101(3, z) #3: rgb input channels, 32: latent space dim
+        model = resnet101(3, z).cuda() #3: rgb input channels, 32: latent space dim
 
         self.encoder = model.forward
         self.mean = nn.Linear(z, z)
