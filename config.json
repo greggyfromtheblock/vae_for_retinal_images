@@ -8,7 +8,7 @@
   "-input": {
     "short": "-i",
     "value": "training_set_y",
-    "value": "../retina/outputs/training_set_y_ltr_gray_resnet",
+    "value": "../retina/outputs/training_set_y_ltr_gray",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
