@@ -400,7 +400,9 @@ class Encoder(nn.Module):
 
     def forward(self, inputs):
         # inputs = inputs.view(inputs.size(0), -1)
+        print("computing model.forward(inputs)")
         features = self.encoder(inputs)
+        print("did it")
         mean = self.mean(features)
         logvar = self.logvar(features)
         return features, mean, logvar
