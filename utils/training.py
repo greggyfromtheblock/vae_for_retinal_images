@@ -33,7 +33,10 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, padding_max_pooling=0):
-            return [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
+            return [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+                    nn.ReLU(),
+                    nn.BatchNorm2d(out_channels),
+                    nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
                     nn.ReLU(),
                     nn.BatchNorm2d(out_channels),
                     nn.MaxPool2d(kernel_size=2, stride=2, padding=padding_max_pooling)]
@@ -62,7 +65,6 @@ class Encoder(nn.Module):
             *linear_block(512 * 2 * 2, 256, normalize=True, dropout=0),
             *linear_block(256, 128, dropout=0),
             *linear_block(128, 96),
-            *linear_block(96, 96),
             *linear_block(96, 48),
             *linear_block(48, z, negative_slope=0.0)
         )
@@ -104,7 +106,10 @@ class Decoder(nn.Module):
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, scale_factor=None, size=None, mode='bilinear'):
 
-            layers = [nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding,
+            layers = [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
+                      nn.ReLU(),
+                      nn.BatchNorm2d(out_channels),
+                      nn.ConvTranspose2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding,
                                          stride=stride),
                       nn.BatchNorm2d(out_channels),
                       nn.ReLU()]
