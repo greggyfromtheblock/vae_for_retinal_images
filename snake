@@ -31,7 +31,7 @@ rule train_encoder:
                  maxdegree = config['MAX_ROTATION_ANGLE'],
                  resize1 = config['RESIZE'][0],
                  resize2 = config['RESIZE'][1],
-                 grayscale = config['GRAYSCALE'])
+                 grayscale = config['GRAYSCALE']),
         testfolder = "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/testing/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}_resize_{resize1}_{resize2}_grayscale_{grayscale}/{dataset}/"
     output:
         touch("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/encoder.done")
