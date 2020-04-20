@@ -40,11 +40,11 @@ class Encoder(nn.Module):
 
         self.conv_layers = nn.Sequential(
             # Formula of new "Image" Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
-            *conv_block(3, 6, kernel_size=5, stride=1, padding=2), # (384-5+2*2)//1 + 1 = 384  > Max-Pooling: 384/2=192
+            *conv_block(3, 12, kernel_size=5, stride=1, padding=2), # (384-5+2*2)//1 + 1 = 384  > Max-Pooling: 384/2=192
             # -> (376-5+2*2)//1 + 1 = 376  --> Max-Pooling: 376/2 = 188
-            *conv_block(6, 12, kernel_size=5, stride=1, padding=2), # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
+            *conv_block(12, 24, kernel_size=5, stride=1, padding=2), # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
             # -> (188-5+2*2)//1 + 1 = 188  --> Max-Pooling: 188/2 = 94
-            *conv_block(12, 48, kernel_size=5, padding=2),   # New "Image" Size:  48x47
+            *conv_block(24, 48, kernel_size=5, padding=2),   # New "Image" Size:  48x47
             *conv_block(48, 96, padding=1),  # New "Image" Size:  24x23
             *conv_block(96, 128, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
             *conv_block(128, 256, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
@@ -60,7 +60,6 @@ class Encoder(nn.Module):
 
         self.linear_layers = nn.Sequential(
             *linear_block(512 * 2 * 2, 256, normalize=True, dropout=0),
-            *linear_block(256, 256, normalize=True, dropout=0),
             *linear_block(256, 128, dropout=0),
             *linear_block(128, 96),
             *linear_block(96, 96),
@@ -97,7 +96,6 @@ class Decoder(nn.Module):
             *linear_block(z, 48, normalize=True),
             *linear_block(48, 96),
             *linear_block(96, 128),
-            *linear_block(128, 128),
             *linear_block(128, 256, dropout=None),
             *linear_block(256, 512, dropout=0),
             *linear_block(512, 512 * 2 * 2, dropout=0),
@@ -129,7 +127,7 @@ class Decoder(nn.Module):
     def forward(self, latent_vector):
         dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 512, 2, 2))
         reconstructions = self.conv_layers(dec)
-        print(reconstructions.shape)
+        # print(reconstructions.shape)
         return reconstructions
 
 
@@ -162,8 +160,8 @@ class OdirVAETraining(VAETraining):
 
         imgs = torch.zeros_like(reconstructions[0:50:10])
 
-        for i in range(0, 50, 10):
-            imgs[i] = F.sigmoid(reconstructions[i])
+        for i in range(0, 5):
+            imgs[i] = F.sigmoid(reconstructions[i*10])
 
         if self.step_id % 20 == 0:
             self.writer.add_images("target", data[0:50:10], self.step_id)
