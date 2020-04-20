@@ -363,6 +363,7 @@ if __name__ == '__main__':
     print(TNR)
     print(TPR)
     plt.plot(TNR, TPR)
+    plt.grid()
     plt.title("ROC-Curve - Encoder")
     plt.xlabel("1 - Specifity / 1 - True Negative Rate (TNR)")
     plt.ylabel("Sensitivity / True Positiv Rate (TPR)")
