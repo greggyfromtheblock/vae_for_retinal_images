@@ -52,7 +52,7 @@ rule preprocess_training_images:
                  resize2 = config['RESIZE'][1],
                  grayscale = config['GRAYSCALE'],
                  exlude_imgs_with_strange_wh_ratio1 = config['exlude_imgs_with_strange_wh_ratio'][0],
-                 exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1])))
+                 exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1]))
     run:
          shell("python utils/preprocessing.py {input} {output} -na {n_augmentation} -mra {maxdegree} -r {resize1} {resize2} -gr {grayscale}  -ex {exlude_imgs_with_strange_wh_ratio1} {exlude_imgs_with_strange_wh_ratio2}")
 
@@ -70,7 +70,7 @@ rule preprocess_testing_images:
              resize2 = config['RESIZE'][1],
              grayscale = config['GRAYSCALE'],
              exlude_imgs_with_strange_wh_ratio1 = config['exlude_imgs_with_strange_wh_ratio'][0],
-             exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1])))
+             exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1]))
     run:
         shell("python utils/preprocessing.py {input} {output} -na {n_augmentation} -mra {maxdegree} -r {resize1} {resize2} -gr {grayscale} -ex {exlude_imgs_with_strange_wh_ratio1} {exlude_imgs_with_strange_wh_ratio2}")
 
