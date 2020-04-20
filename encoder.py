@@ -10,7 +10,7 @@ import os
 from tqdm import tqdm
 import pandas as pd
 from utils.training import VAEDataset
-
+import sys
 
 def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
