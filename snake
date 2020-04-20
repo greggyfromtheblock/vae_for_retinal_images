@@ -41,7 +41,8 @@ rule train_encoder:
              resize2 = config['RESIZE'][1],
              grayscale = config['GRAYSCALE'],
              exlude_imgs_with_strange_wh_ratio1 = config['exlude_imgs_with_strange_wh_ratio'][0],
-             exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1])    output:
+             exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1])  
+    output:
         touch("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/encoder.done")
     run:
         shell("python encoder.py {input.trainfolder} {input.testfolder}" )
