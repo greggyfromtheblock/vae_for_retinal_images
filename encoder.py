@@ -95,6 +95,8 @@ if __name__ == '__main__':
     figures_dir = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/supervised"
     encoder_name = "deep_balanced"
     os.makedirs(figures_dir, exist_ok=True)
+    
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
     print("\nLoad Data as Tensors...")
     img_dataset = datasets.ImageFolder(
@@ -160,22 +162,18 @@ if __name__ == '__main__':
                         targets[i - 1][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                     else:
                         targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
-        if marker:
-            age_targets[i - 1] = csv_df.iloc[row_number].at["Patient Age"]
-        else:
-            age_targets[i - 1] = csv_df.iloc[row_number].at["Patient Age"]
 
     net = Encoder()
 
     # Train the network
     n_epochs = 100
-    learning_rate = 0.001
+    learning_rate = 0.0001
     criterion = nn.BCELoss()
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     lossarray = []
 
     # calculate batch_size
-    batch_size = calc_batch_size(data_size, batch_size=8)
+    batch_size = calc_batch_size(data_size, batch_size=128)
 
     # Train network
     start = time.perf_counter()
@@ -183,10 +181,10 @@ if __name__ == '__main__':
     for n in tqdm(range(n_epochs)):
         running_loss = 0.0
 
-        inputs = torch.zeros((batch_size, *data[0][0].shape))
-        labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float)
+        inputs = torch.zeros((batch_size, *data[0][0].shape), device=device)
+        labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float, device=device)
         d_mod_b = data_size % batch_size
-        targets = torch.Tensor(targets).float()
+        targets = torch.Tensor(targets).float().to(device=device)
         for i in range(0, data_size, batch_size):
             if (i + batch_size) < data_size:
                 for j in range(batch_size):
@@ -194,8 +192,8 @@ if __name__ == '__main__':
                     labels[j] = targets[i+j]
             elif d_mod_b != 0:
                 # for uncompleted last batch
-                labels = torch.zeros((d_mod_b, number_of_diagnoses + 1))
-                inputs = torch.zeros((d_mod_b, *data[0][0].shape))
+                labels = torch.zeros((d_mod_b, number_of_diagnoses + 1), dtype=torch.float, device=device)
+                inputs = torch.zeros((d_mod_b, *data[0][0].shape), device=device)
                 for j in range(d_mod_b):
                     inputs[j] = data[i + j][0]
                     labels[j] = targets[i+j]
@@ -280,10 +278,10 @@ if __name__ == '__main__':
     # Test the network
     print("Start testing the network..")
     batch_size = calc_batch_size(data_size, batch_size=8)
-    inputs = torch.zeros((batch_size, *data[0][0].shape))
-    labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float)
+    inputs = torch.zeros((batch_size, *data[0][0].shape), device=device)
+    labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float, device=device)
     d_mod_b = data_size % batch_size
-    targets = torch.Tensor(targets).int()
+    targets = torch.Tensor(targets).int().to(device=device)
 
     # To measure the accuracy on the basic of the rounded outcome for each diagnosis could lead to a less
     # meaningful result. That's why this approach is deprecated and here outcommented.
@@ -295,7 +293,7 @@ if __name__ == '__main__':
     # https://de.wikipedia.org/wiki/Beurteilung_eines_bin%C3%A4ren_Klassifikators#Sensitivit%C3%A4t_und_Falsch-Negativ-Rate
     # (https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc)
 
-    outputs=torch.zeros((data_size, number_of_diagnoses+1))
+    outputs=torch.zeros((data_size, number_of_diagnoses+1), device=device)
     for i in range(0, data_size, batch_size):
         if (i + batch_size) < data_size:
             for j in range(batch_size):
@@ -304,8 +302,8 @@ if __name__ == '__main__':
             outputs[i:(i+batch_size)] = net(inputs)
         elif d_mod_b != 0:
             # for uncompleted last batch
-            labels = torch.zeros((d_mod_b, number_of_diagnoses + 1))
-            inputs = torch.zeros((d_mod_b, *data[0][0].shape))
+            labels = torch.zeros((d_mod_b, number_of_diagnoses + 1), device=device)
+            inputs = torch.zeros((d_mod_b, *data[0][0].shape), device=device)
             for j in range(d_mod_b):
                 inputs[j] = data[i + j][0]
                 labels[j] = targets[i + j]
@@ -329,24 +327,14 @@ if __name__ == '__main__':
 
             for k in range(outputs.size(0)):
                 for l in range(outputs.size(1)):
-                    # print(outputs[k,l], torch.tensor(threshold), outputs[k,l] >= torch.tensor(threshold), outputs[k,l] < torch.tensor(threshold))
                     if targets[k, l] == torch.tensor(1, dtype=torch.int32) and outputs[k,l] >= torch.tensor(threshold):
-                        # print("TP", targets[k,l], k,l, threshold)
                         TP += 1
                     elif targets[k, l] == torch.tensor(1, dtype=torch.int32) and outputs[k,l] < torch.tensor(threshold):
-                        # print("FN", targets[k,l], k,l, threshold)
                         FN += 1
                     elif targets[k, l] == torch.tensor(0, dtype=torch.int32) and outputs[k,l] >= torch.tensor(threshold):
-                        # print("FP", targets[k,l], k, l, threshold)
                         FP += 1
                     else:
-                        # print("TN", targets[k,l], k,l, threshold)
                         TN += 1
-
-            if (TP+FN) != 0:
-                print("\nTP/(TP+FN)",TP/(TP+FN),  "\n")
-            if TN/(FP+TN) != 0:
-                print("\n1-TN/(FP+TN)",1-TN/(FP+TN),  "\n")
 
             # TPR[int(threshold/stepsize)] = TP/(TP+FN) if (TP+FN) != 0 else 0
             # TNR[int(threshold/stepsize)] = 1-TN/(FP+TN) if (FP+TN) != 0 else 1
