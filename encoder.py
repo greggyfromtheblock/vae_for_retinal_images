@@ -163,7 +163,7 @@ if __name__ == '__main__':
                     else:
                         targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
 
-    net = Encoder()
+    net = Encoder().to(device=device)
 
     # Train the network
     n_epochs = 100
