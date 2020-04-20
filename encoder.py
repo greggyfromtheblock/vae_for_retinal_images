@@ -88,8 +88,8 @@ class Encoder(nn.Module):
 
 if __name__ == '__main__':
 
-    trainfolder = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/training/n-augmentation_6_maxdegree_20_resize_192_188_grayscale_0/ODIR/"
-    testfolder = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/testing/n-augmentation_6_maxdegree_20_resize_192_188_grayscale_0/ODIR/"
+    trainfolder = sys.argv[1] #  "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/training/n-augmentation_6_maxdegree_20_resize_192_188_grayscale_0/ODIR/"
+    testfolder = sys.argv[2] # "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/testing/n-augmentation_6_maxdegree_20_resize_192_188_grayscale_0/ODIR/"
     csv_file = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv"
     
     figures_dir = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/supervised"
