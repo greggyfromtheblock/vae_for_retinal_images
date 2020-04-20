@@ -295,7 +295,7 @@ if __name__ == '__main__':
     # https://de.wikipedia.org/wiki/Beurteilung_eines_bin%C3%A4ren_Klassifikators#Sensitivit%C3%A4t_und_Falsch-Negativ-Rate
     # (https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc)
 
-      outputs=torch.zeros((data_size, number_of_diagnoses+1))
+    outputs=torch.zeros((data_size, number_of_diagnoses+1))
     for i in range(0, data_size, batch_size):
         if (i + batch_size) < data_size:
             for j in range(batch_size):
