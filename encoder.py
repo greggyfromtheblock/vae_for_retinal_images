@@ -11,6 +11,7 @@ from tqdm import tqdm
 import pandas as pd
 from utils.training import VAEDataset
 
+
 def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
 
@@ -20,6 +21,14 @@ def add_slash(path):
         return path + "/"
     else:
         return(path)
+
+
+def calc_batch_size(datasize, batch_size=128):
+    for b_size in range(batch_size, 2, -1):
+        if datasize % b_size == 0:
+            return batch_size
+        if b_size < 10 and datasize % b_size >= 2:
+            return b_size
 
 
 class Encoder(nn.Module):
@@ -59,7 +68,10 @@ class Encoder(nn.Module):
             *linear_block(512, 256, dropout=0.3),
             *linear_block(256, 128),
             *linear_block(128, 64),
-            *linear_block(64, 8, negative_slope=0.0)
+            nn.Linear(64, 8),
+            nn.BatchNorm1d(8),
+            nn.Sigmoid()
+            # *linear_block(64, 8, negative_slope=0.0)
         )
 
         self.mean = nn.Linear(z, z)
@@ -69,7 +81,7 @@ class Encoder(nn.Module):
         features = self.conv_layers(inputs)
         features = features.view(-1, np.prod(features.shape[1:]))
         features = self.linear_layers(features)
-        # mean = self.mean(features)<
+        # mean = self.mean(features)
         # logvar = self.logvar(features)
         return features   # , mean, logvar
 
@@ -80,6 +92,10 @@ if __name__ == '__main__':
     testfolder = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/training/n-augmentation_6_maxdegree_20_resize_192_188_grayscale_0/ODIR/"
     csv_file = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv"
     
+    figures_dir = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/supervised"
+    encoder_name = "deep_balanced"
+    os.makedirs(figures_dir, exist_ok=True)
+
     print("\nLoad Data as Tensors...")
     img_dataset = datasets.ImageFolder(
         os.path.dirname(os.path.dirname(trainfolder)),
@@ -152,34 +168,26 @@ if __name__ == '__main__':
     net = Encoder()
 
     # Train the network
-    n_epochs = 60
+    n_epochs = 100
     learning_rate = 0.001
-    criterion = nn.MSELoss()
+    criterion = nn.BCELoss()
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     lossarray = []
 
-    def calc_batch_size(batch_size=8):
-        global data_size
-        if data_size % batch_size == 0:
-            return batch_size
-        if batch_size == 3:
-            return batch_size
-        else:
-            return calc_batch_size(batch_size - 1)
-
     # calculate batch_size
-    batch_size = calc_batch_size(batch_size=64)
+    batch_size = calc_batch_size(data_size, batch_size=8)
 
     # Train network
     start = time.perf_counter()
-    for n in range(n_epochs):
+    print("Start Training")
+    for n in tqdm(range(n_epochs)):
         running_loss = 0.0
 
         inputs = torch.zeros((batch_size, *data[0][0].shape))
         labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float)
         d_mod_b = data_size % batch_size
         targets = torch.Tensor(targets).float()
-        for i in tqdm(range(0, data_size, batch_size)):
+        for i in range(0, data_size, batch_size):
             if (i + batch_size) < data_size:
                 for j in range(batch_size):
                     inputs[j] = data[i + j][0]
@@ -203,8 +211,8 @@ if __name__ == '__main__':
 
             # print statistics
             running_loss += loss.item()
-            # if i % batch_size == batch_size - 1:  # print every 10 mini-batches
-            # print('[%d, %5d] loss: %.3f' % (n + 1, i + 1, running_loss / batch_size))
+            if i % batch_size == batch_size - 1:  # print every 10 mini-batches
+                print('[%d, %5d] loss: %.3f' % (n + 1, i + 1, running_loss / batch_size))
             lossarray.append(loss.item())
             running_loss = 0.0
 
@@ -214,7 +222,9 @@ if __name__ == '__main__':
     spl = UnivariateSpline(x, lossarray)
     plt.plot(x, lossarray, '-y')
     plt.plot(x, spl(x), '-r')
-    # plt.show()
+    plt.savefig(f'{figures_dir}/{encoder_name}_loss_curve.png')
+    plt.show()
+    plt.close()
 
     PATH = './cifar_net.pth'
     torch.save(net.state_dict(), PATH)
@@ -268,34 +278,102 @@ if __name__ == '__main__':
                         targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
 
     # Test the network
+    print("Start testing the network..")
+    batch_size = calc_batch_size(data_size, batch_size=8)
     inputs = torch.zeros((batch_size, *data[0][0].shape))
     labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float)
     d_mod_b = data_size % batch_size
     targets = torch.Tensor(targets).int()
 
-    correct = 0
-    total = 0
-    # with torch.no_grad():
-    print(targets[0,0])
+    # To measure the accuracy on the basic of the rounded outcome for each diagnosis could lead to a less
+    # meaningful result. That's why this approach is deprecated and here outcommented.
+    # In lieu thereof, a ROC curve is used.
+    # The network has as an outcome a vector of floats with values between 0 and 1. The threshold to round up is
+    # increased stepwise, starts with 0 until 1.
+    # In every step we calculate the Sensitivity/True Positiv Rate (TRP) and the Specifity/True Negative Rate:
+    # TRP = TP/(TP+FN)  and  TNR=TN/(TN+FP).
+    # https://de.wikipedia.org/wiki/Beurteilung_eines_bin%C3%A4ren_Klassifikators#Sensitivit%C3%A4t_und_Falsch-Negativ-Rate
+    # (https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc)
+
+      outputs=torch.zeros((data_size, number_of_diagnoses+1))
+    for i in range(0, data_size, batch_size):
+        if (i + batch_size) < data_size:
+            for j in range(batch_size):
+                inputs[j] = data[i + j][0]
+                labels[j] = targets[i + j]
+            outputs[i:(i+batch_size)] = net(inputs)
+        elif d_mod_b != 0:
+            # for uncompleted last batch
+            labels = torch.zeros((d_mod_b, number_of_diagnoses + 1))
+            inputs = torch.zeros((d_mod_b, *data[0][0].shape))
+            for j in range(d_mod_b):
+                inputs[j] = data[i + j][0]
+                labels[j] = targets[i + j]
+            outputs[i:(i+d_mod_b)] = net(inputs)
+
+        # outputs = torch.round(net(inputs))
+        # total += labels.size(0) * (number_of_diagnoses+1)
+        # correct += (outputs == labels).sum().item()
+
+
+    # correct = 0
+    # total = 0
+    number_of_steps = 1000
+    TPR, TNR = [], []     # np.zeros(int(1/stepsize), dtype=np.float), np.zeros(int(1/stepsize), dtype=np.float)
     with torch.no_grad():
-        for i in tqdm(range(0, data_size, batch_size)):
-            if (i + batch_size) < data_size:
-                for j in range(batch_size):
-                    inputs[j] = data[i + j][0]
-                    labels[j] = targets[i + j]
-            elif d_mod_b != 0:
-                # for uncompleted last batch
-                labels = torch.zeros((d_mod_b, number_of_diagnoses + 1))
-                inputs = torch.zeros((d_mod_b, *data[0][0].shape))
-                for j in range(d_mod_b):
-                    inputs[j] = data[i + j][0]
-                    labels[j] = targets[i + j]
+        for threshold in tqdm(range(0, number_of_steps)):
+            TP, FN, FP, TN = 0, 0, 0, 0   # TP - True Positiv, etc
 
-            outputs = torch.round(net(inputs))
-            total += labels.size(0) * (number_of_diagnoses+1)
-            correct += (outputs == labels).sum().item()
+            threshold /= number_of_steps
+            print(threshold)
 
-    print('Accuracy of the network on the test images: %d %%' % (100 * correct / total))
+            for k in range(outputs.size(0)):
+                for l in range(outputs.size(1)):
+                    # print(outputs[k,l], torch.tensor(threshold), outputs[k,l] >= torch.tensor(threshold), outputs[k,l] < torch.tensor(threshold))
+                    if targets[k, l] == torch.tensor(1, dtype=torch.int32) and outputs[k,l] >= torch.tensor(threshold):
+                        # print("TP", targets[k,l], k,l, threshold)
+                        TP += 1
+                    elif targets[k, l] == torch.tensor(1, dtype=torch.int32) and outputs[k,l] < torch.tensor(threshold):
+                        # print("FN", targets[k,l], k,l, threshold)
+                        FN += 1
+                    elif targets[k, l] == torch.tensor(0, dtype=torch.int32) and outputs[k,l] >= torch.tensor(threshold):
+                        # print("FP", targets[k,l], k, l, threshold)
+                        FP += 1
+                    else:
+                        # print("TN", targets[k,l], k,l, threshold)
+                        TN += 1
+
+            if (TP+FN) != 0:
+                print("\nTP/(TP+FN)",TP/(TP+FN),  "\n")
+            if TN/(FP+TN) != 0:
+                print("\n1-TN/(FP+TN)",1-TN/(FP+TN),  "\n")
+
+            # TPR[int(threshold/stepsize)] = TP/(TP+FN) if (TP+FN) != 0 else 0
+            # TNR[int(threshold/stepsize)] = 1-TN/(FP+TN) if (FP+TN) != 0 else 1
+            if (TP+FN) != 0:
+                TPR.append(TP/(TP+FN))
+            else:
+                TPR.append(0)
+            if (FP + TN) != 0:
+                TNR.append(1-TN/(FP+TN))
+            else:
+                TNR.append(1)
+
+    # plot ROC-curve
+    print(TNR)
+    print(TPR)
+    plt.plot(TNR, TPR)
+    plt.title("ROC-Curve - Encoder")
+    plt.xlabel("1 - Specifity / 1 - True Negative Rate (TNR)")
+    plt.ylabel("Sensitivity / True Positiv Rate (TPR)")
+    plt.show()
+    plt.savefig(f'{figures_dir}/{encoder_name}_ROC_curve.png')
+    
+    # print('Accuracy of the network on the test images: %d %%' % (100 * correct / total))
+
+
+
+
 
 
 
