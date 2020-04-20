@@ -83,7 +83,7 @@ rule preprocess_training_images:
 
 rule preprocess_testing_images:
     input:
-        "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Training_Images", dataset = config['DATASETS'])
+        "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Training_Images"
     output:
        directory(expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/testing/n-augmentation_{n_augmentation}_maxdegree_{maxdegree}_resize_{resize1}_{resize2}_grayscale_{grayscale}/{dataset}/",
              user = config["YOURNAME"],
