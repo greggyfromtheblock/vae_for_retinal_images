@@ -277,7 +277,7 @@ if __name__ == '__main__':
 
     # Test the network
     print("Start testing the network..")
-    batch_size = calc_batch_size(data_size, batch_size=8)
+    batch_size = calc_batch_size(data_size, batch_size=128)
     inputs = torch.zeros((batch_size, *data[0][0].shape), device=device)
     labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float, device=device)
     d_mod_b = data_size % batch_size
