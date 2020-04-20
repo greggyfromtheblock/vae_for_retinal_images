@@ -327,6 +327,12 @@ def resnet152(in_channels, n_classes):
         in_channels, n_classes, block=ResNetBottleNeckBlock, deepths=[3, 8, 36, 3]
     )
 
+def resnetCustom(in_channels, n_classes):
+    return ResNet(
+        in_channels, n_classes, block=ResNetBottleNeckBlock, deepths=[3, 8,
+            36,48, 54, 64, 72, 96, 104, 128, 64, 32, 16, 8, 3]
+    )
+
 
 #ResidualBlock(32, 64)
 #dummy = torch.ones((1, 1, 1, 1))
@@ -392,7 +398,8 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.z = z
 
-        model = resnet101(3, z).cuda() #3: rgb input channels, 32: latent space dim
+        #model = resnet101(3, z).cuda() #3: rgb input channels, 32: latent space dim
+        model = resnetCustom(3,z).cuda()
 
         self.encoder = model.forward
         self.mean = nn.Linear(z, z)
