@@ -1,4 +1,3 @@
-  
 """
 Trigger training here
 """
@@ -8,7 +7,8 @@ import time
 
 import torch
 from torchvision import datasets, transforms
-from utils.training import Decoder, Encoder, OdirVAETraining, VAEDataset
+from utils.training import (Decoder, Encoder, OdirBetaVAETraining,
+                            OdirVAETraining, VAEDataset)
 from utils.utils import setup
 
 
@@ -43,6 +43,7 @@ if __name__ == "__main__":
           "\nmax epochs: ", FLAGS.maxepochs,
           "\nz-dim: ", FLAGS.zdim,
           "\nmax degree: ", FLAGS.maxdegree,
+          "\nbeta: ", FLAGS.beta,
           "\ndevice: ", device)
 
     os.makedirs(network_dir, exist_ok=True)
@@ -60,7 +61,7 @@ if __name__ == "__main__":
 
     encoder, decoder = Encoder(z=FLAGS.zdim), Decoder(z=FLAGS.zdim)
 
-    training = OdirVAETraining(
+    training = OdirBetaVAETraining(
         encoder,
         decoder,
         data,
@@ -70,6 +71,7 @@ if __name__ == "__main__":
         optimizer_kwargs={"lr": FLAGS.learningrate},
         batch_size=FLAGS.batchsize,
         max_epochs=FLAGS.maxepochs,
+        beta=FLAGS.beta,
         verbose=True,
     )
 
@@ -79,10 +81,11 @@ if __name__ == "__main__":
     print("\nStart Training...")
     time_start = time.time()
     trained_encoder, _ = training.train()
-    print('\nTraining with %i epochs done! Time elapsed: %.2f minutes' % (FLAGS.maxpochs, (time.time() - time_start)/60))
+    print('\nTraining with %i epochs done! Time elapsed: %.2f minutes' % (FLAGS.maxepochs, (time.time() - time_start)/60))
     # print(trained_encoder)
 
     # Save network
     # os.makedirs(network_dir)
     PATH = network_dir+f'{network_name}.pth'
     torch.save(trained_encoder.state_dict(), PATH)
+    os.system(f"cp utils/training.py models/{network_name}/training.py ")

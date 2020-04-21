@@ -103,8 +103,8 @@
   },
   "-beta": {
     "short": "-bb",
-    "value": 0.0,
-    "help": "Parameter beta (float)",
+    "value": 0.5,
+    "help": "Beta Value for beta VAE, total loss = (beta * kld) + cross entropy",
     "type": "float"
   },
   "-gamma": {
