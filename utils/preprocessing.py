@@ -17,7 +17,6 @@ if __name__ == '__main__':
     """
     Preprocessing Steps:
     Trim the black margins out of the image.
-    
     Subsequently, the augmentation step follows:
     Grayscale if stated, 
     resize to denoted size, 
@@ -34,10 +33,12 @@ if __name__ == '__main__':
     parser.add_argument('-na', '--n_augmentation', type=int, default=0,
                         help="""Number of Augmented images per image""")
     parser.add_argument('-mra', '--max_rotation', type=int, default=0,
-                        help="""Max rotation degree +- for the images, for example if you pass 10 to this argument then 
+                        help="""Max rotation degree +- for the images, for example if you pass 10 to this argument then
                         the function will pick {aug_per_image} random values from the range -10 to 10""")
     parser.add_argument('-r', '--resize', type=int, default=[192, 188], nargs=2,
                         help="""Enter wished Size. Example use: -r 192 188""")
+    parser.add_argument('-ex', '--exlude_imgs_with_strange_wh_ratio', type=float, nargs=2, default=None,
+                        help="""Enter minimial and maximal Ratio. Example use: -ex 0.85 1.15""")
     parser.add_argument('-gr', '--grayscale', type=int, default=0,
                         help="""Grayscale the images. If wished enter an integer (except zero).""")
     args = parser.parse_args()
@@ -50,7 +51,6 @@ if __name__ == '__main__':
 
     dir = add_slash(args.imdir)
     outdir = add_slash(args.outdir)
-
     os.makedirs(outdir, exist_ok=True)
 
     print("Start cropping...")
@@ -63,6 +63,12 @@ if __name__ == '__main__':
     for f in tqdm(os.listdir(outdir)):
         fname = f.replace(".jpg", "")
         image = io.imread(outdir + f)
+
+        if args.exlude_imgs_with_strange_wh_ratio:
+            if not args.exlude_imgs_with_strange_wh_ratio[0] < image.shape[0] / image.shape[1] \
+                   < args.exlude_imgs_with_strange_wh_ratio[1]:
+                os.system(f'rm {outdir}/{fname}.jpg')
+                continue
 
         # Grayscale images if stated
         if args.grayscale:
