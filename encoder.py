@@ -170,7 +170,7 @@ if __name__ == '__main__':
     lossarray = []
 
     # calculate batch_size
-    batch_size = calc_batch_size(data_size, batch_size=64)
+    batch_size = calc_batch_size(data_size, batch_size=54)
 
     # Train network
     start = time.perf_counter()
