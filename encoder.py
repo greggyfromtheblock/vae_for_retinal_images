@@ -165,8 +165,8 @@ if __name__ == '__main__':
     # Train the network
     n_epochs = 2
     learning_rate = 0.1
-    criterion = nn.BCELoss()
-    optimizer = optim.Adam(net.parameters(), lr=learning_rate)
+    criterion = nn.BCELoss().to(device=device)
+    optimizer = optim.Adam(net.parameters(), lr=learning_rate).to(device=device)
     lossarray = []
 
     # calculate batch_size
