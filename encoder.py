@@ -199,7 +199,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = net(inputs)
+            outputs = net(inputs).to(device=device)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
