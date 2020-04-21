@@ -94,8 +94,8 @@ if __name__ == '__main__':
     
     figures_dir = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/supervised"
     encoder_name = "deep_balanced"
-    os.makedirs(figures_dir, exist_ok=True)
-    
+    os.makedirs(figures_dir+f'/{encoder_name}', exist_ok=True)
+
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
     print("\nLoad Data as Tensors...")
@@ -147,13 +147,10 @@ if __name__ == '__main__':
         diagnoses_list.extend(["Patient Sex"])
         for j, feature in enumerate(diagnoses_list):
             if not marker:
-                if feature == "N":
-                    targets[i][j] = not csv_df.iloc[row_number].at[feature]
+                if feature == "Patient Sex":
+                    targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                 else:
-                    if feature == "Patient Sex":
-                        targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                    else:
-                        targets[i][j] = csv_df.iloc[row_number].at[feature]
+                    targets[i][j] = csv_df.iloc[row_number].at[feature]
             else:
                 if feature == "N":
                     targets[i - 1][j] = not csv_df.iloc[row_number].at[feature]
@@ -166,14 +163,14 @@ if __name__ == '__main__':
     net = Encoder().to(device=device)
 
     # Train the network
-    n_epochs = 100
-    learning_rate = 0.0001
+    n_epochs = 2
+    learning_rate = 0.1
     criterion = nn.BCELoss()
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     lossarray = []
 
     # calculate batch_size
-    batch_size = calc_batch_size(data_size, batch_size=128)
+    batch_size = calc_batch_size(data_size, batch_size=8)
 
     # Train network
     start = time.perf_counter()
@@ -181,10 +178,10 @@ if __name__ == '__main__':
     for n in tqdm(range(n_epochs)):
         running_loss = 0.0
 
-        inputs = torch.zeros((batch_size, *data[0][0].shape), device=device)
-        labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float, device=device)
+        inputs = torch.zeros((batch_size, *data[0][0].shape))
+        labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float)
         d_mod_b = data_size % batch_size
-        targets = torch.Tensor(targets).float().to(device=device)
+        targets = torch.Tensor(targets).float()
         for i in range(0, data_size, batch_size):
             if (i + batch_size) < data_size:
                 for j in range(batch_size):
@@ -192,8 +189,8 @@ if __name__ == '__main__':
                     labels[j] = targets[i+j]
             elif d_mod_b != 0:
                 # for uncompleted last batch
-                labels = torch.zeros((d_mod_b, number_of_diagnoses + 1), dtype=torch.float, device=device)
-                inputs = torch.zeros((d_mod_b, *data[0][0].shape), device=device)
+                labels = torch.zeros((d_mod_b, number_of_diagnoses + 1))
+                inputs = torch.zeros((d_mod_b, *data[0][0].shape))
                 for j in range(d_mod_b):
                     inputs[j] = data[i + j][0]
                     labels[j] = targets[i+j]
@@ -209,7 +206,7 @@ if __name__ == '__main__':
 
             # print statistics
             running_loss += loss.item()
-            if i % batch_size == batch_size - 1:  # print every 10 mini-batches
+            if i % batch_size == batch_size - 1:
                 print('[%d, %5d] loss: %.3f' % (n + 1, i + 1, running_loss / batch_size))
             lossarray.append(loss.item())
             running_loss = 0.0
@@ -218,10 +215,11 @@ if __name__ == '__main__':
 
     x = np.arange(len(lossarray))
     spl = UnivariateSpline(x, lossarray)
+    plt.title("Loss-Curve", fontsize=16, fontweight='bold')
     plt.plot(x, lossarray, '-y')
     plt.plot(x, spl(x), '-r')
     plt.savefig(f'{figures_dir}/{encoder_name}_loss_curve.png')
-    plt.show()
+    #plt.show()
     plt.close()
 
     PATH = './cifar_net.pth'
@@ -259,25 +257,19 @@ if __name__ == '__main__':
         diagnoses_list.extend(["Patient Sex"])
         for j, feature in enumerate(diagnoses_list):
             if not marker:
-                if feature == "N":
-                    targets[i][j] = not csv_df.iloc[row_number].at[feature]
+                if feature == "Patient Sex":
+                    targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                 else:
-                    if feature == "Patient Sex":
-                        targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                    else:
-                        targets[i][j] = csv_df.iloc[row_number].at[feature]
+                    targets[i][j] = csv_df.iloc[row_number].at[feature]
             else:
-                if feature == "N":
-                    targets[i - 1][j] = not csv_df.iloc[row_number].at[feature]
+                if feature == "Patient Sex":
+                    targets[i - 1][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                 else:
-                    if feature == "Patient Sex":
-                        targets[i - 1][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                    else:
-                        targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
+                    targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
 
     # Test the network
     print("Start testing the network..")
-    batch_size = calc_batch_size(data_size, batch_size=128)
+    batch_size = calc_batch_size(data_size, batch_size=8)
     inputs = torch.zeros((batch_size, *data[0][0].shape), device=device)
     labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float, device=device)
     d_mod_b = data_size % batch_size
@@ -291,20 +283,32 @@ if __name__ == '__main__':
     # In every step we calculate the Sensitivity/True Positiv Rate (TRP) and the Specifity/True Negative Rate:
     # TRP = TP/(TP+FN)  and  FPR=FP/(TN+FP).
     # https://de.wikipedia.org/wiki/Beurteilung_eines_bin%C3%A4ren_Klassifikators#Sensitivit%C3%A4t_und_Falsch-Negativ-Rate
-    # (https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc)
+    # https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
+
+    # roc_auc_score: Compute Area Under the Receiver Operating Characteristic Curve (ROC AUC) from prediction scores:
+    # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html
+
+    # average_auc_score: Compute average precision (AP) from prediction scores
+    # AP = sum ((R_N - R_N_-1) * P_N)
+    # AP summarizes a precision-recall curve as the weighted mean of precisions achieved at each threshold, with the
+    # increase in recall from the previous threshold used as the weight: where R_N and P_N are the precision and recall
+    # at the n-th threshold. This implementation is not interpolated and is different from computing the area under the
+    # precision-recall curve with the trapezoidal rule, which uses linear interpolation and can be too optimistic.
+    # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score
+    # https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-classification-in-python/
 
     outputs = torch.zeros((data_size, number_of_diagnoses+1), device=device)
     for i in range(0, data_size, batch_size):
         if (i + batch_size) < data_size:
             for j in range(batch_size):
                 inputs[j] = data[i + j][0]
-            outputs[i:(i+batch_size)] = net(inputs)
+            outputs[i:(i+batch_size)] = net(inputs).detach()
         elif d_mod_b != 0:
             # for uncompleted last batch
             inputs = torch.zeros((d_mod_b, *data[0][0].shape))
             for j in range(d_mod_b):
                 inputs[j] = data[i + j][0]
-            outputs[i:(i+d_mod_b)] = net(inputs)
+            outputs[i:(i+d_mod_b)] = net(inputs).detach()
 
         # outputs = torch.round(net(inputs))
         # total += labels.size(0) * (number_of_diagnoses+1)
@@ -312,52 +316,112 @@ if __name__ == '__main__':
 
     # correct = 0
     # total = 0
-    number_of_steps = 10000
-    TPR, FPR = [], []     # np.zeros(int(1/stepsize), dtype=np.float), np.zeros(int(1/stepsize), dtype=np.float)
-
-    with torch.no_grad():
-        for threshold in tqdm(range(0, number_of_steps)):
-            TP, FN, FP, TN = 0, 0, 0, 0   # TP - True Positiv, etc
-
-            threshold /= number_of_steps
-            for k in range(outputs.size(0)):
-                for l in range(outputs.size(1)):
-                    if targets[k, l] and outputs[k,l] >= torch.tensor(threshold):
-                        TP += 1
-                    elif targets[k, l] and outputs[k,l] < torch.tensor(threshold):
-                        FN += 1
-                    elif not targets[k, l] and outputs[k,l] >= torch.tensor(threshold):
-                        FP += 1
-                    else:
-                        TN += 1
-
-            # TPR[int(threshold/stepsize)] = TP/(TP+FN) if (TP+FN) != 0 else 0
-            # TNR[int(threshold/stepsize)] = 1-TN/(FP+TN) if (FP+TN) != 0 else 1
-            # TPR[int(threshold/stepsize)] = TP/(TP+FN) if (TP+FN) != 0 else 0
-            # TNR[int(threshold/stepsize)] = 1-TN/(FP+TN) if (FP+TN) != 0 else 1
-            if (TP+FN) != 0:
-                TPR.append(TP/(TP+FN))
-            else:
-                TPR.append(0)
-            if (FP + TN) != 0:
-                FPR.append(FP/(FP+TN))
-            else:
-                FPR.append(0)
-
-    # plot ROC-curve
-    plt.plot([0,1],[0,1], c='darkorange')
-    plt.plot(FPR, TPR, c='royalblue')
-    plt.title("ROC-Curve - Encoder", fontsize=16, fontweight='bold')
-    plt.xlabel("1 - Specifity / False Positive Rate (FPR)")
-    plt.ylabel("Sensitivity / True Positiv Rate (TPR)")
-    plt.grid()
-    plt.show()
-    plt.savefig(f'{figures_dir}/{encoder_name}_ROC_curve.png')
-    plt.close()
-
     # print('Accuracy of the network on the test images: %d %%' % (100 * correct / total))
 
+    # ROC-Curve/AUC with sklearn:
+    from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score, f1_score, auc
 
+    try:
+        outputs = outputs.detach().numpy()
+        targets = targets.float().numpy()
+
+        # calculate roc curves
+        lr_fpr, lr_tpr, _ = roc_curve(targets, outputs)
+
+        lr_auc = roc_auc_score(lr_fpr, lr_tpr, average='micro')
+        # summarize scores
+        print('Logistic: ROC AUC=%.3f' % (lr_auc))
+
+        # plot the roc curve for the model
+        plt.plot([0, 1], [0, 1], linestyle='--', c='darkorange')
+        plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
+        plt.grid()
+        plt.title("ROC-Curve - Encoder", fontsize=16, fontweight='bold')
+        plt.savefig(f'{figures_dir}/{encoder_name}_micro-averaged_ROC_curve_auc_{lr_auc}.png')
+        # axis labels
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.show()
+        plt.close()
+    except ValueError:
+        pass
+
+    try:
+        average_precision = average_precision_score(targets, outputs)
+        print('2-class Precision-Recall curve: Average Precision={0:0.2f}'.format(average_precision))
+
+        lr_precision, lr_recall, _ = precision_recall_curve(targets, outputs)
+        lr_f1, lr_auc = f1_score(targets, outputs), auc(lr_recall, lr_precision)
+        print('Logistic: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+
+        # plot the precision-recall curves
+        plt.grid()
+        plt.plot(lr_recall, lr_precision, marker='.', label='Logistic')
+        plt.title("Precision-Recall-Curve - ", fontsize=16, fontweight='bold')
+        plt.savefig(f'{figures_dir}/{encoder_name}/micro-averaged_precision_recall_curve_auc_{lr_auc}_f1_{lr_f1}_ap_{average_precision}.png')
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.legend()
+        plt.show()
+        plt.close()
+
+    except ValueError:
+        pass
+
+    for i, diagnosis in enumerate(diagnoses_list):
+        try:
+            lr_auc = roc_auc_score(targets[:,i], outputs[:, i])
+            # summarize scores
+            print('Logistic: ROC AUC=%.3f' % (lr_auc))
+            # calculate roc curves
+            lr_fpr, lr_tpr, _ = roc_curve(targets[:,i], outputs[:,i])
+            # plot the roc curve for the model
+            plt.plot([0, 1], [0, 1], linestyle='--', c='darkorange')
+            plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
+            plt.grid()
+            if diagnosis != "Patient Sex":
+                plt.title("ROC-Curve - {}".format(diagnoses[diagnosis]), fontsize=16, fontweight='bold')
+                plt.savefig(f'{figures_dir}/{encoder_name}/{diagnoses[diagnosis]}_ROC_curve.png')
+            else:
+                plt.title("ROC-Curve - Patient Sex - auc=%.3f" % lr_auc, fontsize=16, fontweight='bold')
+                plt.savefig(f'{figures_dir}/{encoder_name}/Patient_Sex_ROC_curve_auc_{lr_auc}.png')
+            # axis labels
+            plt.xlabel('False Positive Rate')
+            plt.ylabel('True Positive Rate')
+            plt.show()
+            plt.close()
+
+        except ValueError:
+            pass
+
+        try:
+            average_precision = average_precision_score(targets[:, i], outputs[:, i])
+            print('2-class Precision-Recall curve: AP={0:0.2f}'.format(average_precision))
+
+            lr_precision, lr_recall, _ = precision_recall_curve(targets[:, i], outputs[:, i])
+            lr_f1, lr_auc = f1_score(targets[:, i], outputs[:, i]), auc(lr_recall, lr_precision)
+            print('Logistic: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+
+            # plot the precision-recall curves
+            plt.grid()
+            plt.plot(lr_recall, lr_precision, marker='.', label='Logistic')
+            if diagnosis != "Patient Sex":
+                plt.title("Precision-Recall-Curve - %s f1=%.3f auc=%.3f" % (diagnoses[diagnosis], lr_f1, lr_auc), fontsize=16, fontweight='bold')
+                plt.savefig(f'{figures_dir}/{encoder_name}/{diagnoses[diagnosis]}_precision_recall_curve_auc_{lr_auc}_f1_{lr_f1}_ap_{average_precision}.png')
+            else:
+                plt.title("Precision-Recall-Curve - Patient Sex", fontsize=16, fontweight='bold')
+                plt.savefig(f'{figures_dir}/{encoder_name}/Patient_Sex_precision_recall_curve_auc_{lr_auc}_f1_{lr_f1}_ap_{average_precision}.png')
+            # axis labels
+            plt.xlabel('Recall')
+            plt.ylabel('Precision')
+            # show the legend
+            plt.legend()
+            # show the plot
+            plt.show()
+            plt.close()
+
+        except ValueError:
+            pass
 
 
 
