@@ -323,23 +323,16 @@ if __name__ == '__main__':
             for k in range(outputs.size(0)):
                 for l in range(outputs.size(1)):
                     if targets[k, l] and outputs[k,l] >= torch.tensor(threshold):
-                        #print("TP", targets[k,l], outputs[k,l], threshold)
                         TP += 1
                     elif targets[k, l] and outputs[k,l] < torch.tensor(threshold):
-                        #print("FN", targets[k,l],  outputs[k,l],threshold)
                         FN += 1
                     elif not targets[k, l] and outputs[k,l] >= torch.tensor(threshold):
-                        #print("FP", targets[k,l], outputs[k,l],threshold)
                         FP += 1
                     else:
-                        #print("TN", targets[k,l], outputs[k,l],threshold)
                         TN += 1
-            """
-            if (TP+FN) != 0:
-                print("\nTP/(TP+FN)",TP/(TP+FN),  "\n")
-            if (FP+TN) != 0:
-                print("\n1-TN/(FP+TN)",1-TN/(FP+TN),  "\n")
-            """
+
+            # TPR[int(threshold/stepsize)] = TP/(TP+FN) if (TP+FN) != 0 else 0
+            # TNR[int(threshold/stepsize)] = 1-TN/(FP+TN) if (FP+TN) != 0 else 1
             # TPR[int(threshold/stepsize)] = TP/(TP+FN) if (TP+FN) != 0 else 0
             # TNR[int(threshold/stepsize)] = 1-TN/(FP+TN) if (FP+TN) != 0 else 1
             if (TP+FN) != 0:
@@ -352,8 +345,6 @@ if __name__ == '__main__':
                 FPR.append(0)
 
     # plot ROC-curve
-    print(FPR)
-    print(TPR)
     plt.plot([0,1],[0,1], c='darkorange')
     plt.plot(FPR, TPR, c='royalblue')
     plt.title("ROC-Curve - Encoder", fontsize=16, fontweight='bold')
