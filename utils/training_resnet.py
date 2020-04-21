@@ -329,48 +329,9 @@ def resnet152(in_channels, n_classes):
 
 def resnetCustom(in_channels, n_classes):
     return ResNet(
-        in_channels, n_classes, block=ResNetBottleNeckBlock, deepths=[
-            3, 8, 16, 16, 8, 3]
+        in_channels, n_classes, block=ResNetBasicBlock, deepths=[
+            3, 8, 12, 16, 24, 6, 3]
     )
-
-
-#ResidualBlock(32, 64)
-#dummy = torch.ones((1, 1, 1, 1))
-#block = ResidualBlock(1, 64)
-#block(dummy)
-#ResNetResidualBlock(32, 64)
-#conv_bn(3, 3, nn.Conv2d, kernel_size=3)
-#dummy = torch.ones((1, 32, 256, 320))
-#block = ResNetBasicBlock(32, 64)
-#block(dummy).shape
-#print(block)
-#dummy = torch.ones((1, 32, 10, 10))
-#block = ResNetBottleNeckBlock(32, 64)
-#block(dummy).shape
-#print(block)
-#
-#dummy = torch.ones((1, 32, 48, 48))
-#
-#dummy2 = torch.ones((10, 64, 48, 48))
-#
-#layer = ResNetLayer(64, 128, block=ResNetBasicBlock, n=3)
-#
-#####?!#### layer(dummy).shape
-#layer(dummy2).shape
-#
-#layer
-#
-#
-#model = resnet101(3, 32)
-#
-#summary(model, (3, 256, 320))
-#
-#dummy3 = torch.ones((10, 3, 256, 320))
-#
-#x = model.encoder(dummy3)
-#x.shape
-#y = model.decoder(x)
-#y.shape
 
 ############################################################
 
@@ -413,7 +374,7 @@ class Encoder(nn.Module):
         return features, mean, logvar
 
 
-class Decoder(nn.Module):
+class Decoder_yiftach(nn.Module):
     def __init__(self, z=32):
         super(Decoder, self).__init__()
         self.z = z
@@ -479,9 +440,61 @@ class Decoder(nn.Module):
         dec = torch.reshape(self.linear_blocks(sample), (sample.shape[0], 64, 4, 5))
         # print(dec.shape)
         reconstructions = self.conv_layers(dec)
-        print(reconstructions.shape)
+        #print(reconstructions.shape)
         return reconstructions
 
+
+class Decoder(nn.Module):
+    def __init__(self, z=32):
+        super(Decoder, self).__init__()
+
+        def linear_block(in_feat, out_feat, normalize=True, dropout=None):
+            layers = [nn.Linear(in_feat, out_feat)]
+            normalize and layers.append(nn.BatchNorm1d(out_feat))  # It's the same as: if normalize: append...
+            dropout and layers.append(nn.Dropout(dropout))
+            layers.append(nn.LeakyReLU(0.2, inplace=True))
+            return layers
+
+        self.linear_blocks = nn.Sequential(
+            *linear_block(z, 64, normalize=True),
+            *linear_block(64, 128),
+            *linear_block(128, 128),
+            *linear_block(128, 256, dropout=None),
+            *linear_block(256, 256, dropout=0.3),
+            *linear_block(256, 512, dropout=0.3),
+            *linear_block(512, 512 * 2 * 2, dropout=0.4),
+            nn.ReLU()
+        )
+
+        def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, scale_factor=None, size=None, mode='bilinear'):
+
+            layers = [nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=kernel_size//2,
+                                stride=stride),
+                      nn.BatchNorm2d(in_channels),
+                      nn.ReLU(),
+                      nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding,
+                                         stride=stride),
+                      nn.BatchNorm2d(out_channels),
+                      nn.ReLU()]
+
+            scale_factor and layers.append(nn.Upsample(mode=mode, scale_factor=scale_factor))
+            size and layers.append(nn.Upsample(mode=mode, size=size))
+            return layers
+
+        self.conv_layers = nn.Sequential(
+            *conv_block(512, 256, padding=1, size=(5, 4)),
+            *conv_block(256, 128, padding=1, size=(11, 10)),
+            *conv_block(128, 96, padding=1, size=(24, 23), mode='nearest'),
+            *conv_block(96, 64, padding=1, size=(48, 47), mode='nearest'),
+            *conv_block(64, 32, padding=1, scale_factor=2),
+            *conv_block(32, 8, kernel_size=5, padding=2, scale_factor=2, mode='nearest'),
+            nn.Conv2d(in_channels=8, out_channels=3, kernel_size=1),
+        )
+
+    def forward(self, latent_vector):
+        dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 512, 2, 2))
+        reconstructions = self.conv_layers(dec)
+        return reconstructions
 
 class OdirVAETraining(VAETraining):
     def __init__(
@@ -515,12 +528,12 @@ class OdirVAETraining(VAETraining):
             self.epoch = self.epoch_id
             print("%i-Epoch" % (self.epoch_id + 1))
 
-        if self.step_id % 4 == 0:
+        if self.step_id % 29 == 0:
             self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image(
                 "reconstruction",
                 nn.functional.sigmoid(reconstructions[0]),
                 self.step_id,
             )
-            print("output shape: ", reconstructions[0].shape)
+            #print("output shape: ", reconstructions[0].shape)
         return mean, logvar, reconstructions, data
