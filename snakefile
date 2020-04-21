@@ -3,7 +3,7 @@ to run this, modify the config file as you wish and run `snakemake --cores <core
 note that the raw annotations file need to be renamed to '../data/processed/annotations/ODIR_Annotations.csv'
 """
 
-configfile: "workflow_config.json"
+configfile: "./workflow_config.json"
 dataset = config["DATASETS"]
 n_augmentation = config["N_AUGMENTATION"]
 maxdegree = config["MAX_ROTATION_ANGLE"]
@@ -14,13 +14,15 @@ resize1 = config['RESIZE'][0]
 resize2 = config['RESIZE'][1]
 grayscale = config['GRAYSCALE']
 user = config['YOURNAME']
+exlude_imgs_with_strange_wh_ratio1 = config['exlude_imgs_with_strange_wh_ratio'][0]
+exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1]
 
 rule all:
     input:
         expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mybody", user = config['YOURNAME'])
     run:
-        path = "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images" + str(path_prefix)[2:] + str(networkname)
-        print("path to the eventfiles: %s" % path)
+        path = "/data/analysis/ag-reils/ag-reils-shared-students/yourname/vae_for_retinal_images" + str(path_prefix)[2:] + "/" + str(networkname)
+        print("path to the eventfiles: %s" % path) 
         # shell("tensorboard --logdir %s --port {port}" % path)
 
 rule introspection:
@@ -34,7 +36,9 @@ rule introspection:
              maxdegree = config['MAX_ROTATION_ANGLE'],
              resize1 = config['RESIZE'][0],
              resize2 = config['RESIZE'][1],
-             grayscale = config['GRAYSCALE'])
+             grayscale = config['GRAYSCALE'],
+             exlude_imgs_with_strange_wh_ratio1 = config['exlude_imgs_with_strange_wh_ratio'][0],
+             exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1])
     output:
         touch('/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mybody')
     run:
@@ -50,7 +54,9 @@ rule training:
                  maxdegree = config['MAX_ROTATION_ANGLE'],
                  resize1 = config['RESIZE'][0],
                  resize2 = config['RESIZE'][1],
-                 grayscale = config['GRAYSCALE'])
+                 grayscale = config['GRAYSCALE'],
+                 exlude_imgs_with_strange_wh_ratio1 = config['exlude_imgs_with_strange_wh_ratio'][0],
+                 exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1])
     output:
         touch("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/mytask.done")
     run:
@@ -68,9 +74,11 @@ rule preprocess_training_images:
                  maxdegree = config['MAX_ROTATION_ANGLE'],
                  resize1 = config['RESIZE'][0],
                  resize2 = config['RESIZE'][1],
-                 grayscale = config['GRAYSCALE']))
+                 grayscale = config['GRAYSCALE'],
+                 exlude_imgs_with_strange_wh_ratio1 = config['exlude_imgs_with_strange_wh_ratio'][0],
+                 exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1]))
     run:
-         shell("python utils/preprocessing.py {input} {output} -na {n_augmentation} -mra {maxdegree} -r {resize1} {resize2} -gr {grayscale}")
+         shell("python utils/preprocessing.py {input} {output} -na {n_augmentation} -mra {maxdegree} -r {resize1} {resize2} -gr {grayscale} -ex {exlude_imgs_with_strange_wh_ratio1} {exlude_imgs_with_strange_wh_ratio2}")
 
 
 rule preprocess_testing_images:
@@ -84,9 +92,11 @@ rule preprocess_testing_images:
              maxdegree = config['MAX_ROTATION_ANGLE'],
              resize1 = config['RESIZE'][0],
              resize2 = config['RESIZE'][1],
-             grayscale = config['GRAYSCALE']))
+             grayscale = config['GRAYSCALE'],
+             exlude_imgs_with_strange_wh_ratio1 = config['exlude_imgs_with_strange_wh_ratio'][0],
+             exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1]))
     run:
-        shell("python utils/preprocessing.py {input} {output} -na {n_augmentation} -mra {maxdegree} -r {resize1} {resize2} -gr 0")
+        shell("python utils/preprocessing.py {input} {output} -na {n_augmentation} -mra {maxdegree} -r {resize1} {resize2} -gr 0 -ex {exlude_imgs_with_strange_wh_ratio1} {exlude_imgs_with_strange_wh_ratio2}")
 
 
 rule preprocess_annotations:
@@ -97,6 +107,3 @@ rule preprocess_annotations:
         user=config["YOURNAME"])
     run:
         shell("python utils/preprocess_annotations.py {input} {output}")
-
-
-
