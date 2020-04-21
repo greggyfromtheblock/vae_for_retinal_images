@@ -166,8 +166,8 @@ class OdirVAETraining(FactorVAETraining):
 
         imgs = torch.zeros_like(reconstructions[0:50:10])
 
-        for i in range(0, 50, 10):
-            imgs[i] = F.sigmoid(reconstructions[i])
+        for i in range(0, 5):
+            imgs[i] = F.sigmoid(reconstructions[i*10])
 
         if self.step_id % 20 == 0:
             self.writer.add_images("target", data[0:50:10], self.step_id)
