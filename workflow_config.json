@@ -1,11 +1,12 @@
 {
     "YOURNAME": "greg",
-    "DATASETS": ["ODIR"],
-    "N_AUGMENTATION": 16,
-    "MAX_ROTATION_ANGLE": 22,
+    "DATASETS": ["ODIR", "KAGGLE"],
+    "N_AUGMENTATION": 1,
+    "MAX_ROTATION_ANGLE": 5,
     "NETWORKNAME": "net_works",
     "PATH_PREFIX": "../models",
     "PORT": 2608,
     "RESIZE": [192, 188],
-    "GRAYSCALE": 0
+    "GRAYSCALE": 0,
+    "exlude_imgs_with_strange_wh_ratio": [0.85, 1.15]
 }
