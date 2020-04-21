@@ -61,7 +61,7 @@
   },
   "-maxpochs": {
     "short": "-me",
-    "value": 2950,
+    "value": 8950,
     "help": "Maximum nr of epochs to train the model",
     "type": "int"
   },
@@ -79,7 +79,7 @@
   },
   "-zdim": {
     "short": "-zd",
-    "value": 96,
+    "value": 1024,
     "help": "The latent dimension of the bottleneck.",
     "type": "int"
   },
