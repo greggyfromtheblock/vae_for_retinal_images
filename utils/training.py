@@ -218,9 +218,12 @@ class OdirBetaVAETraining(VAETraining):
         return mean, logvar, reconstructions, data
 
     def loss(self, mean, logvar, reconstruction, target):
-        ce = self.reconstruction_loss(reconstruction, target),
-        kld = self.divergence_loss(mean, logvar)
-        loss_val = ce + self.beta*kld
+        ce = super().reconstruction_loss(reconstruction, target)
+        kld = super().divergence_loss(mean, logvar)
+        rl = ce.item()
+        print(type(ce), "ce", ce)
+        print(type(kld), "kld", kld)
+        loss_val = ce + self.beta * kld
         self.current_losses["cross-entropy"] = float(ce)
         self.current_losses["kullback-leibler"] = float(kld)
         return loss_val

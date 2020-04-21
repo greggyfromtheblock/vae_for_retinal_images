@@ -1,6 +1,6 @@
 {
     "YOURNAME": "greg",
-    "DATASETS": ["ODIR", "KAGGLE"],
+    "DATASETS": ["ODIR"],
     "N_AUGMENTATION": 1,
     "MAX_ROTATION_ANGLE": 5,
     "NETWORKNAME": "net_works",
