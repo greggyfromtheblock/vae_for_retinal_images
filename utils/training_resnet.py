@@ -375,7 +375,7 @@ class Encoder(nn.Module):
         return features, mean, logvar
 
 
-class Decoder(nn.Module):
+class Decoder_yiftach(nn.Module):
     def __init__(self, z=32):
         super(Decoder, self).__init__()
         self.z = z
@@ -443,6 +443,22 @@ class Decoder(nn.Module):
         reconstructions = self.conv_layers(dec)
         #print(reconstructions.shape)
         return reconstructions
+
+class Decoder(nn.Module):
+  def __init__(self, z=32, imsize=(256,320)):
+    super(Decoder, self).__init__()
+    self.z = z  
+    h,w = imsize
+    self.decoder = nn.Sequential(
+      nn.Linear(z, 128),
+      nn.ReLU(),
+      nn.Linear(128, 256),
+      nn.ReLU(),
+      nn.Linear(256, h * w)
+    )
+
+  def forward(self, sample):
+    return self.decoder(sample).view(-1, 3, h, w)
 
 
 class Decoder_henrik(nn.Module):
