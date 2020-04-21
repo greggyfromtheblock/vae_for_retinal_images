@@ -170,7 +170,7 @@ if __name__ == '__main__':
     lossarray = []
 
     # calculate batch_size
-    batch_size = calc_batch_size(data_size, batch_size=8)
+    batch_size = calc_batch_size(data_size, batch_size=128)
 
     # Train network
     start = time.perf_counter()
@@ -178,10 +178,10 @@ if __name__ == '__main__':
     for n in tqdm(range(n_epochs)):
         running_loss = 0.0
 
-        inputs = torch.zeros((batch_size, *data[0][0].shape))
-        labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float)
+        inputs = torch.zeros((batch_size, *data[0][0].shape)).to(device=device)
+        labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float).to(device=device)
         d_mod_b = data_size % batch_size
-        targets = torch.Tensor(targets).float()
+        targets = torch.Tensor(targets).float().to(device=device)
         for i in range(0, data_size, batch_size):
             if (i + batch_size) < data_size:
                 for j in range(batch_size):
@@ -199,7 +199,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = net(inputs).to(device=device)
+            outputs = net(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
