@@ -4,7 +4,7 @@ Add the Training (TorchSupport-Training API) and loss functions here.
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
-from torchsupport.training.vae import VAETraining
+from torchsupport.training.vae import FactorVAETraining
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 import numpy as np
@@ -141,7 +141,7 @@ def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
 
 
-class OdirVAETraining(VAETraining):
+class OdirVAETraining(FactorVAETraining):
     def __init__(self, encoder, decoder, data, path_prefix, network_name,
                  # alpha=0.25, beta=0.5, m=120,
                  optimizer=torch.optim.Adam,
@@ -166,8 +166,8 @@ class OdirVAETraining(VAETraining):
 
         imgs = torch.zeros_like(reconstructions[0:50:10])
 
-        for i in range(0, 5):
-            imgs[i] = F.sigmoid(reconstructions[i*10])
+        for i in range(0, 50, 10):
+            imgs[i] = F.sigmoid(reconstructions[i])
 
         if self.step_id % 20 == 0:
             self.writer.add_images("target", data[0:50:10], self.step_id)
