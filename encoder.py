@@ -289,53 +289,57 @@ if __name__ == '__main__':
     # The network has as an outcome a vector of floats with values between 0 and 1. The threshold to round up is
     # increased stepwise, starts with 0 until 1.
     # In every step we calculate the Sensitivity/True Positiv Rate (TRP) and the Specifity/True Negative Rate:
-    # TRP = TP/(TP+FN)  and  TNR=TN/(TN+FP).
+    # TRP = TP/(TP+FN)  and  FPR=FP/(TN+FP).
     # https://de.wikipedia.org/wiki/Beurteilung_eines_bin%C3%A4ren_Klassifikators#Sensitivit%C3%A4t_und_Falsch-Negativ-Rate
     # (https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc)
 
-    outputs=torch.zeros((data_size, number_of_diagnoses+1), device=device)
+    outputs = torch.zeros((data_size, number_of_diagnoses+1), device=device)
     for i in range(0, data_size, batch_size):
         if (i + batch_size) < data_size:
             for j in range(batch_size):
                 inputs[j] = data[i + j][0]
-                labels[j] = targets[i + j]
             outputs[i:(i+batch_size)] = net(inputs)
         elif d_mod_b != 0:
             # for uncompleted last batch
-            labels = torch.zeros((d_mod_b, number_of_diagnoses + 1), device=device)
-            inputs = torch.zeros((d_mod_b, *data[0][0].shape), device=device)
+            inputs = torch.zeros((d_mod_b, *data[0][0].shape))
             for j in range(d_mod_b):
                 inputs[j] = data[i + j][0]
-                labels[j] = targets[i + j]
             outputs[i:(i+d_mod_b)] = net(inputs)
 
         # outputs = torch.round(net(inputs))
         # total += labels.size(0) * (number_of_diagnoses+1)
         # correct += (outputs == labels).sum().item()
 
-
     # correct = 0
     # total = 0
-    number_of_steps = 1000
-    TPR, TNR = [], []     # np.zeros(int(1/stepsize), dtype=np.float), np.zeros(int(1/stepsize), dtype=np.float)
+    number_of_steps = 10000
+    TPR, FPR = [], []     # np.zeros(int(1/stepsize), dtype=np.float), np.zeros(int(1/stepsize), dtype=np.float)
+
     with torch.no_grad():
         for threshold in tqdm(range(0, number_of_steps)):
             TP, FN, FP, TN = 0, 0, 0, 0   # TP - True Positiv, etc
 
             threshold /= number_of_steps
-            print(threshold)
-
             for k in range(outputs.size(0)):
                 for l in range(outputs.size(1)):
-                    if targets[k, l] == torch.tensor(1, dtype=torch.int32) and outputs[k,l] >= torch.tensor(threshold):
+                    if targets[k, l] and outputs[k,l] >= torch.tensor(threshold):
+                        #print("TP", targets[k,l], outputs[k,l], threshold)
                         TP += 1
-                    elif targets[k, l] == torch.tensor(1, dtype=torch.int32) and outputs[k,l] < torch.tensor(threshold):
+                    elif targets[k, l] and outputs[k,l] < torch.tensor(threshold):
+                        #print("FN", targets[k,l],  outputs[k,l],threshold)
                         FN += 1
-                    elif targets[k, l] == torch.tensor(0, dtype=torch.int32) and outputs[k,l] >= torch.tensor(threshold):
+                    elif not targets[k, l] and outputs[k,l] >= torch.tensor(threshold):
+                        #print("FP", targets[k,l], outputs[k,l],threshold)
                         FP += 1
                     else:
+                        #print("TN", targets[k,l], outputs[k,l],threshold)
                         TN += 1
-
+            """
+            if (TP+FN) != 0:
+                print("\nTP/(TP+FN)",TP/(TP+FN),  "\n")
+            if (FP+TN) != 0:
+                print("\n1-TN/(FP+TN)",1-TN/(FP+TN),  "\n")
+            """
             # TPR[int(threshold/stepsize)] = TP/(TP+FN) if (TP+FN) != 0 else 0
             # TNR[int(threshold/stepsize)] = 1-TN/(FP+TN) if (FP+TN) != 0 else 1
             if (TP+FN) != 0:
@@ -343,23 +347,24 @@ if __name__ == '__main__':
             else:
                 TPR.append(0)
             if (FP + TN) != 0:
-                TNR.append(1-TN/(FP+TN))
+                FPR.append(FP/(FP+TN))
             else:
-                TNR.append(1)
+                FPR.append(0)
 
     # plot ROC-curve
-    print(TNR)
+    print(FPR)
     print(TPR)
-    plt.plot(TNR, TPR)
-    plt.grid()
-    plt.title("ROC-Curve - Encoder")
-    plt.xlabel("1 - Specifity / 1 - True Negative Rate (TNR)")
+    plt.plot([0,1],[0,1], c='darkorange')
+    plt.plot(FPR, TPR, c='royalblue')
+    plt.title("ROC-Curve - Encoder", fontsize=16, fontweight='bold')
+    plt.xlabel("1 - Specifity / False Positive Rate (FPR)")
     plt.ylabel("Sensitivity / True Positiv Rate (TPR)")
+    plt.grid()
     plt.show()
     plt.savefig(f'{figures_dir}/{encoder_name}_ROC_curve.png')
-    
-    # print('Accuracy of the network on the test images: %d %%' % (100 * correct / total))
+    plt.close()
 
+    # print('Accuracy of the network on the test images: %d %%' % (100 * correct / total))
 
 
 
