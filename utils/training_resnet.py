@@ -329,9 +329,9 @@ def resnet152(in_channels, n_classes):
 
 def resnetCustom(in_channels, n_classes):
     return ResNet(
-        in_channels, n_classes, block=ResNetBasicBlock,
-        deepths=[ 3, 8, 12, 16, 24, 6, 3],
-        blocks_sizes=[64,128,256,512,1024,2048,4096]
+        in_channels, n_classes, block=ResNetBottleNeckBlock,
+        deepths=[ 3, 4, 16, 24, 3],
+        blocks_sizes=[64,128,256,512,1024]
     )
 
 ############################################################
