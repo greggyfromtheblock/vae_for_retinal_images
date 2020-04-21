@@ -163,10 +163,10 @@ if __name__ == '__main__':
     net = Encoder().to(device=device)
 
     # Train the network
-    n_epochs = 2
-    learning_rate = 0.1
+    n_epochs = 60
+    learning_rate = 0.001
     criterion = nn.BCELoss().to(device=device)
-    optimizer = optim.Adam(net.parameters(), lr=learning_rate).to(device=device)
+    optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     lossarray = []
 
     # calculate batch_size
