@@ -144,14 +144,10 @@ def normalize(image):
 class OdirVAETraining(FactorVAETraining):
     def __init__(self, encoder, decoder, data, path_prefix, network_name,
                  # alpha=0.25, beta=0.5, m=120,
-                 optimizer=torch.optim.Adam,
-                 optimizer_kwargs={"lr": 5e-5},
-                 **kwargs):
+                 optimizer=torch.optim.Adam):
         super(OdirVAETraining, self).__init__(
             encoder, decoder, data,
-            optimizer=optimizer,
-            optimizer_kwargs=optimizer_kwargs,
-            **kwargs
+            optimizer=optimizer
         )
         self.checkpoint_path = f"{path_prefix}/{network_name}/{network_name}-checkpoint"
         self.writer = SummaryWriter(f"{path_prefix}/{network_name}/")
