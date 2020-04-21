@@ -374,7 +374,7 @@ class Encoder(nn.Module):
         return features, mean, logvar
 
 
-class Decoder_yiftach(nn.Module):
+class Decoder(nn.Module):
     def __init__(self, z=32):
         super(Decoder, self).__init__()
         self.z = z
@@ -444,7 +444,7 @@ class Decoder_yiftach(nn.Module):
         return reconstructions
 
 
-class Decoder(nn.Module):
+class Decoder_henrik(nn.Module):
     def __init__(self, z=32):
         super(Decoder, self).__init__()
 
