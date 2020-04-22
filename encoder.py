@@ -98,8 +98,8 @@ if __name__ == '__main__':
 
     device = "cuda:5" if torch.cuda.is_available() else "cpu"
     torch.cuda.clear_memory_allocated()
-    torch.cuda.empty_cache()
-    torch.cuda.memory_stats(device)
+    # torch.cuda.empty_cache()
+    # torch.cuda.memory_stats(device)
     
     print("\nLoad Data as Tensors...")
     img_dataset = datasets.ImageFolder(
@@ -164,20 +164,21 @@ if __name__ == '__main__':
                         targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
 
     net = Encoder().to(device=device)
-
+    print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
+    
     # Train the network
-    n_epochs = 60
+    n_epochs = 2
     learning_rate = 5e-5
     criterion = nn.BCELoss().to(device=device)
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     lossarray = []
 
     # calculate batch_size
-    batch_size = calc_batch_size(data_size, batch_size=54)
+    batch_size = calc_batch_size(data_size, batch_size=128)
 
     # Train network
     start = time.perf_counter()
-    targets = torch.Tensor(targets).float().cuda(device=device)
+    targets = torch.Tensor(targets).float()
     
     print("Start Training")
     for n in tqdm(range(n_epochs)):
@@ -203,8 +204,8 @@ if __name__ == '__main__':
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = net(inputs)
-            loss = criterion(outputs, labels)
+            outputs = net(inputs.to(device))
+            loss = criterion(outputs, labels.to(device)
             loss.backward()
             optimizer.step()
 
@@ -226,110 +227,110 @@ if __name__ == '__main__':
     #plt.show()
     plt.close()
 
-    PATH = './cifar_net.pth'
+    PATH = f'{figures_dir}/{encoder_name}.pth'
     torch.save(net.state_dict(), PATH)
 
     ########################################
     #           Test network               #
     ########################################
-    torch.cuda.clear_memory_allocated()
+    # torch.cuda.clear_memory_allocated()
     torch.cuda.empty_cache()
-    torch.cuda.memory_stats(device)
+    # torch.cuda.memory_stats(device)
 
-    with torch.no_grad:
-        print("\nLoad Data as Tensors...")
-        img_dataset = datasets.ImageFolder(
-        os.path.dirname(os.path.dirname(testfolder)),
-        transform=transforms.Compose([transforms.ToTensor(), normalize])
-        )
-        data = VAEDataset(img_dataset)
-        print("\nSize of the test dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
+    print("\nLoad Data as Tensors...")
+    img_dataset = datasets.ImageFolder(
+    os.path.dirname(os.path.dirname(testfolder)),
+    transform=transforms.Compose([transforms.ToTensor(), normalize])
+    )
+    data = VAEDataset(img_dataset)
+    print("\nSize of the test dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
 
-        data_size = len(data)
-        targets = np.zeros((data_size, number_of_diagnoses + 1), dtype=np.float16)
+    data_size = len(data)
+    targets = np.zeros((data_size, number_of_diagnoses + 1), dtype=np.float16)
 
-        print("\nBuild targets...")
-        marker = None
-        for i, jpg in tqdm(enumerate(os.listdir(testfolder))):
-            if jpg == '.snakemake_timestamp':
-                marker = True
-                continue
-            jpg = jpg.replace("_flipped", "")
+    print("\nBuild targets...")
+    marker = None
+    for i, jpg in tqdm(enumerate(os.listdir(testfolder))):
+        if jpg == '.snakemake_timestamp':
+            marker = True
+            continue
+        jpg = jpg.replace("_flipped", "")
 
-            for angle in angles:
-                jpg = jpg.replace("_rot_%i" % angle, "")
+        for angle in angles:
+            jpg = jpg.replace("_rot_%i" % angle, "")
 
-            row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
+        row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
 
-            diagnoses_list = list(diagnoses.keys())
-            diagnoses_list.extend(["Patient Sex"])
-            for j, feature in enumerate(diagnoses_list):
-                if not marker:
-                    if feature == "Patient Sex":
-                        targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                    else:
-                        targets[i][j] = csv_df.iloc[row_number].at[feature]
+        diagnoses_list = list(diagnoses.keys())
+        diagnoses_list.extend(["Patient Sex"])
+        for j, feature in enumerate(diagnoses_list):
+            if not marker:
+                if feature == "Patient Sex":
+                    targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                 else:
-                    if feature == "Patient Sex":
-                        targets[i - 1][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                    else:
-                        targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
+                    targets[i][j] = csv_df.iloc[row_number].at[feature]
+            else:
+                if feature == "Patient Sex":
+                    targets[i - 1][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                else:
+                    targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
 
-        # Test the network
-        print("Start testing the network..")
-        batch_size = calc_batch_size(data_size, batch_size=64)
-        inputs = torch.zeros((batch_size, *data[0][0].shape), device=device)
-        labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float, device=device)
-        d_mod_b = data_size % batch_size
-        targets = torch.Tensor(targets).int().to(device=device)
+    # Test the network
+    print("Start testing the network..")
+    batch_size = calc_batch_size(data_size, batch_size=128)
+    inputs = torch.zeros((batch_size, *data[0][0].shape))
+    d_mod_b = data_size % batch_size
+    targets = torch.Tensor(targets).int()
+    
+    print("Build predictions...")
+    outputs = torch.zeros((data_size, number_of_diagnoses+1), device=device)
+    for i in range(0, data_size, batch_size):
+        if (i + batch_size) < data_size:
+            for j in range(batch_size):
+                inputs[j] = data[i + j][0]
+            outputs[i:(i+batch_size)] = net(inputs.to(device).detach()
+        elif d_mod_b != 0:
+            # for uncompleted last batch
+            inputs = torch.zeros((d_mod_b, *data[0][0].shape))
+            for j in range(d_mod_b):
+                inputs[j] = data[i + j][0]
+            outputs[i:(i+d_mod_b)] = net(inputs.to(device).detach()
+                                            
+    # To measure the accuracy on the basic of the rounded outcome for each diagnosis could lead to a less
+    # meaningful result. That's why this approach is deprecated and here outcommented.
+    # In lieu thereof, a ROC curve is used.
+    # The network has as an outcome a vector of floats with values between 0 and 1. The threshold to round up is
+    # increased stepwise, starts with 0 until 1.
+    # In every step we calculate the Sensitivity/True Positiv Rate (TRP) and the Specifity/True Negative Rate:
+    # TRP = TP/(TP+FN)  and  FPR=FP/(TN+FP).
+    # https://de.wikipedia.org/wiki/Beurteilung_eines_bin%C3%A4ren_Klassifikators#Sensitivit%C3%A4t_und_Falsch-Negativ-Rate
+    # https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
 
-        # To measure the accuracy on the basic of the rounded outcome for each diagnosis could lead to a less
-        # meaningful result. That's why this approach is deprecated and here outcommented.
-        # In lieu thereof, a ROC curve is used.
-        # The network has as an outcome a vector of floats with values between 0 and 1. The threshold to round up is
-        # increased stepwise, starts with 0 until 1.
-        # In every step we calculate the Sensitivity/True Positiv Rate (TRP) and the Specifity/True Negative Rate:
-        # TRP = TP/(TP+FN)  and  FPR=FP/(TN+FP).
-        # https://de.wikipedia.org/wiki/Beurteilung_eines_bin%C3%A4ren_Klassifikators#Sensitivit%C3%A4t_und_Falsch-Negativ-Rate
-        # https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
+    # roc_auc_score: Compute Area Under the Receiver Operating Characteristic Curve (ROC AUC) from prediction scores:
+    # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html
 
-        # roc_auc_score: Compute Area Under the Receiver Operating Characteristic Curve (ROC AUC) from prediction scores:
-        # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html
+    # average_auc_score: Compute average precision (AP) from prediction scores
+    # AP = sum ((R_N - R_N_-1) * P_N)
+    # AP summarizes a precision-recall curve as the weighted mean of precisions achieved at each threshold, with the
+    # increase in recall from the previous threshold used as the weight: where R_N and P_N are the precision and recall
+    # at the n-th threshold. This implementation is not interpolated and is different from computing the area under the
+    # precision-recall curve with the trapezoidal rule, which uses linear interpolation and can be too optimistic.
+    # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score
+    # https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-classification-in-python/
 
-        # average_auc_score: Compute average precision (AP) from prediction scores
-        # AP = sum ((R_N - R_N_-1) * P_N)
-        # AP summarizes a precision-recall curve as the weighted mean of precisions achieved at each threshold, with the
-        # increase in recall from the previous threshold used as the weight: where R_N and P_N are the precision and recall
-        # at the n-th threshold. This implementation is not interpolated and is different from computing the area under the
-        # precision-recall curve with the trapezoidal rule, which uses linear interpolation and can be too optimistic.
-        # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score
-        # https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-classification-in-python/
-        outputs = torch.zeros((data_size, number_of_diagnoses+1), device=device)
-        for i in range(0, data_size, batch_size):
-            if (i + batch_size) < data_size:
-                for j in range(batch_size):
-                    inputs[j] = data[i + j][0]
-                outputs[i:(i+batch_size)] = net(inputs).detach()
-            elif d_mod_b != 0:
-                # for uncompleted last batch
-                inputs = torch.zeros((d_mod_b, *data[0][0].shape))
-                for j in range(d_mod_b):
-                    inputs[j] = data[i + j][0]
-                outputs[i:(i+d_mod_b)] = net(inputs).detach()
+    # outputs = torch.round(net(inputs))
+    # total += labels.size(0) * (number_of_diagnoses+1)
+    # correct += (outputs == labels).sum().item()
 
-        # outputs = torch.round(net(inputs))
-        # total += labels.size(0) * (number_of_diagnoses+1)
-        # correct += (outputs == labels).sum().item()
-
-        # correct = 0
-        # total = 0
-        # print('Accuracy of the network on the test images: %d %%' % (100 * correct / total))
+    # correct = 0
+    # total = 0
+    # print('Accuracy of the network on the test images: %d %%' % (100 * correct / total))
 
     # ROC-Curve/AUC with sklearn:
     from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score, f1_score, auc
 
     try:
-        outputs = outputs.detach().numpy()
+        outputs = outputs.to(device="cpu").detach().numpy()
         targets = targets.float().numpy()
 
         # calculate roc curves
