@@ -97,8 +97,8 @@ if __name__ == '__main__':
     os.makedirs(figures_dir+f'/{encoder_name}', exist_ok=True)
 
     device = "cuda:5" if torch.cuda.is_available() else "cpu"
-    torch.cuda.clear_memory_allocated()
-    # torch.cuda.empty_cache()
+    # torch.cuda.clear_memory_allocated()
+    torch.cuda.empty_cache()
     # torch.cuda.memory_stats(device)
     
     print("\nLoad Data as Tensors...")
