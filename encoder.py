@@ -205,7 +205,7 @@ if __name__ == '__main__':
 
             # forward + backward + optimize
             outputs = net(inputs.to(device))
-            loss = criterion(outputs, labels.to(device)
+            loss = criterion(outputs, labels.to(device))
             loss.backward()
             optimizer.step()
 
@@ -288,13 +288,13 @@ if __name__ == '__main__':
         if (i + batch_size) < data_size:
             for j in range(batch_size):
                 inputs[j] = data[i + j][0]
-            outputs[i:(i+batch_size)] = net(inputs.to(device).detach()
+            outputs[i:(i+batch_size)] = net(inputs.to(device)).detach()
         elif d_mod_b != 0:
             # for uncompleted last batch
             inputs = torch.zeros((d_mod_b, *data[0][0].shape))
             for j in range(d_mod_b):
                 inputs[j] = data[i + j][0]
-            outputs[i:(i+d_mod_b)] = net(inputs.to(device).detach()
+            outputs[i:(i+d_mod_b)] = net(inputs.to(device)).detach()
                                             
     # To measure the accuracy on the basic of the rounded outcome for each diagnosis could lead to a less
     # meaningful result. That's why this approach is deprecated and here outcommented.
