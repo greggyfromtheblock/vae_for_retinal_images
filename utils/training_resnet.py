@@ -449,6 +449,8 @@ class Decoder(nn.Module):
     super(Decoder, self).__init__()
     self.z = z  
     h,w = imsize
+    self.h = h
+    self.w = w
     self.decoder = nn.Sequential(
       nn.Linear(z, 128),
       nn.ReLU(),
@@ -458,7 +460,7 @@ class Decoder(nn.Module):
     )
 
   def forward(self, sample):
-    return self.decoder(sample).view(-1, 3, h, w)
+    return self.decoder(sample).view(-1, 3, self.h, self.w)
 
 
 class Decoder_henrik(nn.Module):
