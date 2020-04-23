@@ -456,7 +456,7 @@ class Decoder(nn.Module):
       nn.ReLU(),
       nn.Linear(128, 256),
       nn.ReLU(),
-      nn.Linear(256, h * w)
+      nn.Linear(256, h * w*3)
     )
 
   def forward(self, sample):
