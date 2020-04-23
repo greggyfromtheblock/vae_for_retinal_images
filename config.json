@@ -1,7 +1,7 @@
 {
   "-out_directory": {
     "short": "-od",
-    "value": "output_y_ltr_resnet_custom2",
+    "value": "output_y_ltr_resnet_custom3",
     "help": "Output directory. for logger",
     "type": "str"
   },
@@ -13,31 +13,31 @@
   },
   "-logging_name": {
     "short": "-n",
-    "value": "test_y_ltr_resnet_custom2",
+    "value": "test_y_ltr_resnet_custom3",
     "help": "Global logger prefix.",
     "type": "str"
   },
   "-network_name": {
     "short": "-nn",
-    "value": "Retinal_VAE_y_ltr_resnet_custom2",
+    "value": "Retinal_VAE_y_ltr_resnet_custom3",
     "help": "Some juicy VAE name.",
     "type": "str"
   },
     "-network_dir": {
     "short": "-nd",
-    "value": "Retinal_VAE_y_ltr_resnet_custom2",
+    "value": "Retinal_VAE_y_ltr_resnet_custom3",
     "help": "Directory to event, torch files and trained encoder.",
     "type": "str"
   },
   "-path_prefix": {
       "short": "-pathprefix",
-      "value": "nn_output_y_ltr_resnet_custom2",
+      "value": "nn_output_y_ltr_resnet_custom3",
       "help": "where the training torch files are stored?",
       "type": "str"
   },
   "-network_vis_dir": {
     "short": "-nvd",
-    "value": "visualizations_odir-vae-y-ltr-custom2",
+    "value": "visualizations_odir-vae-y-ltr-custom3",
     "help": "Directory to visualizations",
     "type": "str"
   },
