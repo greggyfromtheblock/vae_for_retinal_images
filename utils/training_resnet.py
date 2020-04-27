@@ -24,6 +24,8 @@ import torchvision.models as models
 
 from collections import OrderedDict
 
+import torchsupport.modules.losses.vae as vl
+
 ############## Resnet ###################################################
 
 
@@ -540,6 +542,13 @@ class OdirVAETraining(VAETraining):
         self.writer = SummaryWriter(f"{path_prefix}/{network_name}/")
         self.epoch = None
 
+
+    def reconstruction_loss(self, reconstruction, target):
+       # return vl.reconstruction_bce(reconstruction, target)
+       result = F.mse_loss(reconstruction, target, reduction='sum')
+       result /= target.size(0)
+       return result
+
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
         # what is that?
@@ -548,10 +557,10 @@ class OdirVAETraining(VAETraining):
             print("%i-Epoch" % (self.epoch_id + 1))
 
         if self.step_id % 29 == 0:
-            self.writer.add_image("target", data[0], self.step_id)
+            self.writer.add_image("target", normalize(data[0]), self.step_id)
             self.writer.add_image(
                 "reconstruction",
-                nn.functional.sigmoid(reconstructions[0]),
+                normalize(nn.functional.sigmoid(reconstructions[0])),
                 self.step_id,
             )
             #print("output shape: ", reconstructions[0].shape)

@@ -1,37 +1,37 @@
 {
   "-out_directory": {
     "short": "-od",
-    "value": "output_y_ltr_resnet_custom3",
+    "value": "output_y_small_custom4",
     "help": "Output directory. for logger",
     "type": "str"
   },
   "-input": {
     "short": "-i",
-    "value": "../retina/outputs/training_set_y_ltr",
+    "value": "../retina/outputs/training_small_dataset",
     "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
     "type": "str"
   },
   "-logging_name": {
     "short": "-n",
-    "value": "test_y_ltr_resnet_custom3",
+    "value": "test_y_small_custom4",
     "help": "Global logger prefix.",
     "type": "str"
   },
   "-network_name": {
     "short": "-nn",
-    "value": "Retinal_VAE_y_ltr_resnet_custom3",
+    "value": "Retinal_VAE_y_small_custom4",
     "help": "Some juicy VAE name.",
     "type": "str"
   },
     "-network_dir": {
     "short": "-nd",
-    "value": "Retinal_VAE_y_ltr_resnet_custom3",
+    "value": "Retinal_VAE_y_small_custom4",
     "help": "Directory to event, torch files and trained encoder.",
     "type": "str"
   },
   "-path_prefix": {
       "short": "-pathprefix",
-      "value": "nn_output_y_ltr_resnet_custom3",
+      "value": "nn_output_y_small_custom4",
       "help": "where the training torch files are stored?",
       "type": "str"
   },
