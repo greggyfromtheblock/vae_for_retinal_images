@@ -458,7 +458,7 @@ class Decoder(nn.Module):
       nn.ReLU(),
       nn.Linear(128, 256),
       nn.ReLU(),
-      nn.Linear(256, h * w*3),
+      nn.Linear(256, h * w*3)
 #      nn.Sigmoid.()
     )
 
@@ -546,8 +546,8 @@ class OdirVAETraining(VAETraining):
 
     def reconstruction_loss(self, reconstruction, target):
        #return vl.reconstruction_bce(reconstruction, target)
-       reconstruction = F.sigmoid(reconstruction)
-       target = F.sigmoid(target)
+       #reconstruction = F.sigmoid(reconstruction)
+       #target = F.sigmoid(target)
        result = F.mse_loss(reconstruction, target, reduction='sum')
        #result /= target.size(0)
        return result
@@ -572,8 +572,8 @@ class OdirVAETraining(VAETraining):
             self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image(
                 "reconstruction",
-                nn.functional.sigmoid(reconstructions[0]),
-                #reconstructions[0],
+                #nn.functional.sigmoid(reconstructions[0]),
+                reconstructions[0],
                 self.step_id,
             )
             print("output shape: ", reconstructions[0].shape)
