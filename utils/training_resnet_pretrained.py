@@ -369,7 +369,7 @@ class Encoder(nn.Module):
         #self.encoder = model.forward
 
         self.encoder = nn.Sequential(
-                model.forward,
+                model.forward(),
                 nn.Linear(1000,z)
                 )
 
