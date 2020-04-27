@@ -17,8 +17,8 @@
 # N: normal
 # D: ((non) proliferative) nonproliferative retinopathy
 # G: glaucoma
-# C: catarct
-# A: age related macular degeneration
+# C: cataract
+# A: age-related macular degeneration
 # H: hypertensive retinopathy
 # M: myopia
 # O: other diagnosys except 'anterior segment image' and 'no fonndus image'
@@ -49,8 +49,8 @@ Diagnostic keyword code:
 N: normal
 D: ((non) proliferative) nonproliferative retinopathy
 G: glaucoma
-C: catarct
-A: age related macular degeneration
+C: cataract
+A: age-related macular degeneration
 H: hypertensive retinopathy
 M: myopia
 O: other diagnosys except 'anterior segment image' and 'no fonndus image'
@@ -105,8 +105,8 @@ def decode_d_k(xsl_file, output_file="odir/odir_train_lr_annotations.csv"):
         "N": "normal fundus",
         "D": "proliferative retinopathy",
         "G": "glaucoma",
-        "C": "catarct",
-        "A": "age related macular degeneration",
+        "C": "cataract",
+        "A": "age-related macular degeneration",
         "H": "hypertensive retinopathy",
         "M": "myopia",
         "ant": "anterior segment",
@@ -194,6 +194,7 @@ def decode_d_k(xsl_file, output_file="odir/odir_train_lr_annotations.csv"):
     dirname = os.path.dirname(output_file)
     os.makedirs(dirname, exist_ok=True)
     new_df.to_csv(output_file, sep="\t", index=False, header=True)
+    #df.to_csv(output_file + "both eyes.csv", sep="\t", index=False, header=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=""""
