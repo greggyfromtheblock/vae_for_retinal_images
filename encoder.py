@@ -32,7 +32,7 @@ def calc_batch_size(datasize, batch_size=128):
 
 
 class Encoder(nn.Module):
-    def __init__(self, z=32):
+    def __init__(self, number_of_features):
         # Incoming image has shape e.g. 192x188x3
         super(Encoder, self).__init__()
 
@@ -68,8 +68,8 @@ class Encoder(nn.Module):
             *linear_block(512, 256, dropout=0.3),
             *linear_block(256, 128),
             *linear_block(128, 64),
-            nn.Linear(64, 8),
-            nn.BatchNorm1d(8),
+            nn.Linear(64, number_of_features),
+            nn.BatchNorm1d(number_of_features),
             nn.Sigmoid()
             # *linear_block(64, 8, negative_slope=0.0)
         )
@@ -162,7 +162,7 @@ if __name__ == '__main__':
                     else:
                         targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
 
-    net = Encoder().to(device=device)
+    net = Encoder(number_of_features=len(diagnoses_list).to(device=device)
     print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
     
     # Train the network
