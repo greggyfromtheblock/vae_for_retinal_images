@@ -296,11 +296,11 @@ if __name__ == '__main__':
             outputs[i:(i+d_mod_b)] = net(inputs.to(device)).detach()
                                             
     # To measure the accuracy on the basic of the rounded outcome for each diagnosis could lead to a less
-    # meaningful result. That's why this approach is deprecated and here outcommented.
-    # In lieu thereof, a ROC curve is used.
+    # meaningful result. That's why this approach is deprecated.
+    # In lieu thereof, a ROC and PR curve is used.
     # The network has as an outcome a vector of floats with values between 0 and 1. The threshold to round up is
     # increased stepwise, starts with 0 until 1.
-    # In every step we calculate the Sensitivity/True Positiv Rate (TRP) and the Specifity/True Negative Rate:
+    # In every step we calculate the Sensitivity/True Positiv Rate (TRP) and the False Positive Rate (1-Specifity):
     # TRP = TP/(TP+FN)  and  FPR=FP/(TN+FP).
     # https://de.wikipedia.org/wiki/Beurteilung_eines_bin%C3%A4ren_Klassifikators#Sensitivit%C3%A4t_und_Falsch-Negativ-Rate
     # https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
@@ -319,118 +319,142 @@ if __name__ == '__main__':
     # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score
     # https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-classification-in-python/
 
-    # outputs = torch.round(net(inputs))
-    # total += labels.size(0) * (number_of_diagnoses+1)
-    # correct += (outputs == labels).sum().item()
-
-    # correct = 0
-    # total = 0
-    # print('Accuracy of the network on the test images: %d %%' % (100 * correct / total))
-
     # ROC-Curve/AUC with sklearn:
     from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score, f1_score, auc
 
-    try:
-        outputs = outputs.to(device="cpu").detach().numpy()
-        targets = targets.float().numpy()
+    outputs = outputs.to(device="cpu").detach().numpy()
+    targets = targets.float().numpy()
+    colors = ['navy', 'turquoise', 'darkorange', 'cornflowerblue', 'indigo', 'darkgreen', 'firebrick', 'sienna',
+              'limegreen', 'red']
 
-        # calculate roc curves
-        lr_fpr, lr_tpr, _ = roc_curve(targets, outputs)
+    tpr = dict()  # Sensitivity/False Positive Rate
+    fpr = dict()   # True Positive Rate / (1-Specifity)
+    auc = dict()
 
-        lr_auc = roc_auc_score(lr_fpr, lr_tpr, average='micro')
-        # summarize scores
-        print('Logistic: ROC AUC=%.3f' % (lr_auc))
+    # A "micro-average": quantifying score on all classes jointly
+    tpr["micro"], fpr["micro"], _ = roc_curve(targets.ravel(), outputs.ravel())
+    auc["micro"] = roc_auc_score(targets.ravel(), outputs.ravel(), average='micro')
+    print('AUC score, micro-averaged over all classes: {0:0.2f}'.format(auc['micro']))
 
-        # plot the roc curve for the model
-        plt.plot([0, 1], [0, 1], linestyle='--', c='darkorange')
-        plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
-        plt.grid()
-        plt.title("ROC-Curve - Encoder", fontsize=16, fontweight='bold')
-        plt.savefig(f'{figures_dir}/{encoder_name}_micro-averaged_ROC_curve_auc_{lr_auc}.png')
-        # axis labels
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.show()
-        plt.close()
-    except ValueError:
-        pass
+    plt.figure()
+    plt.step(tpr['micro'], fpr['micro'], where='post')
+    plt.xlabel('False Positive Rate / Sensitivity', fontsize=11)
+    plt.ylabel('True Negative Rate / (1 - Specifity)', fontsize=11)
+    plt.ylim([0.0, 1.05])
+    plt.xlim([0.0, 1.0])
+    plt.title(
+        'AUC score, micro-averaged over all classes: AP={0:0.2f}'
+            .format(auc["micro"]), fontsize=13, fontweight='bold')
+    plt.show()
+    plt.savefig(f'{figures_dir}/{encoder_name}_ROC_curve_micro_averaged.png')
+    plt.close()
 
-    try:
-        average_precision = average_precision_score(targets, outputs, average='micro')
-        print('2-class Precision-Recall curve: Average Precision= %.3f'.format(average_precision))
-
-        lr_precision, lr_recall, _ = precision_recall_curve(targets, outputs)
-        lr_f1, lr_auc = f1_score(targets, outputs, average='micro'), auc(lr_recall, lr_precision)
-        print('Logistic: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
-
-        # plot the precision-recall curves
-        plt.grid()
-        plt.plot(lr_recall, lr_precision, marker='.', label='Logistic')
-        plt.title("Precision-Recall-Curve - ", fontsize=16, fontweight='bold')
-        plt.savefig(f'{figures_dir}/{encoder_name}/micro-averaged_precision_recall_curve' + '_auc_%.2f_f1_%.2f_ap_%.2f.png' % (lr_auc, lr_f1, average_precision))
-        plt.xlabel('Recall')
-        plt.ylabel('Precision')
-        plt.legend()
-        plt.show()
-        plt.close()
-
-    except ValueError:
-        pass
-
-    for i, diagnosis in enumerate(diagnoses_list):
+    # Plot of all classes ('macro')
+    for i in range(number_of_diagnoses + 1):
+        tpr[i], fpr[i], _ = roc_curve(targets[:, i], outputs[:, i])
         try:
-            lr_auc = roc_auc_score(targets[:,i], outputs[:, i])
-            # summarize scores
-            print('Logistic: ROC AUC=%.3f' % (lr_auc))
-            # calculate roc curves
-            lr_fpr, lr_tpr, _ = roc_curve(targets[:,i], outputs[:,i])
-            # plot the roc curve for the model
-            plt.plot([0, 1], [0, 1], linestyle='--', c='darkorange')
-            plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
-            plt.grid()
-            if diagnosis != "Patient Sex":
-                plt.title("ROC-Curve - {}".format(diagnoses[diagnosis]), fontsize=16, fontweight='bold')
-                plt.savefig(f'{figures_dir}/{encoder_name}/{diagnoses[diagnosis]}_ROC_curve_' + 'auc_%.2f.png' % lr_auc)
-            else:
-                plt.title("ROC-Curve - Patient Sex - auc=%.3f" % lr_auc, fontsize=16, fontweight='bold')
-                plt.savefig(f'{figures_dir}/{encoder_name}/Patient_Sex_ROC_curve_' + 'auc_%.2f.png' % lr_auc)
-            # axis labels
-            plt.xlabel('False Positive Rate')
-            plt.ylabel('True Positive Rate')
-            plt.show()
-            plt.close()
-
+            auc[i] = roc_auc_score(targets[:, i], outputs[:, i])
         except ValueError:
-            pass
+            print(i, diagnoses_list[i], targets[:,i], outputs[:,i])
 
-        try:
-            average_precision = average_precision_score(targets[:, i], outputs[:, i])
-            print('2-class Precision-Recall curve: AP={0:0.2f}'.format(average_precision))
+    plt.figure(figsize=(12, 10))
+    lines = []
+    labels = []
 
-            lr_precision, lr_recall, _ = precision_recall_curve(targets[:, i], outputs[:, i])
-            lr_f1, lr_auc = f1_score(targets[:, i], outputs[:, i]), auc(lr_recall, lr_precision)
-            print('Logistic: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+    l, = plt.plot(tpr["micro"], fpr["micro"], color='gold', lw=2)
+    lines.append(l)
+    labels.append('micro-averaged ROC-AUC = {0:0.2f})'
+                  ''.format(auc["micro"]))
 
-            # plot the precision-recall curves
-            plt.grid()
-            plt.plot(lr_recall, lr_precision, marker='.', label='Logistic')
-            if diagnosis != "Patient Sex":
-                plt.title("Precision-Recall-Curve - %s f1=%.3f auc=%.3f" % (diagnoses[diagnosis], lr_f1, lr_auc), fontsize=16, fontweight='bold')
-                plt.savefig(f'{figures_dir}/{encoder_name}/{diagnoses[diagnosis]}_precision_recall_curve_auc_' + + '_auc_%.2f_f1_%.2f_ap_%.2f.png' % (lr_auc, lr_f1, average_precision))
+    for i, color in zip(range(number_of_diagnoses + 1), colors):
+        if i in auc.keys():
+            l, = plt.plot(tpr[i], fpr[i], color=color, lw=2)
+            lines.append(l)
+            if diagnoses_list[i] != "Patient Sex":
+                labels.append('ROC for class {0} (ROC-AUC = {1:0.2f})'
+                              ''.format(diagnoses[diagnoses_list[i]], auc[i]))
             else:
-                plt.title("Precision-Recall-Curve - Patient Sex", fontsize=16, fontweight='bold')
-                plt.savefig(f'{figures_dir}/{encoder_name}/Patient_Sex_precision_recall_curve_' + + '_auc_%.2f_f1_%.2f_ap_%.2f.png' % (lr_auc, lr_f1, average_precision))
-            # axis labels
-            plt.xlabel('Recall')
-            plt.ylabel('Precision')
-            # show the legend
-            plt.legend()
-            # show the plot
-            plt.show()
-            plt.close()
+                labels.append('ROC for class {0} (area = {1:0.2f})'
+                              ''.format(diagnoses_list[i], auc[i]))
 
-        except ValueError:
-            pass
+    fig = plt.gcf()
+    fig.subplots_adjust(bottom=0.25)
+    plt.xlabel('False Positive Rate / Sensitivity', fontsize=11)
+    plt.ylabel('True Negative Rate / (1 - Specifity)', fontsize=11)
+    plt.title('ROC curve of all features', fontsize=13, fontweight='bold')
+    plt.legend(lines, labels, loc=(0, -.42), prop=dict(size=9))
+    plt.savefig(f'{figures_dir}/{encoder_name}_ROC_curve_of_all_features.png')
+    plt.show()
+    plt.close()
+
+    # Precision-Recall Plots
+    precision = dict()
+    recall = dict()
+    average_precision = dict()
+
+    # A "micro-average": quantifying score on all classes jointly
+    # TODO: add lr_f1, lr_auc = f1_score(targets[:, i], outputs[:, i]), auc(lr_recall, lr_precision) in title or label or filename
+
+    precision["micro"], recall["micro"], _ = precision_recall_curve(targets.ravel(), outputs.ravel())
+    average_precision["micro"] = average_precision_score(targets, outputs, average="micro")
+    print('Average precision score, micro-averaged over all classes: {0:0.2f}'.format(average_precision["micro"]))
+    plt.figure()
+    plt.step(recall['micro'], precision['micro'], where='post')
+    plt.xlabel('Recall', fontsize=11)
+    plt.ylabel('Precision', fontsize=11)
+    plt.ylim([0.0, 1.05])
+    plt.xlim([0.0, 1.0])
+    plt.title(
+        'Average precision score, micro-averaged over all classes: AP={0:0.2f}'
+            .format(average_precision["micro"]), fontsize=13, fontweight='bold')
+    plt.show()
+    plt.close()
+
+    # Plot of all classes ('macro')
+    for i in range(number_of_diagnoses + 1):
+        precision[i], recall[i], _ = precision_recall_curve(targets[:, i],
+                                                            outputs[:, i])
+        average_precision[i] = average_precision_score(targets[:, i], outputs[:, i])
+
+    plt.figure(figsize=(15, 18))
+    f_scores = np.linspace(0.2, 0.8, num=4)
+    lines = []
+    labels = []
+    for f_score in f_scores:
+        x = np.linspace(0.01, 1)
+        y = f_score * x / (2 * x - f_score)
+        l, = plt.plot(x[y >= 0], y[y >= 0], color='gray', alpha=0.2)
+        plt.annotate('f1={0:0.1f}'.format(f_score), xy=(0.9, y[45] + 0.02))
+
+    lines.append(l)
+    labels.append('iso-f1 curves')
+    l, = plt.plot(recall["micro"], precision["micro"], color='gold', lw=2)
+    lines.append(l)
+    labels.append('micro-average Precision-recall (area (average precision) = {0:0.2f})'
+                  ''.format(average_precision["micro"]))
+
+    # TODO: add lr_f1, lr_auc = f1_score(targets[:, i], outputs[:, i]), auc(lr_recall, lr_precision) in title or label or filename
+    for i, color in zip(range(number_of_diagnoses + 1), colors):
+        l, = plt.plot(recall[i], precision[i], color=color, lw=2)
+        lines.append(l)
+        if diagnoses_list[i] != "Patient Sex":
+            labels.append('Precision-recall for class {0} (area = {1:0.2f})'
+                          ''.format(diagnoses[diagnoses_list[i]], average_precision[i]))
+        else:
+            labels.append('Precision-recall for class {0} (area = {1:0.2f})'
+                          ''.format(diagnoses_list[i], average_precision[i]))
+
+    fig = plt.gcf()
+    fig.subplots_adjust(bottom=0.25)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Recall', fontsize=11)
+    plt.ylabel('Precision', fontsize=11)
+    plt.title('Precision-Recall curve of all features')
+    plt.legend(lines, labels, loc=(0, -.42), prop=dict(size=9))
+    plt.show()
+    plt.savefig(f'{figures_dir}/{encoder_name}_PR_curve_of_all_features.png')
+
 
 
 
