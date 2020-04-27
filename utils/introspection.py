@@ -62,8 +62,7 @@ if __name__ == '__main__':
         "A": "age related macular degeneration",
         "H": "hypertensive retinopathy",
         "M": "myopia",
-        # "ant": "anterior segment",
-        # "no": "no fundus image",
+        "O": "other diagnosis"
     }
     number_of_diagnoses = len(diagnoses)
     data_size = len(data)
