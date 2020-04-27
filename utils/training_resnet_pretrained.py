@@ -364,7 +364,9 @@ class Encoder(nn.Module):
 
         #model = resnet101(3, z).cuda() #3: rgb input channels, 32: latent space dim
         #model = resnetCustom(3,z).cuda()
-        model = models.resnet101_2(pretrained=True).cuda() #output is [-1, 1000]
+
+        #model = models.resnet101_2(pretrained=True).cuda() #output is [-1, 1000]
+        model = models.wide_resnet101_2(pretrained=True).cuda() #output is [-1, 1000]
 
         #self.encoder = model.forward
 
