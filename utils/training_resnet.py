@@ -547,10 +547,10 @@ class OdirVAETraining(VAETraining):
     ##### custom loss
     def reconstruction_loss(self, reconstruction, target):
        #return vl.reconstruction_bce(reconstruction, target)
-       #reconstruction = F.sigmoid(reconstruction)
-       #target = F.sigmoid(target)
+       reconstruction = F.sigmoid(reconstruction)
+       target = F.sigmoid(target)
        result = F.mse_loss(reconstruction, target, reduction='sum')
-       #result /= target.size(0)
+       result /= target.size(0)
        return result
 
     def loss(self, mean, logvar, reconstruction, target):
