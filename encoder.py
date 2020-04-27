@@ -359,7 +359,7 @@ if __name__ == '__main__':
         average_precision = average_precision_score(targets, outputs, average='micro')
         print('2-class Precision-Recall curve: Average Precision= %.3f'.format(average_precision))
 
-        lr_precision, lr_recall, _ = precision_recall_curve(targets, outputs, average='micro')
+        lr_precision, lr_recall, _ = precision_recall_curve(targets, outputs)
         lr_f1, lr_auc = f1_score(targets, outputs, average='micro'), auc(lr_recall, lr_precision)
         print('Logistic: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
 
