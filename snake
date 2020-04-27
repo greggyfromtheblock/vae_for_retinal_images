@@ -88,7 +88,7 @@ rule preprocess_testing_images:
 
 rule preprocess_annotations:
     input:
-        "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Testing_Annotations/ODIR-5K_Training_Annotations.xlsx"
+        "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Training_Annotations/ODIR-5K_Training_Annotations.xlsx"
     output:
         expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv",
         user=config["YOURNAME"])
