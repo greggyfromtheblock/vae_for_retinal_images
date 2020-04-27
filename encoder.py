@@ -114,11 +114,12 @@ if __name__ == '__main__':
     diagnoses = {
         "N": "normal fundus",
         "D": "proliferative retinopathy",
-        # "G": "glaucoma",  not relevant because of no occurence in the annotations
-        # "C": "cataract",  same
+        "G": "glaucoma",  not relevant because of no occurence in the annotations
+        "C": "cataract",  same
         "A": "age related macular degeneration",
         "H": "hypertensive retinopathy",
-        "M": "myopia"
+        "M": "myopia",
+        "O": "other diagnosis"
     }
     number_of_diagnoses = len(diagnoses)
     data_size = len(data)
