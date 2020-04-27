@@ -367,14 +367,20 @@ class Encoder(nn.Module):
 
         model = models.resnet101(pretrained=True).cuda() #output is [-1, 1000]
         #model = models.wide_resnet101_2(pretrained=True).cuda() #output is [-1, 1000]
+        # freeze the weights because we are using pretrained model:
+        for param in model.parameters():
+            param.requires_grad = False
+        #add last layer to fit zdim (by default it will be requires_grad=T
+        model.final_fc = nn.Linear(model.fc.out_features, z)
 
         #self.encoder = model.forward
+        self.encoder = model
 
-        self.encoder = nn.Sequential(
-                model,
-#                nn.Linear(1000,z)
-                )
-
+#        self.encoder = nn.Sequential(
+#                model,
+##                nn.Linear(1000,z)
+#                )
+#
         self.mean = nn.Linear(z, z)
         self.logvar = nn.Linear(z, z)
 
