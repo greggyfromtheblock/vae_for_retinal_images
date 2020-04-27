@@ -1,7 +1,7 @@
 {
   "-out_directory": {
     "short": "-od",
-    "value": "output_y_small_custom4",
+    "value": "output_y_small_custom5",
     "help": "Output directory. for logger",
     "type": "str"
   },
@@ -13,25 +13,25 @@
   },
   "-logging_name": {
     "short": "-n",
-    "value": "test_y_small_custom4",
+    "value": "test_y_small_custom5",
     "help": "Global logger prefix.",
     "type": "str"
   },
   "-network_name": {
     "short": "-nn",
-    "value": "Retinal_VAE_y_small_custom4",
+    "value": "Retinal_VAE_y_small_custom5",
     "help": "Some juicy VAE name.",
     "type": "str"
   },
     "-network_dir": {
     "short": "-nd",
-    "value": "Retinal_VAE_y_small_custom4",
+    "value": "Retinal_VAE_y_small_custom5",
     "help": "Directory to event, torch files and trained encoder.",
     "type": "str"
   },
   "-path_prefix": {
       "short": "-pathprefix",
-      "value": "nn_output_y_small_custom4",
+      "value": "nn_output_y_small_custom5",
       "help": "where the training torch files are stored?",
       "type": "str"
   },
