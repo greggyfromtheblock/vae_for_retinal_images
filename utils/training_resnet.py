@@ -557,10 +557,10 @@ class OdirVAETraining(VAETraining):
             print("%i-Epoch" % (self.epoch_id + 1))
 
         if self.step_id % 29 == 0:
-            self.writer.add_image("target", normalize(data[0]), self.step_id)
+            self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image(
                 "reconstruction",
-                normalize(nn.functional.sigmoid(reconstructions[0])),
+                nn.functional.sigmoid(reconstructions[0]),
                 self.step_id,
             )
             #print("output shape: ", reconstructions[0].shape)
