@@ -32,7 +32,7 @@ def calc_batch_size(datasize, batch_size=128):
 
 
 class Encoder(nn.Module):
-    def __init__(self, number_of_features):
+    def __init__(self, number_of_features, z=32):
         # Incoming image has shape e.g. 192x188x3
         super(Encoder, self).__init__()
 
