@@ -114,8 +114,8 @@ if __name__ == '__main__':
     diagnoses = {
         "N": "normal fundus",
         "D": "proliferative retinopathy",
-        "G": "glaucoma",  not relevant because of no occurence in the annotations
-        "C": "cataract",  same
+        "G": "glaucoma", 
+        "C": "cataract", 
         "A": "age related macular degeneration",
         "H": "hypertensive retinopathy",
         "M": "myopia",
