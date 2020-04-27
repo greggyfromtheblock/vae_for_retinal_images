@@ -12,15 +12,13 @@
 # in their own binary fields.
 # The output is a csv file and is printed to stdout for easy piping,
 # unless the --output argument is used.
-#####
-# Find All Diagnostic Keywords and Encode Them with:
-#####
+### Find All Diagnostic Keywords and Encode Them with:
 # N,D,G,C,A,H,M,O
 # N: normal
 # D: ((non) proliferative) nonproliferative retinopathy
 # G: glaucoma
-# C: catarct
-# A: age related macular degeneration
+# C: cataract
+# A: age-related macular degeneration
 # H: hypertensive retinopathy
 # M: myopia
 # O: other diagnosys except 'anterior segment image' and 'no fonndus image'
@@ -51,18 +49,17 @@ Diagnostic keyword code:
 N: normal
 D: ((non) proliferative) nonproliferative retinopathy
 G: glaucoma
-C: catarct
-A: age related macular degeneration
+C: cataract
+A: age-related macular degeneration
 H: hypertensive retinopathy
 M: myopia
 O: other diagnosys except 'anterior segment image' and 'no fonndus image'
 special keywords: 'anterior segment image',  'no fonndus image'
 """
 
-
-def decode_d_k(xslx_file, output_file):
-
-    df = pd.read_excel(xslx_file)
+def decode_d_k(xsl_file, output_file="odir/odir_train_lr_annotations.csv"):
+    #xsl_file = path + "ODIR-5K_Training_Annotations(Updated)_V2.xlsx"
+    df = pd.read_excel(xsl_file)
 
     # get all the unique diagnostics as a list
     l = df["Left-Diagnostic Keywords"].tolist()
@@ -103,13 +100,13 @@ def decode_d_k(xslx_file, output_file):
     df["R-ant"] = np.zeros_like(df["O"])
     df["R-no"] = np.zeros_like(df["O"])
 
-    # Find All Diagnostic Keywords and Encode Them with:
+    ### Find All Diagnostic Keywords and Encode Them with:
     feature = {
         "N": "normal fundus",
         "D": "proliferative retinopathy",
         "G": "glaucoma",
-        "C": "catarct",
-        "A": "age related macular degeneration",
+        "C": "cataract",
+        "A": "age-related macular degeneration",
         "H": "hypertensive retinopathy",
         "M": "myopia",
         "ant": "anterior segment",
@@ -135,7 +132,7 @@ def decode_d_k(xslx_file, output_file):
             df.loc[testl, "L" + key] = 1
             df.loc[testr, "R" + key] = 1
 
-    # remove feature keywords off the list of diagnostics
+    # remove feature keywors off the list of diagnostics
     # so only 'O' Diagnostics remain:
     olist = l.copy()
     for w in l:
@@ -194,10 +191,39 @@ def decode_d_k(xslx_file, output_file):
 
     new_df = pd.concat([left_df, right_df], axis=0)
     new_df = new_df.sort_values(by=["ID", "Side"])
+    dirname = os.path.dirname(output_file)
+    os.makedirs(dirname, exist_ok=True)
     new_df.to_csv(output_file, sep="\t", index=False, header=True)
+    # df.to_csv(output_file + "both eyes.csv", sep="\t", index=False, header=True)
 
 
 if __name__ == "__main__":
-    xsl_file = sys.argv[1]
-    output_file = sys.argv[2]
-    decode_d_k(xslx_file=xsl_file, output_file=output_file)
+    parser = argparse.ArgumentParser(description=""""
+        Reads (arg: input) the original annotations file, expected is the path
+        to the odir excel file, so excel format! Returns a csv file written
+        to the path provided by the second argument (arg: output) where each
+        fundus (left/right) is on its own line with its own diagnostic keywords
+        and label vector, instead of the combined format of the original file.
+        Also adds the tags "no fundus" and "anterior" for the few images that
+        aren't actually relevant fundus images.
+        """
+        )
+    parser.add_argument(
+        "input",
+        type=str,
+        default=None,
+        help="""The path to the excel file which contains
+                        the annotation"""
+    )
+    parser.add_argument(
+        "output",
+        type=str,
+        default=None,
+        help="""path for the output csv file to be saved"""
+    )
+    args = parser.parse_args()
+    xsl_file = args.input
+    #xsl_file = sys.argv[1]
+    output_file = args.output
+    #output_file = sys.argv[2]
+    decode_d_k(xsl_file=xsl_file, output_file=output_file)
