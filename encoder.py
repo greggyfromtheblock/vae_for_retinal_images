@@ -315,6 +315,8 @@ if __name__ == '__main__':
     # increase in recall from the previous threshold used as the weight: where R_N and P_N are the precision and recall
     # at the n-th threshold. This implementation is not interpolated and is different from computing the area under the
     # precision-recall curve with the trapezoidal rule, which uses linear interpolation and can be too optimistic.
+    # Recall = TP/TP+FN  and   Precision = TP/TP+FP
+    # F1 Score = 2*(Recall * Precision) / (Recall + Precision)
     # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score
     # https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-classification-in-python/
 
@@ -355,11 +357,11 @@ if __name__ == '__main__':
         pass
 
     try:
-        average_precision = average_precision_score(targets, outputs)
+        average_precision = average_precision_score(targets, outputs, average='micro')
         print('2-class Precision-Recall curve: Average Precision={0:0.2f}'.format(average_precision))
 
-        lr_precision, lr_recall, _ = precision_recall_curve(targets, outputs)
-        lr_f1, lr_auc = f1_score(targets, outputs), auc(lr_recall, lr_precision)
+        lr_precision, lr_recall, _ = precision_recall_curve(targets, outputs, average='micro')
+        lr_f1, lr_auc = f1_score(targets, outputs, average='micro'), auc(lr_recall, lr_precision)
         print('Logistic: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
 
         # plot the precision-recall curves
