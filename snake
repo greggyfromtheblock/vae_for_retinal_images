@@ -42,11 +42,12 @@ rule train_encoder:
              grayscale = config['GRAYSCALE'],
              exlude_imgs_with_strange_wh_ratio1 = config['exlude_imgs_with_strange_wh_ratio'][0],
              exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1]),
-        csv_file = "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv"
+        csv_file = expand("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv",
+        user=config["YOURNAME"])
     output:
         touch("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/encoder.done")
     run:
-        shell("python encoder.py {input.trainfolder} {input.testfolder}" )
+        shell("python encoder.py {input.trainfolder} {input.testfolder} {input.csv_file}" )
 
 
 rule preprocess_training_images:
