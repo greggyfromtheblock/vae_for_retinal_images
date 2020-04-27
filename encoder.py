@@ -114,13 +114,11 @@ if __name__ == '__main__':
     diagnoses = {
         "N": "normal fundus",
         "D": "proliferative retinopathy",
-        "G": "glaucoma",
-        "C": "cataract",
+        # "G": "glaucoma",  not relevant because of no occurence in the annotations
+        # "C": "cataract",  same
         "A": "age related macular degeneration",
         "H": "hypertensive retinopathy",
-        "M": "myopia",
-        # "ant": "anterior segment",
-        # "no": "no fundus image",
+        "M": "myopia"
     }
     number_of_diagnoses = len(diagnoses)
     data_size = len(data)
@@ -358,7 +356,7 @@ if __name__ == '__main__':
 
     try:
         average_precision = average_precision_score(targets, outputs, average='micro')
-        print('2-class Precision-Recall curve: Average Precision={0:0.2f}'.format(average_precision))
+        print('2-class Precision-Recall curve: Average Precision= %.3f'.format(average_precision))
 
         lr_precision, lr_recall, _ = precision_recall_curve(targets, outputs, average='micro')
         lr_f1, lr_auc = f1_score(targets, outputs, average='micro'), auc(lr_recall, lr_precision)
@@ -368,7 +366,7 @@ if __name__ == '__main__':
         plt.grid()
         plt.plot(lr_recall, lr_precision, marker='.', label='Logistic')
         plt.title("Precision-Recall-Curve - ", fontsize=16, fontweight='bold')
-        plt.savefig(f'{figures_dir}/{encoder_name}/micro-averaged_precision_recall_curve_auc_{lr_auc}_f1_{lr_f1}_ap_{average_precision}.png')
+        plt.savefig(f'{figures_dir}/{encoder_name}/micro-averaged_precision_recall_curve' + '_auc_%.2f_f1_%.2f_ap_%.2f.png' % (lr_auc, lr_f1, average_precision))
         plt.xlabel('Recall')
         plt.ylabel('Precision')
         plt.legend()
@@ -391,10 +389,10 @@ if __name__ == '__main__':
             plt.grid()
             if diagnosis != "Patient Sex":
                 plt.title("ROC-Curve - {}".format(diagnoses[diagnosis]), fontsize=16, fontweight='bold')
-                plt.savefig(f'{figures_dir}/{encoder_name}/{diagnoses[diagnosis]}_ROC_curve.png')
+                plt.savefig(f'{figures_dir}/{encoder_name}/{diagnoses[diagnosis]}_ROC_curve_' + 'auc_%.2f.png' % lr_auc)
             else:
                 plt.title("ROC-Curve - Patient Sex - auc=%.3f" % lr_auc, fontsize=16, fontweight='bold')
-                plt.savefig(f'{figures_dir}/{encoder_name}/Patient_Sex_ROC_curve_auc_{lr_auc}.png')
+                plt.savefig(f'{figures_dir}/{encoder_name}/Patient_Sex_ROC_curve_' + 'auc_%.2f.png' % lr_auc)
             # axis labels
             plt.xlabel('False Positive Rate')
             plt.ylabel('True Positive Rate')
@@ -417,10 +415,10 @@ if __name__ == '__main__':
             plt.plot(lr_recall, lr_precision, marker='.', label='Logistic')
             if diagnosis != "Patient Sex":
                 plt.title("Precision-Recall-Curve - %s f1=%.3f auc=%.3f" % (diagnoses[diagnosis], lr_f1, lr_auc), fontsize=16, fontweight='bold')
-                plt.savefig(f'{figures_dir}/{encoder_name}/{diagnoses[diagnosis]}_precision_recall_curve_auc_{lr_auc}_f1_{lr_f1}_ap_{average_precision}.png')
+                plt.savefig(f'{figures_dir}/{encoder_name}/{diagnoses[diagnosis]}_precision_recall_curve_auc_' + + '_auc_%.2f_f1_%.2f_ap_%.2f.png' % (lr_auc, lr_f1, average_precision))
             else:
                 plt.title("Precision-Recall-Curve - Patient Sex", fontsize=16, fontweight='bold')
-                plt.savefig(f'{figures_dir}/{encoder_name}/Patient_Sex_precision_recall_curve_auc_{lr_auc}_f1_{lr_f1}_ap_{average_precision}.png')
+                plt.savefig(f'{figures_dir}/{encoder_name}/Patient_Sex_precision_recall_curve_' + + '_auc_%.2f_f1_%.2f_ap_%.2f.png' % (lr_auc, lr_f1, average_precision))
             # axis labels
             plt.xlabel('Recall')
             plt.ylabel('Precision')
