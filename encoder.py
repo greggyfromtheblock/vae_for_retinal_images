@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     trainfolder = sys.argv[1] #  "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/training/n-augmentation_6_maxdegree_20_resize_192_188_grayscale_0/ODIR/"
     testfolder = sys.argv[2] # "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/testing/n-augmentation_6_maxdegree_20_resize_192_188_grayscale_0/ODIR/"
-    csv_file = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv"
+    csv_file = sys.argv[3]  #"/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv"
     
     figures_dir = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/supervised"
     encoder_name = "deep_balanced"
