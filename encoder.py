@@ -162,7 +162,7 @@ if __name__ == '__main__':
                     else:
                         targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
 
-    net = Encoder(number_of_features=len(diagnoses_list).to(device=device)
+    net = Encoder(number_of_features=len(diagnoses_list)).to(device=device)
     print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
     
     # Train the network
