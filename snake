@@ -41,7 +41,8 @@ rule train_encoder:
              resize2 = config['RESIZE'][1],
              grayscale = config['GRAYSCALE'],
              exlude_imgs_with_strange_wh_ratio1 = config['exlude_imgs_with_strange_wh_ratio'][0],
-             exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1])  
+             exlude_imgs_with_strange_wh_ratio2 = config['exlude_imgs_with_strange_wh_ratio'][1]),
+        csv_file = "/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv"
     output:
         touch("/data/analysis/ag-reils/ag-reils-shared-students/{user}/vae_for_retinal_images/encoder.done")
     run:
