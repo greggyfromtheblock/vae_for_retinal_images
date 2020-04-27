@@ -543,20 +543,20 @@ class OdirVAETraining(VAETraining):
         self.epoch = None
 
 
-    def reconstruction_loss(self, reconstruction, target):
-       return vl.reconstruction_bce(reconstruction, target)
-       #result = F.mse_loss(reconstruction, target, reduction='sum')
-       #result /= target.size(0)
-       return result
-
-    def loss(self, mean, logvar, reconstruction, target):
-        ce = self.reconstruction_loss(reconstruction, target)
-        kld = self.divergence_loss(mean, logvar)
-        #kld = 0
-        loss_val = ce + kld
-        self.current_losses["cross-entropy"] = float(ce)
-        self.current_losses["kullback-leibler"] = float(kld)
-        return loss_val
+#    def reconstruction_loss(self, reconstruction, target):
+#       return vl.reconstruction_bce(reconstruction, target)
+#       #result = F.mse_loss(reconstruction, target, reduction='sum')
+#       #result /= target.size(0)
+#       return result
+#
+#    def loss(self, mean, logvar, reconstruction, target):
+#        ce = self.reconstruction_loss(reconstruction, target)
+#        kld = self.divergence_loss(mean, logvar)
+#        #kld = 0
+#        loss_val = ce + kld
+#        self.current_losses["cross-entropy"] = float(ce)
+#        self.current_losses["kullback-leibler"] = float(kld)
+#        return loss_val
 
     def run_networks(self, data, *args):
         mean, logvar, reconstructions, data = super().run_networks(data, *args)
