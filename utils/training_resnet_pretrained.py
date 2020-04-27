@@ -370,8 +370,8 @@ class Encoder(nn.Module):
         # freeze the weights because we are using pretrained model:
         for param in model.parameters():
             param.requires_grad = False
-        #add last layer to fit zdim (by default it will be requires_grad=T
-        model.final_fc = nn.Linear(model.fc.out_features, z)
+        #change last layer to fit zdim (by default it will be requires_grad=T
+        model.fc = nn.Linear(model.fc.in_features, z, bias=True)
 
         #self.encoder = model.forward
         self.encoder = model
