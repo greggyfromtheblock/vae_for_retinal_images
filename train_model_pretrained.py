@@ -65,9 +65,10 @@ if __name__ == "__main__":
         transform=transforms.Compose(
             #            [transforms.ToTensor(),]
             [
+                transforms.Grayscale(3),
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
-                transforms.Normalize(means, stds),
+#                transforms.Normalize(means, stds),
             ]
             #                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]
             #                transforms.Normalize((0.5,), (0.5,))]
