@@ -4,8 +4,10 @@ Add the Training (TorchSupport-Training API) and loss functions here.
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
-from torchsupport.training.vae import FactorVAETraining
+from torchsupport.training.vae import FactorVAETraining, VAETraining
 import torch.nn.functional as F
+import torchsupport.modules.losses.vae as vl
+
 from tensorboardX import SummaryWriter
 import numpy as np
 # Ignore warnings
@@ -141,7 +143,114 @@ def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
 
 
-class OdirVAETraining(FactorVAETraining):
+class Discriminator(nn.Module):
+    def __init__(self, z=32):
+        super(Discriminator, self).__init__()
+
+        def linear_block(in_feat, out_feat, dropout=None):
+            layers = [nn.Linear(in_feat, out_feat)]
+            dropout and layers.append(nn.Dropout(dropout))
+            layers.append(nn.ReLU())
+            return layers
+
+        self.z = z
+        self.discriminator = nn.Sequential(
+            *linear_block(self.z, 1024, dropout=0.5),
+            *linear_block(1024, 1024, dropout=0.5),
+            *linear_block(1024, 1024, dropout=0.5),
+            *linear_block(1024, 1024, dropout=0.5),
+            *linear_block(1024, 1024, dropout=0.5),
+            *linear_block(1024, 2),
+        )
+
+    def forward(self, latents, *args):
+        return self.discriminator(latents)
+
+
+class CustomFactorVAETraining(VAETraining):
+    """Training setup for FactorVAE - VAE with disentangled latent space."""
+    def __init__(self, encoder, decoder, discriminator, data,
+               optimizer=torch.optim.Adam,
+               max_epochs=50,
+               batch_size=128,
+               gamma=100,
+               device="cpu",
+               network_name="network",
+               **kwargs):
+        """Training setup for FactorVAE - VAE with disentangled latent space.
+        Args:
+            encoder (nn.Module): encoder neural network.
+            decoder (nn.Module): decoder neural network.
+            discriminator (nn.Module): auxiliary discriminator
+              for approximation of latent space total correlation.
+            data (Dataset): dataset providing training data.
+            kwargs (dict): keyword arguments for generic VAE training.
+        """
+        super(CustomFactorVAETraining, self).__init__(
+          encoder, decoder, data,
+          optimizer=optimizer,
+          max_epochs=max_epochs,
+          batch_size=batch_size,
+          device=device,
+          network_name=network_name,
+          **kwargs
+        )
+        self.gamma = gamma
+        self.discriminator = discriminator.to(device)
+        self.discriminator_optimizer = optimizer(
+          self.discriminator.parameters(),
+          lr=1e-4
+        )
+    def divergence_loss(self, normal_parameters, tc_parameters):
+        tc_loss = vl.tc_encoder_loss(*tc_parameters)
+        div_loss = vl.normal_kl_loss(*normal_parameters)
+        result = div_loss - self.gamma * tc_loss #TODO: is the plus correct here??
+        return result, tc_loss, div_loss
+#     def sample(self, mean, logvar):
+#         distribution = Normal(mean, torch.exp(0.5 * logvar))
+#         sample = distribution.rsample()
+#         return sample
+    def loss(self, normal_parameters, tc_parameters,
+           reconstruction, target):
+        ce = self.reconstruction_loss(reconstruction, target)
+        fl, tc_loss, div_loss = self.divergence_loss(normal_parameters, tc_parameters)
+        loss_val = ce + fl
+        self.current_losses["cross-entropy"] = float(ce)
+        self.current_losses["vae"] = float(fl)
+        self.current_losses["total-correlation"] = float(tc_loss)
+        self.current_losses["kullback-leibler"] = float(div_loss)
+        return loss_val
+    def run_networks(self, data, *args):
+        _, mean, logvar = self.encoder(data, *args)
+        sample = self.sample(mean, logvar)
+        reconstruction = self.decoder(sample, *args)
+        return (mean, logvar), reconstruction, sample
+    def step(self, data):
+        data = data.to(self.device)
+        sample_data, shuffle_data = data[:data.size(0) // 2], data[data.size(0) // 2:]
+        normal_parameters, reconstruction, sample = self.run_networks(data)
+        loss_val = self.loss(normal_parameters, (self.discriminator, sample), reconstruction, data)
+        if self.verbose:
+            for loss_name in self.current_losses:
+                loss_float = self.current_losses[loss_name]
+                self.writer.add_scalar(f"{loss_name} loss", loss_float, self.step_id)
+        self.writer.add_scalar("total loss", float(loss_val), self.step_id)
+        self.optimizer.zero_grad()
+        loss_val.backward()
+        self.optimizer.step()
+        _, _, shuffle_sample = self.run_networks(shuffle_data)
+        self.discriminator_optimizer.zero_grad()
+        discriminator_loss = vl.tc_discriminator_loss(
+          self.discriminator,
+          sample.detach(),
+          shuffle_sample.detach()
+        )
+        discriminator_loss.backward()
+        self.discriminator_optimizer.step()
+        self.writer.add_scalar("discriminator-loss", float(discriminator_loss), self.step_id)
+        self.each_step()
+
+class OdirVAETraining(CustomFactorVAETraining):
     def __init__(self, encoder, decoder, discriminator, data, path_prefix, network_name,
                  # alpha=0.25, beta=0.5, m=120,
                  optimizer=torch.optim.Adam,
@@ -172,28 +281,8 @@ class OdirVAETraining(FactorVAETraining):
             self.writer.add_images("reconstruction", imgs, self.step_id)
         return mean, logvar, reconstructions, data
 
-class discriminator(nn.Module):
-    def __init__(self, z=32):
-        super(discriminator, self).__init__()
 
-        def linear_block(in_feat, out_feat, dropout=None):
-            layers = [nn.Linear(in_feat, out_feat)]
-            dropout and layers.append(nn.Dropout(dropout))
-            layers.append(nn.ReLU())
-            return layers
 
-        self.z = z
-        self.discriminator = nn.Sequential(
-            *linear_block(self.z, 1024, dropout=0.5),
-            *linear_block(1024, 1024, dropout=0.5),
-            *linear_block(1024, 1024, dropout=0.5),
-            *linear_block(1024, 1024, dropout=0.5),
-            *linear_block(1024, 1024, dropout=0.5),
-            *linear_block(1024, 2),
-        )
-
-    def forward(self, latents, *args):
-        return self.discriminator(latents)
 
 
 if __name__ == '__main__':
