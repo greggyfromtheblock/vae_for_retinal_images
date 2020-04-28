@@ -121,10 +121,10 @@
   },
   "-image_dim": {
     "short": "-imdim",
-    "nargs": 2,
-    "value": "256 320",
+    "nargs": 1,
+    "value": "(256 , 320)",
     "help": "Dimension of the input images",
-    "type": "float"
+    "type": "tuple"
   },
   "-pretrained": {
     "short": "-pretr",
