@@ -21,6 +21,7 @@ from collections import OrderedDict
 from torchsummary import summary
 
 import torchvision.models as models #ppretrained resnet etc.
+from torchvision import datasets, transforms as T
 
 from collections import OrderedDict
 
@@ -462,7 +463,8 @@ class Decoder_yiftach(nn.Module):
         return reconstructions
 
 class Decoder(nn.Module):
-  def __init__(self, z=32, imsize=(256,320)):
+  def __init__(self, z=32, imsize=(224,224)):
+#  def __init__(self, z=32, imsize=(256,320)):
     super(Decoder, self).__init__()
     self.z = z  
     h,w = imsize
