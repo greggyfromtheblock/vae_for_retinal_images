@@ -123,7 +123,7 @@
     "short": "-imdim",
     "value": "256,320",
     "help": "Dimension of the input images",
-    "type": "string"
+    "type": "str"
   },
   "-pretrained": {
     "short": "-pretr",
