@@ -83,12 +83,6 @@
     "help": "The latent dimension of the bottleneck.",
     "type": "int"
   },
-  "-image_dim": {
-    "short": "-imdim",
-    "value": "(256,320)",
-    "help": "Dimension of the input images",
-    "type": "str"
-  },
     "-max_degree": {
     "short": "-md",
     "value": 20,
@@ -124,6 +118,13 @@
     "value": 0,
     "help": "Parameter delta (int)",
     "type": "int"
+  },
+  "-image_dim": {
+    "short": "-imdim",
+    "nargs": 2,
+    "value": "(256,320)",
+    "help": "Dimension of the input images",
+    "type": "float"
   },
   "-pretrained": {
     "short": "-pretr",

@@ -68,7 +68,7 @@ if __name__ == "__main__":
 #                transforms.Grayscale(3),
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
-#                transforms.Normalize(means, stds),
+                transforms.Normalize(means, stds),
             ]
             #                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]
             #                transforms.Normalize((0.5,), (0.5,))]
@@ -76,7 +76,8 @@ if __name__ == "__main__":
     )
     data = VAEDataset(img_dataset)
 
-    encoder, decoder = Encoder(z=FLAGS.zdim, pretrained=FLAGS.pretrained), Decoder(z=FLAGS.zdim)
+    encoder = Encoder(z=FLAGS.zdim, pretrained=FLAGS.pretrained)
+    decoder = Decoder(z=FLAGS.zdim, imsize=FLAGS.image_dim)
 
     training = OdirVAETraining(
         encoder,
