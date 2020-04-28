@@ -76,7 +76,7 @@ if __name__ == "__main__":
     )
     data = VAEDataset(img_dataset)
 
-    encoder, decoder = Encoder(z=FLAGS.zdim, pretrained=FLAGS.pretrained, Decoder(z=FLAGS.zdim)
+    encoder, decoder = Encoder(z=FLAGS.zdim, pretrained=FLAGS.pretrained), Decoder(z=FLAGS.zdim)
 
     training = OdirVAETraining(
         encoder,
