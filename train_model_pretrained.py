@@ -65,7 +65,7 @@ if __name__ == "__main__":
         transform=transforms.Compose(
             #            [transforms.ToTensor(),]
             [
-                transforms.Grayscale(3),
+#                transforms.Grayscale(3),
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
 #                transforms.Normalize(means, stds),

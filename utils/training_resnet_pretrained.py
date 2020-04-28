@@ -359,18 +359,19 @@ def normalize(image):
 
 
 class Encoder(nn.Module):
-    def __init__(self, z=32):
+    def __init__(self, z=32, pretrained=True):
         super(Encoder, self).__init__()
         self.z = z
 
         #model = resnet101(3, z).cuda() #3: rgb input channels, 32: latent space dim
         #model = resnetCustom(3,z).cuda()
 
-        model = models.resnet101(pretrained=True).cuda() #output is [-1, 1000]
+        model = models.resnet101(pretrained=pretrained).cuda() #output is [-1, 1000]
         #model = models.wide_resnet101_2(pretrained=True).cuda() #output is [-1, 1000]
         # freeze the weights because we are using pretrained model:
-        for param in model.parameters():
-            param.requires_grad = False
+        if pretrained:
+            for param in model.parameters():
+                param.requires_grad = False
         #change last layer to fit zdim (by default it will be requires_grad=T
         model.fc = nn.Linear(model.fc.in_features, z, bias=True)
 
