@@ -226,7 +226,7 @@ if __name__ == '__main__':
     #plt.show()
     plt.close()
 
-    PATH = f'{figures_dir}/{encoder_name}.pth'
+    PATH = f'{figures_dir}/{encoder_name}/{encoder_name}.pth'
     torch.save(net.state_dict(), PATH)
 
     ########################################
@@ -319,13 +319,13 @@ if __name__ == '__main__':
     # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score
     # https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-classification-in-python/
 
-    # ROC-Curve/AUC with sklearn:
-    from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score, f1_score, auc
+# ROC-Curve/AUC with sklearn:
+    from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score
 
     outputs = outputs.to(device="cpu").detach().numpy()
     targets = targets.float().numpy()
     colors = ['navy', 'turquoise', 'darkorange', 'cornflowerblue', 'indigo', 'darkgreen', 'firebrick', 'sienna',
-              'limegreen', 'red']
+              'red', 'limegreen']
 
     tpr = dict()  # Sensitivity/False Positive Rate
     fpr = dict()   # True Positive Rate / (1-Specifity)
@@ -346,7 +346,7 @@ if __name__ == '__main__':
         'AUC score, micro-averaged over all classes: AP={0:0.2f}'
             .format(auc["micro"]), fontsize=13, fontweight='bold')
     plt.show()
-    plt.savefig(f'{figures_dir}/{encoder_name}_ROC_curve_micro_averaged.png')
+    plt.savefig(f'{figures_dir}/{encoder_name}/ROC_curve_micro_averaged.png')
     plt.close()
 
     # Plot of all classes ('macro')
@@ -357,24 +357,23 @@ if __name__ == '__main__':
         except ValueError:
             print(i, diagnoses_list[i], targets[:,i], outputs[:,i])
 
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=(7, 9))
     lines = []
     labels = []
 
     l, = plt.plot(tpr["micro"], fpr["micro"], color='gold', lw=2)
     lines.append(l)
-    labels.append('micro-averaged ROC-AUC = {0:0.2f})'
-                  ''.format(auc["micro"]))
+    labels.append('micro-averaged ROC-AUC = {0:0.2f})'.format(auc["micro"]))
 
     for i, color in zip(range(number_of_diagnoses + 1), colors):
         if i in auc.keys():
-            l, = plt.plot(tpr[i], fpr[i], color=color, lw=2)
+            l, = plt.plot(tpr[i], fpr[i], color=color, lw=0.5)
             lines.append(l)
             if diagnoses_list[i] != "Patient Sex":
                 labels.append('ROC for class {0} (ROC-AUC = {1:0.2f})'
                               ''.format(diagnoses[diagnoses_list[i]], auc[i]))
             else:
-                labels.append('ROC for class {0} (area = {1:0.2f})'
+                labels.append('ROC for class {0} (ROC-AUC = {1:0.2f})'
                               ''.format(diagnoses_list[i], auc[i]))
 
     fig = plt.gcf()
@@ -382,8 +381,8 @@ if __name__ == '__main__':
     plt.xlabel('False Positive Rate / Sensitivity', fontsize=11)
     plt.ylabel('True Negative Rate / (1 - Specifity)', fontsize=11)
     plt.title('ROC curve of all features', fontsize=13, fontweight='bold')
-    plt.legend(lines, labels, loc=(0, -.42), prop=dict(size=9))
-    plt.savefig(f'{figures_dir}/{encoder_name}_ROC_curve_of_all_features.png')
+    plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=8))
+    plt.savefig(f'{figures_dir}/{encoder_name}/ROC_curve_of_all_features.png')
     plt.show()
     plt.close()
 
@@ -391,10 +390,9 @@ if __name__ == '__main__':
     precision = dict()
     recall = dict()
     average_precision = dict()
+    from sklearn.metrics import auc
 
     # A "micro-average": quantifying score on all classes jointly
-    # TODO: add lr_f1, lr_auc = f1_score(targets[:, i], outputs[:, i]), auc(lr_recall, lr_precision) in title or label or filename
-
     precision["micro"], recall["micro"], _ = precision_recall_curve(targets.ravel(), outputs.ravel())
     average_precision["micro"] = average_precision_score(targets, outputs, average="micro")
     print('Average precision score, micro-averaged over all classes: {0:0.2f}'.format(average_precision["micro"]))
@@ -408,15 +406,15 @@ if __name__ == '__main__':
         'Average precision score, micro-averaged over all classes: AP={0:0.2f}'
             .format(average_precision["micro"]), fontsize=13, fontweight='bold')
     plt.show()
+    plt.savefig(f'{figures_dir}/{encoder_name}/PR_curve_micro_averaged.jpg')
     plt.close()
 
     # Plot of all classes ('macro')
     for i in range(number_of_diagnoses + 1):
-        precision[i], recall[i], _ = precision_recall_curve(targets[:, i],
-                                                            outputs[:, i])
+        precision[i], recall[i], _ = precision_recall_curve(targets[:, i], outputs[:, i])
         average_precision[i] = average_precision_score(targets[:, i], outputs[:, i])
 
-    plt.figure(figsize=(15, 18))
+    plt.figure(figsize=(7, 9))
     f_scores = np.linspace(0.2, 0.8, num=4)
     lines = []
     labels = []
@@ -430,19 +428,22 @@ if __name__ == '__main__':
     labels.append('iso-f1 curves')
     l, = plt.plot(recall["micro"], precision["micro"], color='gold', lw=2)
     lines.append(l)
-    labels.append('micro-average Precision-recall (area (average precision) = {0:0.2f})'
-                  ''.format(average_precision["micro"]))
+    labels.append('micro-average Precision-recall (average precision = {0:0.2f}; AUC = {0:0.2f})'
+                  ''.format(average_precision["micro"],  auc(recall["micro"], precision["micro"])))
 
-    # TODO: add lr_f1, lr_auc = f1_score(targets[:, i], outputs[:, i]), auc(lr_recall, lr_precision) in title or label or filename
     for i, color in zip(range(number_of_diagnoses + 1), colors):
-        l, = plt.plot(recall[i], precision[i], color=color, lw=2)
+        l, = plt.plot(recall[i], precision[i], color=color, lw=0.5)
         lines.append(l)
         if diagnoses_list[i] != "Patient Sex":
-            labels.append('Precision-recall for class {0} (area = {1:0.2f})'
-                          ''.format(diagnoses[diagnoses_list[i]], average_precision[i]))
+            labels.append('Precision-recall for class {0} (AP = {1:0.2f}; AUC = {2:0.2f})'
+                          ''.format(diagnoses[diagnoses_list[i]], average_precision[i],
+                                    # f1_score(targets[:, i], outputs[:, i]),
+                                    auc(recall[i], precision[i])))
         else:
-            labels.append('Precision-recall for class {0} (area = {1:0.2f})'
-                          ''.format(diagnoses_list[i], average_precision[i]))
+            labels.append('Precision-recall for class {0} (AP = {1:0.2f}; AUC = {2:0.2f})'
+                          ''.format(diagnoses_list[i], average_precision[i],
+                                    # f1_score(targets[:, i], outputs[:, i]),
+                                    auc(recall[i], precision[i])))
 
     fig = plt.gcf()
     fig.subplots_adjust(bottom=0.25)
@@ -451,9 +452,11 @@ if __name__ == '__main__':
     plt.xlabel('Recall', fontsize=11)
     plt.ylabel('Precision', fontsize=11)
     plt.title('Precision-Recall curve of all features')
-    plt.legend(lines, labels, loc=(0, -.42), prop=dict(size=9))
+    plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=9))
     plt.show()
-    plt.savefig(f'{figures_dir}/{encoder_name}_PR_curve_of_all_features.png')
+    plt.savefig(f'{figures_dir}/{encoder_name}/PR_curve_of_all_features.jpg')
+
+    os.system(f"cp encoder.py {figures_dir}/{encoder_name}/encoder.py")
 
 
 
