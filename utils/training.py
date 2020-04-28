@@ -4,9 +4,10 @@ Add the Training (TorchSupport-Training API) and loss functions here.
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
-from torchsupport.training.vae import FactorVAETraining, VAETraining
+from torchsupport.training.vae import VAETraining
 import torch.nn.functional as F
 import torchsupport.modules.losses.vae as vl
+from torchsupport.data.io import netwrite, to_device
 
 from tensorboardX import SummaryWriter
 import numpy as np
@@ -201,6 +202,7 @@ class CustomFactorVAETraining(VAETraining):
           self.discriminator.parameters(),
           lr=1e-4
         )
+
     def divergence_loss(self, normal_parameters, tc_parameters):
         tc_loss = vl.tc_encoder_loss(*tc_parameters)
         div_loss = vl.normal_kl_loss(*normal_parameters)
@@ -226,7 +228,7 @@ class CustomFactorVAETraining(VAETraining):
         reconstruction = self.decoder(sample, *args)
         return (mean, logvar), reconstruction, sample
     def step(self, data):
-        data = data.to(self.device)
+        data = to_device(data, self.device)
         sample_data, shuffle_data = data[:data.size(0) // 2], data[data.size(0) // 2:]
         normal_parameters, reconstruction, sample = self.run_networks(data)
         loss_val = self.loss(normal_parameters, (self.discriminator, sample), reconstruction, data)
