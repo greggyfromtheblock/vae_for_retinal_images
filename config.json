@@ -124,5 +124,11 @@
     "value": 0,
     "help": "Parameter delta (int)",
     "type": "int"
+  },
+  "-pretrained": {
+    "short": "-pretr",
+    "value": false,
+    "help": "Parameter delta (int)",
+    "type": "bool"
   }
 }
