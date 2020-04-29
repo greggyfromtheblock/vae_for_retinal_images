@@ -68,7 +68,7 @@ if __name__ == "__main__":
             #            [transforms.ToTensor(),]
             [
 #                transforms.Grayscale(3),
-#                transforms.CenterCrop(224),
+                transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 transforms.Normalize(means, stds),
             ]
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         max_epochs=FLAGS.maxpochs,
         verbose=True,
         in_trans = f_inv,
-        out_trans = f_inv,
+        out_trans = torch.nn.functional.sigmoid,
     )
 
     print(

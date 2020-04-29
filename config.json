@@ -127,7 +127,7 @@
   },
   "-pretrained": {
     "short": "-pretr",
-    "value": "False",
+    "value": "True",
     "help": "Parameter delta (int)",
     "type": "bool"
   }
