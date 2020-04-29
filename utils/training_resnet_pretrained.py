@@ -364,9 +364,9 @@ class Encoder(nn.Module):
         self.z = z
 
         #model = resnet101(3, z).cuda() #3: rgb input channels, 32: latent space dim
-        model = resnetCustom(3,z).cuda()
+        #model = resnetCustom(3,z).cuda()
 
-        #model = models.resnet101(pretrained=pretrained).cuda() #output is [-1, 1000]
+        model = models.resnet101(pretrained=pretrained).cuda() #output is [-1, 1000]
         #model = models.wide_resnet101_2(pretrained=True).cuda() #output is [-1, 1000]
         # freeze the weights because we are using pretrained model:
         if pretrained:
@@ -376,12 +376,12 @@ class Encoder(nn.Module):
         #model.fc = nn.Linear(model.fc.in_features, z, bias=True)
 
         #self.encoder = model.forward
-        self.encoder = model
+        #self.encoder = model
 
-#        self.encoder = nn.Sequential(
-#                model,
-##                nn.Linear(1000,z)
-#                )
+        self.encoder = nn.Sequential(
+                model,
+                nn.Linear(1000,z)
+                )
 #
         self.mean = nn.Linear(z, z)
         self.logvar = nn.Linear(z, z)
@@ -595,7 +595,7 @@ class OdirVAETraining(VAETraining):
             self.epoch = self.epoch_id
             print("%i-Epoch" % (self.epoch_id + 1))
 
-        if self.step_id % 29 == 0:
+        if self.step_id % 7 == 0:
             x = data[0]
             if self.in_trans != None:
                 x = self.in_trans(x)
