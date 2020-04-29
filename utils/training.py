@@ -32,7 +32,7 @@ class VAEDataset(Dataset):
 
 class Encoder(nn.Module):
     def __init__(self, z=32):
-        # Incoming image has shape e.g. 192x188x3
+        # Incoming image has shape e.g. 3x192x188
         super(Encoder, self).__init__()
 
         def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, padding_max_pooling=0):
@@ -140,10 +140,6 @@ class Decoder(nn.Module):
         return reconstructions
 
 
-def normalize(image):
-    return (image - image.min()) / (image.max() - image.min())
-
-
 class Discriminator(nn.Module):
     def __init__(self, z=32):
         super(Discriminator, self).__init__()
@@ -168,14 +164,16 @@ class Discriminator(nn.Module):
         return self.discriminator(latents)
 
 
-class CustomFactorVAETraining(VAETraining):
+class OdirFactorVAETraining(VAETraining):
     """Training setup for FactorVAE - VAE with disentangled latent space."""
     def __init__(self, encoder, decoder, discriminator, data,
                optimizer=torch.optim.Adam,
+               optimizer_kwargs={"lr": 5e-5},
                max_epochs=50,
                batch_size=128,
                gamma=100,
                device="cpu",
+               path_prefix = ".",
                network_name="network",
                **kwargs):
         """Training setup for FactorVAE - VAE with disentangled latent space.
@@ -187,12 +185,14 @@ class CustomFactorVAETraining(VAETraining):
             data (Dataset): dataset providing training data.
             kwargs (dict): keyword arguments for generic VAE training.
         """
-        super(CustomFactorVAETraining, self).__init__(
+        super(OdirFactorVAETraining, self).__init__(
           encoder, decoder, data,
           optimizer=optimizer,
+          optimizer_kwargs=optimizer_kwargs,
           max_epochs=max_epochs,
           batch_size=batch_size,
           device=device,
+          path_prefix = path_prefix,
           network_name=network_name,
           **kwargs
         )
@@ -203,15 +203,16 @@ class CustomFactorVAETraining(VAETraining):
           lr=1e-4
         )
 
+        self.checkpoint_path = f"{path_prefix}/{network_name}/{network_name}-checkpoint"
+        self.writer = SummaryWriter(f"{path_prefix}/{network_name}/")
+        self.epoch = None
+
     def divergence_loss(self, normal_parameters, tc_parameters):
         tc_loss = vl.tc_encoder_loss(*tc_parameters)
         div_loss = vl.normal_kl_loss(*normal_parameters)
         result = div_loss - self.gamma * tc_loss #TODO: is the plus correct here??
         return result, tc_loss, div_loss
-#     def sample(self, mean, logvar):
-#         distribution = Normal(mean, torch.exp(0.5 * logvar))
-#         sample = distribution.rsample()
-#         return sample
+
     def loss(self, normal_parameters, tc_parameters,
            reconstruction, target):
         ce = self.reconstruction_loss(reconstruction, target)
@@ -222,20 +223,42 @@ class CustomFactorVAETraining(VAETraining):
         self.current_losses["total-correlation"] = float(tc_loss)
         self.current_losses["kullback-leibler"] = float(div_loss)
         return loss_val
+    """
     def run_networks(self, data, *args):
         _, mean, logvar = self.encoder(data, *args)
         sample = self.sample(mean, logvar)
         reconstruction = self.decoder(sample, *args)
         return (mean, logvar), reconstruction, sample
+    """
+
+    def run_networks(self, data, *args):
+        mean, logvar, reconstructions, data = super().run_networks(data, *args)
+
+        if self.epoch != self.epoch_id:
+            self.epoch = self.epoch_id
+            print("%i-Epoch" % (self.epoch_id + 1))
+
+        imgs = torch.zeros_like(reconstructions[0:50:10])
+
+        for i in range(0, 50, 10):
+            imgs[i] = F.sigmoid(reconstructions[i])
+
+        if self.step_id % 20 == 0:
+            self.writer.add_images("target", data[0:50:10], self.step_id)
+            self.writer.add_images("reconstruction", imgs, self.step_id)
+        return (mean, logvar), reconstructions, data
+
     def step(self, data):
         data = to_device(data, self.device)
         sample_data, shuffle_data = data[:data.size(0) // 2], data[data.size(0) // 2:]
+        # könnte man einbauen:
+        """
+        data, *netargs = self.preprocess(data)
+        args = self.run_networks(data, *netargs)
+        """
         normal_parameters, reconstruction, sample = self.run_networks(data)
         loss_val = self.loss(normal_parameters, (self.discriminator, sample), reconstruction, data)
-        if self.verbose:
-            for loss_name in self.current_losses:
-                loss_float = self.current_losses[loss_name]
-                self.writer.add_scalar(f"{loss_name} loss", loss_float, self.step_id)
+
         self.writer.add_scalar("total loss", float(loss_val), self.step_id)
         self.optimizer.zero_grad()
         loss_val.backward()
@@ -252,7 +275,8 @@ class CustomFactorVAETraining(VAETraining):
         self.writer.add_scalar("discriminator-loss", float(discriminator_loss), self.step_id)
         self.each_step()
 
-class OdirVAETraining(CustomFactorVAETraining):
+
+class OdirVAETraining(VAETraining):
     def __init__(self, encoder, decoder, discriminator, data, path_prefix, network_name,
                  # alpha=0.25, beta=0.5, m=120,
                  optimizer=torch.optim.Adam,
