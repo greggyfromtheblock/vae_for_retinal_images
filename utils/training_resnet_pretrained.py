@@ -562,6 +562,8 @@ class OdirVAETraining(VAETraining):
         self.checkpoint_path = f"{path_prefix}/{network_name}/{network_name}-checkpoint"
         self.writer = SummaryWriter(f"{path_prefix}/{network_name}/")
         self.epoch = None
+        self.in_trans = in_trans
+        self.out_trans = out_trans
 
 
     ##### custom loss
@@ -592,10 +594,10 @@ class OdirVAETraining(VAETraining):
 
         if self.step_id % 29 == 0:
             x = data[0]
-            if in_trans != None:
+            if self.in_trans != None:
                 x = in_trans(x)
             y = reconstructions[0]
-            if out_trans != None:
+            if self.out_trans != None:
                 y = out_trans(y)
             #self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image("target", x, self.step_id)
