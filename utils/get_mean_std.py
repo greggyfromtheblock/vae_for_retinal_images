@@ -3,18 +3,29 @@ from torchvision import datasets, transforms as T
 import argparse
 import sys
 
+import torchvision
+
+import torch.functional as F
+
+import numpy as np
+
+import functools
+from functools import partial
+
 #imdir = 'smalldata'
+#
 #img_dataset = datasets.ImageFolder(
 #        imdir, transform=T.Compose([T.CenterCrop(224), T.ToTensor()]),
 #    )
-
+#
 #l = get_mean_std(imdir)
-
+#
 #img_dataset2 = datasets.ImageFolder(
 #        imdir, transform=T.Compose([T.CenterCrop(224), T.ToTensor(),
 #            T.Normalize(l[0],l[1])
 #            ]),
 #    )
+
 
 def get_mean_std(dirpath):
     """returns the per channel mean and std of the images in the folder"""

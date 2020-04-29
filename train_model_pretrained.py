@@ -60,6 +60,8 @@ if __name__ == "__main__":
 
     print("Load Data as Tensors...")
     means, stds = get_mean_std(imfolder)
+    f = transforms.Normalize(means, stds)
+    f_inv = transforms.Normalize(mean = -means/stds, std = 1/stds)
     img_dataset = datasets.ImageFolder(
         imfolder,
         transform=transforms.Compose(
@@ -91,6 +93,8 @@ if __name__ == "__main__":
         batch_size=FLAGS.batchsize,
         max_epochs=FLAGS.maxpochs,
         verbose=True,
+        in_trans = f_inv,
+        out_trans = f_inv,
     )
 
     print(

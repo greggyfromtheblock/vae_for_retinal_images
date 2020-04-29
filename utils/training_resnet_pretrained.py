@@ -547,6 +547,8 @@ class OdirVAETraining(VAETraining):
         # alpha=0.25, beta=0.5, m=120,
         optimizer=torch.optim.Adam,
         optimizer_kwargs={"lr": 5e-5},
+        in_trans = None,
+        out_trans = None,
         **kwargs,
     ):
         super(OdirVAETraining, self).__init__(
@@ -589,11 +591,19 @@ class OdirVAETraining(VAETraining):
             print("%i-Epoch" % (self.epoch_id + 1))
 
         if self.step_id % 29 == 0:
-            self.writer.add_image("target", data[0], self.step_id)
+            x = data[0]
+            if in_trans != None:
+                x = in_trans(x)
+            y = reconstructions[0]
+            if out_trans != None:
+                y = out_trans(y)
+            #self.writer.add_image("target", data[0], self.step_id)
+            self.writer.add_image("target", x, self.step_id)
             self.writer.add_image(
                 "reconstruction",
-                nn.functional.sigmoid(reconstructions[0]),
+                #nn.functional.sigmoid(reconstructions[0]),
                 #reconstructions[0],
+                y,
                 self.step_id,
             )
             print("output shape: ", reconstructions[0].shape)
