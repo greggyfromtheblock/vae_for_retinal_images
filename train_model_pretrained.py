@@ -94,7 +94,9 @@ if __name__ == "__main__":
         max_epochs=FLAGS.maxpochs,
         verbose=True,
         in_trans = f_inv,
-        out_trans = torch.nn.functional.sigmoid,
+        out_trans = transforms.Compose(
+            [torch.nn.functional.sigmoid,
+                f_inv])
     )
 
     print(
