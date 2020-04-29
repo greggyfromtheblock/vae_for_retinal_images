@@ -18,7 +18,6 @@ import torch
 from utils.training_resnet_pretrained import (
     Encoder,
     Decoder,
-    Decoder_yiftach,
     OdirVAETraining,
     VAEDataset,
 )
@@ -81,8 +80,8 @@ if __name__ == "__main__":
 
     encoder = Encoder(z=FLAGS.zdim, pretrained=FLAGS.pretrained)
     imsize = tuple([int(i) for i in FLAGS.image_dim.split(',')])
-    #decoder = Decoder(z=FLAGS.zdim, imsize=imsize)
-    decoder = Decoder_yiftach(z=FLAGS.zdim, imsize=imsize)
+    decoder = Decoder(z=FLAGS.zdim, imsize=imsize)
+    #decoder = Decoder_yiftach(z=FLAGS.zdim, imsize=imsize)
 
     training = OdirVAETraining(
         encoder,
