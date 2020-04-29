@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     encoder, decoder, discriminator = Encoder(z=FLAGS.zdim), Decoder(z=FLAGS.zdim), Discriminator(z=FLAGS.zdim)
 
-    training = OdirVAETraining(
+    training = OdirFactorVAETraining(
         encoder,
         decoder,
         discriminator,
