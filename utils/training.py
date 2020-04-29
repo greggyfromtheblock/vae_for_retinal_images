@@ -167,15 +167,15 @@ class Discriminator(nn.Module):
 class OdirFactorVAETraining(VAETraining):
     """Training setup for FactorVAE - VAE with disentangled latent space."""
     def __init__(self, encoder, decoder, discriminator, data,
-               optimizer=torch.optim.Adam,
-               optimizer_kwargs={"lr": 5e-5},
-               max_epochs=50,
-               batch_size=128,
                gamma=100,
                device="cpu",
                path_prefix = ".",
                network_name="network",
-               **kwargs):
+               optimizer=torch.optim.Adam,
+               optimizer_kwargs={"lr": 5e-5},
+               batch_size=128,
+               max_epochs=50
+               ):
         """Training setup for FactorVAE - VAE with disentangled latent space.
         Args:
             encoder (nn.Module): encoder neural network.
@@ -187,15 +187,13 @@ class OdirFactorVAETraining(VAETraining):
         """
         super(OdirFactorVAETraining, self).__init__(
           encoder, decoder, data,
-          optimizer=optimizer,
-          optimizer_kwargs=optimizer_kwargs,
-          max_epochs=max_epochs,
-          batch_size=batch_size,
           device=device,
           path_prefix = path_prefix,
           network_name=network_name,
-          **kwargs
-        )
+          optimizer_kwargs=optimizer_kwargs,
+          batch_size=batch_size,
+          max_epochs=max_epochs)
+
         self.gamma = gamma
         self.discriminator = discriminator.to(device)
         self.discriminator_optimizer = optimizer(
