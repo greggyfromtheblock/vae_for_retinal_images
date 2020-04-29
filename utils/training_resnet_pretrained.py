@@ -359,7 +359,7 @@ def normalize(image):
 
 
 class Encoder(nn.Module):
-    def __init__(self, z=32, pretrained=True):
+    def __init__(self, z=32, pretrained=False):
         super(Encoder, self).__init__()
         self.z = z
 
@@ -373,7 +373,7 @@ class Encoder(nn.Module):
             for param in model.parameters():
                 param.requires_grad = False
         #change last layer to fit zdim (by default it will be requires_grad=T
-        model.fc = nn.Linear(model.fc.in_features, z, bias=True)
+        #model.fc = nn.Linear(model.fc.in_features, z, bias=True)
 
         #self.encoder = model.forward
         self.encoder = model

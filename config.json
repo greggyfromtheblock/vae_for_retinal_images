@@ -79,7 +79,7 @@
   },
   "-zdim": {
     "short": "-zd",
-    "value": 526,
+    "value": 64,
     "help": "The latent dimension of the bottleneck.",
     "type": "int"
   },
