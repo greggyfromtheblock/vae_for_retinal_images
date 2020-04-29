@@ -68,6 +68,7 @@ if __name__ == "__main__":
                 #transforms.Grayscale(3),
                 #transforms.CenterCrop(224),
                 transforms.ToTensor(),
+                normalize,
                 #transforms.Normalize(means, stds),
             ]
             #                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]
