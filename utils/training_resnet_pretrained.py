@@ -595,10 +595,10 @@ class OdirVAETraining(VAETraining):
         if self.step_id % 29 == 0:
             x = data[0]
             if self.in_trans != None:
-                x = in_trans(x)
+                x = self.in_trans(x)
             y = reconstructions[0]
             if self.out_trans != None:
-                y = out_trans(y)
+                y = self.out_trans(y)
             #self.writer.add_image("target", data[0], self.step_id)
             self.writer.add_image("target", x, self.step_id)
             self.writer.add_image(
