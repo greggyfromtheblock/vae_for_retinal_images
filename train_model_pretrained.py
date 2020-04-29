@@ -96,8 +96,7 @@ if __name__ == "__main__":
         verbose=True,
         in_trans = f_inv,
         out_trans = transforms.Compose(
-            [torch.nn.functional.sigmoid,
-                f_inv])
+            [torch.nn.functional.sigmoid, ])
     )
 
     print(
