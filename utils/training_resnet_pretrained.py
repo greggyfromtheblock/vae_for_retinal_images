@@ -364,9 +364,9 @@ class Encoder(nn.Module):
         self.z = z
 
         #model = resnet101(3, z).cuda() #3: rgb input channels, 32: latent space dim
-        #model = resnetCustom(3,z).cuda()
+        model = resnetCustom(3,z).cuda()
 
-        model = models.resnet101(pretrained=pretrained).cuda() #output is [-1, 1000]
+        #model = models.resnet101(pretrained=pretrained).cuda() #output is [-1, 1000]
         #model = models.wide_resnet101_2(pretrained=True).cuda() #output is [-1, 1000]
         # freeze the weights because we are using pretrained model:
         if pretrained:
@@ -395,9 +395,12 @@ class Encoder(nn.Module):
 
 
 class Decoder_yiftach(nn.Module):
-    def __init__(self, z=32):
+    def __init__(self, z=32, imsize=(256,320)):
         super(Decoder, self).__init__()
         self.z = z
+        h,w = imsize
+        self.h = h
+        self.w = w
 
         def linear_block(in_feat, out_feat, normalize=True, dropout=None):
             layers = [nn.Linear(in_feat, out_feat)]
