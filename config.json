@@ -121,13 +121,13 @@
   },
   "-image_dim": {
     "short": "-imdim",
-    "value": "224,224",
+    "value": "256,320",
     "help": "Dimension of the input images",
     "type": "str"
   },
   "-pretrained": {
     "short": "-pretr",
-    "value": "True",
+    "value": "False",
     "help": "Parameter delta (int)",
     "type": "bool"
   }
