@@ -14,7 +14,6 @@ from tqdm import tqdm
 import torch
 
 # from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
-# from utils.training_resnet import Encoder, Decoder, OdirVAETraining, VAEDataset
 from utils.training_resnet_pretrained import (
     Encoder,
     Decoder,
@@ -65,9 +64,8 @@ if __name__ == "__main__":
     img_dataset = datasets.ImageFolder(
         imfolder,
         transform=transforms.Compose(
-            #            [transforms.ToTensor(),]
             [
-#                transforms.Grayscale(3),
+                #transforms.Grayscale(3),
                 #transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 transforms.Normalize(means, stds),
@@ -78,10 +76,9 @@ if __name__ == "__main__":
     )
     data = VAEDataset(img_dataset)
 
-    encoder = Encoder(z=FLAGS.zdim, pretrained=FLAGS.pretrained)
     imsize = tuple([int(i) for i in FLAGS.image_dim.split(',')])
+    encoder = Encoder(z=FLAGS.zdim, pretrained=FLAGS.pretrained)
     decoder = Decoder(z=FLAGS.zdim, imsize=imsize)
-    #decoder = Decoder_yiftach(z=FLAGS.zdim, imsize=imsize)
 
     training = OdirVAETraining(
         encoder,

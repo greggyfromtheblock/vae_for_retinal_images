@@ -73,13 +73,13 @@
   },
   "-batchsize": {
     "short": "-bs",
-    "value": 96,
+    "value": 64,
     "help": "The models batchsize",
     "type": "int"
   },
   "-zdim": {
     "short": "-zd",
-    "value": 64,
+    "value": 128,
     "help": "The latent dimension of the bottleneck.",
     "type": "int"
   },

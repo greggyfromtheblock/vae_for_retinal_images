@@ -365,7 +365,8 @@ class Encoder(nn.Module):
         #model = resnet101(3, z).cuda() #3: rgb input channels, 32: latent space dim
         model = resnetCustom(3,z).cuda()
 
-        self.encoder = model.forward
+        #self.encoder = model.forward
+        self.encoder = model
         self.mean = nn.Linear(z, z)
         self.logvar = nn.Linear(z, z)
 
@@ -459,7 +460,6 @@ class Decoder(nn.Module):
       nn.Linear(128, 256),
       nn.ReLU(),
       nn.Linear(256, h * w*3)
-#      nn.Sigmoid.()
     )
 
   def forward(self, sample):
