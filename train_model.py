@@ -5,7 +5,7 @@ import os
 import sys
 from torchvision import datasets, transforms
 import torch
-from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset
+from utils.training import Encoder, Decoder, OdirVAETraining, VAEDataset, OdirFactorVAETraining, Discriminator
 from utils.utils import setup
 import time
 
@@ -30,18 +30,7 @@ if __name__ == "__main__":
     path_prefix = FLAGS.path_prefix
 
     network_dir = f'{path_prefix}/{network_name}/'
-
     device = FLAGS.device if torch.cuda.is_available() else "cpu"
-
-    print("\ninput dir: ", imfolder,
-          "\npath prefix: ", path_prefix,
-          "\nnetwork name: ", network_name,
-          "\nlearningrate: ", FLAGS.learningrate,
-          "\nbatch size: ", FLAGS.batchsize,
-          "\nmax epochs: ", FLAGS.maxepochs,
-          "\nz-dim: ", FLAGS.zdim,
-          "\nmax degree: ", FLAGS.maxdegree,
-          "\ndevice: ", device)
 
     os.makedirs(network_dir, exist_ok=True)
     if FLAGS.network_name in os.listdir(network_dir):
@@ -56,11 +45,12 @@ if __name__ == "__main__":
         transform=transforms.Compose([transforms.ToTensor(), normalize]))
     data = VAEDataset(img_dataset)
 
-    encoder, decoder = Encoder(z=FLAGS.zdim), Decoder(z=FLAGS.zdim)
+    encoder, decoder, discriminator = Encoder(z=FLAGS.zdim), Decoder(z=FLAGS.zdim), Discriminator(z=FLAGS.zdim)
 
     training = OdirVAETraining(
         encoder,
         decoder,
+        discriminator,
         data,
         path_prefix=path_prefix,
         network_name=network_name,
@@ -68,7 +58,7 @@ if __name__ == "__main__":
         optimizer_kwargs={"lr": FLAGS.learningrate},
         batch_size=FLAGS.batchsize,
         max_epochs=FLAGS.maxepochs,
-        verbose=True,
+        # verbose=True,
     )
 
     print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
