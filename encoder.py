@@ -3,14 +3,12 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import time
 from scipy.interpolate import UnivariateSpline
-from torchvision import datasets, transforms
 import numpy as np
 import torch
 import os
 from tqdm import tqdm
 import pandas as pd
-from utils.training import VAEDataset
-import sys
+from skimage import io
 
 def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
@@ -101,72 +99,75 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     # torch.cuda.memory_stats(device)
     
-    print("\nLoad Data as Tensors...")
-    img_dataset = datasets.ImageFolder(
-        os.path.dirname(os.path.dirname(trainfolder)),
-        transform=transforms.Compose([transforms.ToTensor(), normalize])
-    )
-    data = VAEDataset(img_dataset)
-    print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
-
+    
     csv_df = pd.read_csv(csv_file, sep='\t')
 
     diagnoses = {
         "N": "normal fundus",
         "D": "proliferative retinopathy",
-        "G": "glaucoma", 
-        "C": "cataract", 
+        "G": "glaucoma",
+        "C": "cataract",
         "A": "age related macular degeneration",
         "H": "hypertensive retinopathy",
         "M": "myopia",
         "O": "other diagnosis"
     }
     number_of_diagnoses = len(diagnoses)
-    data_size = len(data)
-
-    targets = np.zeros((data_size, number_of_diagnoses + 1), dtype=np.float16)
-    age_targets = np.zeros(data_size, dtype=np.uint8)
-
+    diagnoses_list = list(diagnoses.keys())
+    diagnoses_list.extend(["Patient Sex"])
     angles = [x for x in range(-22, -9)]
     angles.extend([x for x in range(10, 22 + 1)])
     angles.extend([x for x in range(-9, 10)])
     print("\nPossible Angles: {}\n".format(angles))
 
-    print("\nBuild targets...")
+    print("\nLoad Data as Tensors and build targets simultanously...")
+    targets = []
+    data = []
     marker = None
+
     for i, jpg in tqdm(enumerate(os.listdir(trainfolder))):
         if jpg == '.snakemake_timestamp':
             marker = True
             continue
-        jpg = jpg.replace("_flipped", "")
 
+        data.append(io.imread(trainfolder + jpg).transpose((2, 0, 1)))
+
+        jpg = jpg.replace("_flipped", "")
         for angle in angles:
             jpg = jpg.replace("_rot_%i" % angle, "")
-
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
 
-        diagnoses_list = list(diagnoses.keys())
-        diagnoses_list.extend(["Patient Sex"])
+        targets_for_img = np.zeros((number_of_diagnoses+1))
         for j, feature in enumerate(diagnoses_list):
             if not marker:
-                if feature == "Patient Sex":
-                    targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                else:
-                    targets[i][j] = csv_df.iloc[row_number].at[feature]
-            else:
                 if feature == "N":
-                    targets[i - 1][j] = not csv_df.iloc[row_number].at[feature]
+                    targets_for_img[j] = not csv_df.iloc[row_number].at[feature]
                 else:
                     if feature == "Patient Sex":
-                        targets[i - 1][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                        targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                     else:
-                        targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
+                        targets_for_img[j] = csv_df.iloc[row_number].at[feature]
+            else:
+                if feature == "N":
+                    targets_for_img[j] = not csv_df.iloc[row_number].at[feature]
+                else:
+                    if feature == "Patient Sex":
+                        targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                    else:
+                        targets_for_img[j] = csv_df.iloc[row_number].at[feature]
 
+        targets.append(targets_for_img)
+
+    data = torch.Tensor(data)
+    targets = torch.Tensor(targets)  # .float()
+    print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(data.size(0), data[0].shape))
+
+    data_size = data.size(0)
     net = Encoder(number_of_features=len(diagnoses_list)).to(device=device)
-    print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
-    
+    # print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
+
     # Train the network
-    n_epochs = 2
+    n_epochs = 4
     learning_rate = 5e-5
     criterion = nn.BCELoss().to(device=device)
     optimizer = optim.Adam(net.parameters(), lr=learning_rate)
@@ -177,53 +178,44 @@ if __name__ == '__main__':
 
     # Train network
     start = time.perf_counter()
-    targets = torch.Tensor(targets).float()
-    
+
+    d_mod_b = data_size % batch_size
+
     print("Start Training")
     for n in tqdm(range(n_epochs)):
         running_loss = 0.0
+        b_size = batch_size
 
-        inputs = torch.zeros((batch_size, *data[0][0].shape)).cuda(device=device)
-        labels = torch.zeros((batch_size, number_of_diagnoses + 1), dtype=torch.float).cuda(device=device)
-        d_mod_b = data_size % batch_size
         for i in range(0, data_size, batch_size):
-            if (i + batch_size) < data_size:
-                for j in range(batch_size):
-                    inputs[j] = data[i + j][0]
-                    labels[j] = targets[i+j]
-            elif d_mod_b != 0:
+            if (i + batch_size) > data_size and d_mod_b != 1:
                 # for uncompleted last batch
-                labels = torch.zeros((d_mod_b, number_of_diagnoses + 1))
-                inputs = torch.zeros((d_mod_b, *data[0][0].shape))
-                for j in range(d_mod_b):
-                    inputs[j] = data[i + j][0]
-                    labels[j] = targets[i+j]
+                b_size = d_mod_b
 
             # zero the parameter gradients
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = net(inputs.to(device))
-            loss = criterion(outputs, labels.to(device))
+            outputs = net(data[i:(i+b_size)].to(device))
+            loss = criterion(outputs, targets[i:(i+b_size)].to(device))
             loss.backward()
             optimizer.step()
 
             # print statistics
             running_loss += loss.item()
-            if i % batch_size == batch_size - 1:
+            if 1: # i % b_size == b_size - 1:
                 print('[%d, %5d] loss: %.3f' % (n + 1, i + 1, running_loss / batch_size))
-            lossarray.append(loss.item())
-            running_loss = 0.0
+                lossarray.append(loss.item())
+                running_loss = 0.0
 
     print('Finished Training\nTrainingtime: %d sec' % (time.perf_counter() - start))
-
+    print(lossarray)
     x = np.arange(len(lossarray))
     spl = UnivariateSpline(x, lossarray)
     plt.title("Loss-Curve", fontsize=16, fontweight='bold')
     plt.plot(x, lossarray, '-y')
     plt.plot(x, spl(x), '-r')
     plt.savefig(f'{figures_dir}/{encoder_name}_loss_curve.png')
-    #plt.show()
+    # plt.show()
     plt.close()
 
     PATH = f'{figures_dir}/{encoder_name}/{encoder_name}.pth'
@@ -236,65 +228,62 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     # torch.cuda.memory_stats(device)
 
-    print("\nLoad Data as Tensors...")
-    img_dataset = datasets.ImageFolder(
-    os.path.dirname(os.path.dirname(testfolder)),
-    transform=transforms.Compose([transforms.ToTensor(), normalize])
-    )
-    data = VAEDataset(img_dataset)
-    print("\nSize of the test dataset: {}\nShape of the single tensors: {}".format(len(data), data[0][0].shape))
-
-    data_size = len(data)
-    targets = np.zeros((data_size, number_of_diagnoses + 1), dtype=np.float16)
-
-    print("\nBuild targets...")
+    print("\nLoad Data as Tensors and build targets simultanously...")
+    targets = []
+    data = []
     marker = None
+
     for i, jpg in tqdm(enumerate(os.listdir(testfolder))):
         if jpg == '.snakemake_timestamp':
             marker = True
             continue
-        jpg = jpg.replace("_flipped", "")
 
+        data.append(io.imread(testfolder + jpg).transpose((2, 0, 1)))
+
+        jpg = jpg.replace("_flipped", "")
         for angle in angles:
             jpg = jpg.replace("_rot_%i" % angle, "")
-
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
 
-        diagnoses_list = list(diagnoses.keys())
-        diagnoses_list.extend(["Patient Sex"])
+        targets_for_img = np.zeros((number_of_diagnoses + 1))
         for j, feature in enumerate(diagnoses_list):
             if not marker:
-                if feature == "Patient Sex":
-                    targets[i][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                if feature == "N":
+                    targets_for_img[j] = not csv_df.iloc[row_number].at[feature]
                 else:
-                    targets[i][j] = csv_df.iloc[row_number].at[feature]
+                    if feature == "Patient Sex":
+                        targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                    else:
+                        targets_for_img[j] = csv_df.iloc[row_number].at[feature]
             else:
-                if feature == "Patient Sex":
-                    targets[i - 1][j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                if feature == "N":
+                    targets_for_img[j] = not csv_df.iloc[row_number].at[feature]
                 else:
-                    targets[i - 1][j] = csv_df.iloc[row_number].at[feature]
+                    if feature == "Patient Sex":
+                        targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                    else:
+                        targets_for_img[j] = csv_df.iloc[row_number].at[feature]
+
+        targets.append(targets_for_img)
+
+    data = torch.Tensor(data).detach()
+    targets = torch.Tensor(targets).detach() # .float()
+    data_size = data.size(0)
 
     # Test the network
     print("Start testing the network..")
     batch_size = calc_batch_size(data_size, batch_size=128)
-    inputs = torch.zeros((batch_size, *data[0][0].shape))
-    d_mod_b = data_size % batch_size
-    targets = torch.Tensor(targets).int()
-    
-    print("Build predictions...")
-    outputs = torch.zeros((data_size, number_of_diagnoses+1), device=device)
+
+    print("Make predictions...")
+    outputs = torch.zeros((data_size, number_of_diagnoses + 1), device=device).detach()
     for i in range(0, data_size, batch_size):
-        if (i + batch_size) < data_size:
-            for j in range(batch_size):
-                inputs[j] = data[i + j][0]
-            outputs[i:(i+batch_size)] = net(inputs.to(device)).detach()
-        elif d_mod_b != 0:
-            # for uncompleted last batch
-            inputs = torch.zeros((d_mod_b, *data[0][0].shape))
-            for j in range(d_mod_b):
-                inputs[j] = data[i + j][0]
-            outputs[i:(i+d_mod_b)] = net(inputs.to(device)).detach()
-                                            
+        # for uncompleted last batch
+        if (i + batch_size) > data_size and d_mod_b != 1:
+            batch_size = d_mod_b
+
+        outputs[i:(i + batch_size)] = net(data[i:(i + batch_size)].to(device))
+
+
     # To measure the accuracy on the basic of the rounded outcome for each diagnosis could lead to a less
     # meaningful result. That's why this approach is deprecated.
     # In lieu thereof, a ROC and PR curve is used.
@@ -319,7 +308,7 @@ if __name__ == '__main__':
     # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score
     # https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-classification-in-python/
 
-# ROC-Curve/AUC with sklearn:
+    # ROC-Curve/AUC with sklearn:
     from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score
 
     outputs = outputs.to(device="cpu").detach().numpy()
@@ -357,7 +346,7 @@ if __name__ == '__main__':
         except ValueError:
             print(i, diagnoses_list[i], targets[:,i], outputs[:,i])
 
-    plt.figure(figsize=(7, 9))
+    plt.figure(figsize=(9, 9))
     lines = []
     labels = []
 
@@ -414,7 +403,7 @@ if __name__ == '__main__':
         precision[i], recall[i], _ = precision_recall_curve(targets[:, i], outputs[:, i])
         average_precision[i] = average_precision_score(targets[:, i], outputs[:, i])
 
-    plt.figure(figsize=(7, 9))
+    plt.figure(figsize=(9, 9))
     f_scores = np.linspace(0.2, 0.8, num=4)
     lines = []
     labels = []
@@ -428,22 +417,18 @@ if __name__ == '__main__':
     labels.append('iso-f1 curves')
     l, = plt.plot(recall["micro"], precision["micro"], color='gold', lw=2)
     lines.append(l)
-    labels.append('micro-average Precision-recall (average precision = {0:0.2f}; AUC = {0:0.2f})'
-                  ''.format(average_precision["micro"],  auc(recall["micro"], precision["micro"])))
+    labels.append('micro-average Precision-recall (average precision = {0:0.2f}'
+                  ''.format(average_precision["micro"]))
 
     for i, color in zip(range(number_of_diagnoses + 1), colors):
         l, = plt.plot(recall[i], precision[i], color=color, lw=0.5)
         lines.append(l)
         if diagnoses_list[i] != "Patient Sex":
-            labels.append('Precision-recall for class {0} (AP = {1:0.2f}; AUC = {2:0.2f})'
-                          ''.format(diagnoses[diagnoses_list[i]], average_precision[i],
-                                    # f1_score(targets[:, i], outputs[:, i]),
-                                    auc(recall[i], precision[i])))
+            labels.append('Precision-recall for class {0} (AP = {1:0.2f})'
+                          ''.format(diagnoses[diagnoses_list[i]], average_precision[i]))
         else:
-            labels.append('Precision-recall for class {0} (AP = {1:0.2f}; AUC = {2:0.2f})'
-                          ''.format(diagnoses_list[i], average_precision[i],
-                                    # f1_score(targets[:, i], outputs[:, i]),
-                                    auc(recall[i], precision[i])))
+            labels.append('Precision-recall for class {0} (AP = {1:0.2f})'
+                          ''.format(diagnoses_list[i], average_precision[i]))
 
     fig = plt.gcf()
     fig.subplots_adjust(bottom=0.25)
@@ -457,8 +442,6 @@ if __name__ == '__main__':
     plt.savefig(f'{figures_dir}/{encoder_name}/PR_curve_of_all_features.jpg')
 
     os.system(f"cp encoder.py {figures_dir}/{encoder_name}/encoder.py")
-
-
 
 
 
