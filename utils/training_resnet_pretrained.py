@@ -10,7 +10,6 @@ from tensorboardX import SummaryWriter
 
 # Ignore warnings
 import warnings
-
 warnings.filterwarnings("ignore")
 
 # for Resnet
@@ -23,7 +22,6 @@ from torchsummary import summary
 import torchvision.models as models #ppretrained resnet etc.
 from torchvision import datasets, transforms as T
 
-from collections import OrderedDict
 
 import torchsupport.modules.losses.vae as vl
 
