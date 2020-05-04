@@ -22,6 +22,7 @@ import torchvision
 from torchvision import datasets, transforms as T
 from torchvision import utils as vutils
 from torchvision.utils import save_image
+from torchvision import models
 
 # Torchsupport
 import torchsupport
@@ -49,6 +50,7 @@ from utils.get_mean_std import get_mean_std
 #)
 
 ### Tests #####
+
 csv_file = "data/odir_training_annotations.csv"
 
 imdir = "smalldata/smalloutputdir2/"
@@ -94,11 +96,24 @@ test_datatset = datasets.MNIST(
     root=".testmnist/", download=True, transform=T.ToTensor()
 )
 
+valid_dataset = datasets.MNIST(root='.testmnistvalid/', train=False, transform=T.ToTensor(),
+        download=True)
+
 test_dataloader = DataLoader(dataset=test_datatset, batch_size=5)
 
-testdataiter = iter(test_dataloader)
-#################
+valid_dataloader = DataLoader(dataset=valid_dataset, batch_size=5)
 
+testdataiter = iter(test_dataloader)
+
+model = models.resnet101(pretrained=False)
+
+test_training = SupervisedTraining(model, test_datatset, valid_dataset,
+        losses = [bce])
+
+test_training = SupervisedTraining(model, test_dataloader, valid_dataloader,
+        losses = [bce])
+
+#################
 
 def reconstructFileName(s):
     """give it something like '9_left_rot_foo.jpg'
@@ -110,7 +125,6 @@ def reconstructFileName(s):
     s = "_".join(s)
     s += ".jpg"
     return s
-
 
 def addAugmentationAnnotations(imdir, csv_file):
     """Give it the path for the image dir and a the 
@@ -128,10 +142,13 @@ def addAugmentationAnnotations(imdir, csv_file):
     df2.index = names
     return df2
 
-
 def normalize(image):
     return (image - image.min()) / (image.max() - image.min())
 
+def bce(predict, target):
+   result = F.binary_cross_entropy_with_logits(predict, target,
+       reduction='sum')
+   return result
 
 class RetinnSuperVisedDataset(Dataset):
     """Expects to get a path for a directory containing images,
