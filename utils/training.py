@@ -8,9 +8,9 @@ from torchsupport.training.vae import VAETraining
 import torch.nn.functional as F
 import torchsupport.modules.losses.vae as vl
 from torchsupport.data.io import netwrite, to_device
-
 from tensorboardX import SummaryWriter
 import numpy as np
+
 # Ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -46,7 +46,9 @@ class Encoder(nn.Module):
 
         self.conv_layers = nn.Sequential(
             # Formula of new "Image" Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
-            *conv_block(3, 100, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
+            *conv_block(3, 25, kernel_size=5, stride=1, padding=2),  # (384-5+2*2)//1 + 1 = 384  > Max-Pooling: 384/2=192
+            # -> (376-5+2*2)//1 + 1 = 376  --> Max-Pooling: 376/2 = 188
+            *conv_block(25, 100, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
             # -> (188-5+2*2)//1 + 1 = 188  --> Max-Pooling: 188/2 = 94
             *conv_block(100, 150, kernel_size=5, padding=2),   # New "Image" Size:  48x47
             *conv_block(150, 200, padding=1),  # New "Image" Size:  24x23
@@ -80,12 +82,8 @@ class Encoder(nn.Module):
 
     def forward(self, inputs):
         features = self.conv_layers(inputs)
-        # print(features.shape)
-        # features = features.view(-1, self.num_flat_features(features))
         features = features.view(-1, np.prod(features.shape[1:]))
-        # print(features.shape)
         features = self.linear_layers(features)
-        # print(8,features.shape)
         mean = self.mean(features)
         logvar = self.logvar(features)
         return features, mean, logvar
@@ -135,13 +133,15 @@ class Decoder(nn.Module):
             *conv_block(300, 250, padding=1, size=(24, 23), mode='nearest'),
             *conv_block(250, 200, padding=1, size=(48, 47), mode='nearest'),
             *conv_block(200, 150, padding=1, scale_factor=2),
-            *conv_block(150, 50, kernel_size=5, padding=2, scale_factor=2, mode='nearest'),
+            *conv_block(150, 100, kernel_size=5, padding=2, scale_factor=2, mode='nearest'),
+            *conv_block(100, 50, kernel_size=5, padding=2, scale_factor=2, mode='bilinear'),
             nn.Conv2d(in_channels=50, out_channels=3, kernel_size=1),
         )
 
     def forward(self, latent_vector):
         dec = torch.reshape(self.linear_blocks(latent_vector), (latent_vector.shape[0], 500, 2, 2))
         reconstructions = self.conv_layers(dec)
+        print(reconstructions.shape)
         return reconstructions
 
 
@@ -203,7 +203,7 @@ class OdirFactorVAETraining(VAETraining):
         self.discriminator = discriminator.to(device)
         self.discriminator_optimizer = optimizer(
           self.discriminator.parameters(),
-          lr=1e-4
+          lr=1e-5
         )
 
         self.checkpoint_path = f"{path_prefix}/{network_name}/{network_name}-checkpoint"
@@ -220,6 +220,8 @@ class OdirFactorVAETraining(VAETraining):
            reconstruction, target):
         ce = self.reconstruction_loss(reconstruction, target)
         fl, tc_loss, div_loss = self.divergence_loss(normal_parameters, tc_parameters)
+        self.writer.add_scalar("tc-loss", float(tc_loss), self.step_id)
+
         loss_val = ce + fl
         self.current_losses["cross-entropy"] = float(ce)
         self.current_losses["vae"] = float(fl)
@@ -302,22 +304,23 @@ class OdirVAETraining(VAETraining):
             self.epoch = self.epoch_id
             print("%i-Epoch" % (self.epoch_id+1))
 
-        imgs = torch.zeros_like(reconstructions[0:50:10])
+        if data.size(0) > 24:
+            imgs = torch.zeros_like(reconstructions[0:25:5])
 
-        for i in range(0, 50, 10):
-            imgs[i] = F.sigmoid(reconstructions[i])
+            for i in range(0, 5):
+                imgs[i] = F.sigmoid(reconstructions[i*5])
 
-        if self.step_id % 20 == 0:
-            self.writer.add_images("target", data[0:50:10], self.step_id)
-            self.writer.add_images("reconstruction", imgs, self.step_id)
-        return mean, logvar, reconstructions, data
+            if self.step_id % 20 == 0:
+                self.writer.add_images("target", data[0:25:5], self.step_id)
+                self.writer.add_images("reconstruction", imgs, self.step_id)
+            return mean, logvar, reconstructions, data
 
 
 
 
 
 if __name__ == '__main__':
-    fake_imgs = torch.randn((4, 3, 192, 188))
+    fake_imgs = torch.randn((4, 3, 384, 376))
     encoder = Encoder()
     encoder(fake_imgs)
     fake_latent_vectors = torch.randn((10, 32))
