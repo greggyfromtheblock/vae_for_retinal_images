@@ -321,8 +321,10 @@ optimizer_ft = optim.Adam(params_to_update)
 
 criterion=nn.BCEWithLogitsLoss()
 
+num_epochs=5
 
-
+model, hist = train_model(model, dataloaders_dict, optimizer_ft,
+        num_epochs=num_epochs, is_inception=False)
 
 
 test_train = SupervisedCustomTraining(test_dataset, model)
