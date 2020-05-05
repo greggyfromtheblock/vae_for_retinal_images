@@ -1,106 +1,11 @@
-import torch.nn as nn
-import torch.optim as optim
-import matplotlib.pyplot as plt
-import time
-from scipy.interpolate import UnivariateSpline
-import numpy as np
-import torch
-import os
-from tqdm import tqdm
-import pandas as pd
-from skimage import io
-import sys
-
-
-def normalize(image):
-    return (image - image.min()) / (image.max() - image.min())
-
-
-def add_slash(path):
-    if path[-1] != '/':
-        return path + "/"
-    else:
-        return(path)
-
-
-def calc_batch_size(datasize, batch_size=128):
-    for b_size in range(batch_size, 2, -1):
-        if datasize % b_size == 0:
-            return batch_size
-        if b_size < 96 and datasize % b_size >= 2:
-            return b_size
-
-
-class Encoder(nn.Module):
-    def __init__(self, number_of_features, z=32):
-        # Incoming image has shape e.g. 192x188x3
-        super(Encoder, self).__init__()
-
-        def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, padding_max_pooling=0):
-            return [nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size//2, stride=stride),
-                    nn.ReLU(),
-                    nn.BatchNorm2d(out_channels),
-                    nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
-                    nn.ReLU(),
-                    nn.BatchNorm2d(out_channels),
-                    nn.MaxPool2d(kernel_size=2, stride=2, padding=padding_max_pooling)]
-
-        self.conv_layers = nn.Sequential(
-            # Formula of new "Image" Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
-            *conv_block(3, 32, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
-            # -> (188-5+2*2)//1 + 1 = 188  --> Max-Pooling: 188/2 = 94
-            *conv_block(32, 64, kernel_size=5, padding=2),   # New "Image" Size:  48x47
-            *conv_block(64, 128, padding=1),  # New "Image" Size:  24x23
-            *conv_block(128, 192, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
-            *conv_block(192, 256, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
-            *conv_block(256, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  2x2
-        )
-
-        def linear_block(in_feat, out_feat, normalize=True, dropout=None, negative_slope=1e-2):
-            layers = [nn.Linear(in_feat, out_feat)]
-            normalize and layers.append(nn.BatchNorm1d(out_feat))  # It's the same as: if normalize: append...
-            dropout and layers.append(nn.Dropout(dropout))
-            layers.append(nn.LeakyReLU(negative_slope=negative_slope, inplace=True))
-            return layers
-
-        self.linear_layers = nn.Sequential(
-            *linear_block(1024, 512, normalize=True, dropout=0.5),
-            *linear_block(512, 256, dropout=0.3),
-            *linear_block(256, 128),
-            *linear_block(128, 64),
-            nn.Linear(64, number_of_features),
-            nn.BatchNorm1d(number_of_features),
-            nn.Sigmoid()
-            # *linear_block(64, 8, negative_slope=0.0)
-        )
-
-        self.mean = nn.Linear(z, z)
-        self.logvar = nn.Linear(z, z)
-
-    def forward(self, inputs):
-        features = self.conv_layers(inputs)
-        features = features.view(-1, np.prod(features.shape[1:]))
-        features = self.linear_layers(features)
-        # mean = self.mean(features)
-        # logvar = self.logvar(features)
-        return features   # , mean, logvar
-
-
-if __name__ == '__main__':
-
-    trainfolder = sys.argv[1] #  "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/training/n-augmentation_6_maxdegree_20_resize_192_188_grayscale_0/ODIR/"
-    testfolder = sys.argv[2] # "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/testing/n-augmentation_6_maxdegree_20_resize_192_188_grayscale_0/ODIR/"
-    csv_file = sys.argv[3]  #"/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv"
-
-    figures_dir = "/data/analysis/ag-reils/ag-reils-shared-students/henrik2/vae_for_retinal_images/data/supervised"
+    figures_dir = "/home/henrik/PycharmProjects/vae_for_retinal_images/data/supervised"
     encoder_name = "deep_balanced"
-    os.makedirs(figures_dir+f'/{encoder_name}', exist_ok=True)
+    os.makedirs(figures_dir + f'/{encoder_name}', exist_ok=True)
 
     device = "cuda:5" if torch.cuda.is_available() else "cpu"
     # torch.cuda.clear_memory_allocated()
     torch.cuda.empty_cache()
     # torch.cuda.memory_stats(device)
-
 
     csv_df = pd.read_csv(csv_file, sep='\t')
 
@@ -142,31 +47,25 @@ if __name__ == '__main__':
         targets_for_img = np.zeros((number_of_diagnoses+1))
         for j, feature in enumerate(diagnoses_list):
             if not marker:
-                if feature == "N":
-                    targets_for_img[j] = not csv_df.iloc[row_number].at[feature]
+                if feature == "Patient Sex":
+                    targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                 else:
-                    if feature == "Patient Sex":
-                        targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                    else:
-                        targets_for_img[j] = csv_df.iloc[row_number].at[feature]
+                    targets_for_img[j] = csv_df.iloc[row_number].at[feature]
             else:
-                if feature == "N":
-                    targets_for_img[j] = not csv_df.iloc[row_number].at[feature]
+                if feature == "Patient Sex":
+                    targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                 else:
-                    if feature == "Patient Sex":
-                        targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                    else:
-                        targets_for_img[j] = csv_df.iloc[row_number].at[feature]
+                    targets_for_img[j] = csv_df.iloc[row_number].at[feature]
 
         targets.append(targets_for_img)
 
     data = torch.Tensor(data)
-    targets = torch.Tensor(targets).float()
+    targets = torch.Tensor(targets).detach()   #.float()
     print("\nSize of the dataset: {}\nShape of the single tensors: {}".format(data.size(0), data[0].shape))
 
     data_size = data.size(0)
     net = Encoder(number_of_features=len(diagnoses_list)).to(device=device)
-    print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
+    # print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
 
     # Train the network
     n_epochs = 1
@@ -176,8 +75,7 @@ if __name__ == '__main__':
     lossarray = []
 
     # calculate batch_size
-    batch_size = calc_batch_size(data_size, batch_size=74)
-    print("Batch Size:", batch_size)
+    batch_size = calc_batch_size(data_size, batch_size=80)
 
     # Train network
     start = time.perf_counter()
@@ -205,15 +103,13 @@ if __name__ == '__main__':
 
             # print statistics
             running_loss += loss.item()
-            if True:
-                # print('[%d, %5d] loss: %.3f' % (n + 1, i + 1, running_loss / batch_size))
+            if 1: # i % b_size == b_size - 1:
+                print('[%d, %5d] loss: %.3f' % (n + 1, i + 1, running_loss / batch_size))
                 lossarray.append(loss.item())
                 running_loss = 0.0
-    del targets
-    del data
-    del criterion
-    print('Finished Training\nTrainingtime: %d sec' % (time.perf_counter() - start))
 
+    print('Finished Training\nTrainingtime: %d sec' % (time.perf_counter() - start))
+    print(lossarray)
     x = np.arange(len(lossarray))
     spl = UnivariateSpline(x, lossarray)
     plt.title("Loss-Curve", fontsize=16, fontweight='bold')
@@ -222,7 +118,7 @@ if __name__ == '__main__':
     plt.savefig(f'{figures_dir}/{encoder_name}_loss_curve.png')
     # plt.show()
     plt.close()
-    del lossarray
+
     PATH = f'{figures_dir}/{encoder_name}/{encoder_name}.pth'
     torch.save(net.state_dict(), PATH)
 
@@ -232,8 +128,6 @@ if __name__ == '__main__':
     # torch.cuda.clear_memory_allocated()
     torch.cuda.empty_cache()
     # torch.cuda.memory_stats(device)
-    net = Encoder(number_of_features=len(diagnoses_list)).to(device=device)
-    net.load_state_dict(torch.load(PATH))
 
     print("\nLoad Data as Tensors and build targets simultanously...")
     targets = []
@@ -252,47 +146,40 @@ if __name__ == '__main__':
             jpg = jpg.replace("_rot_%i" % angle, "")
         row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
 
-        targets_for_img = np.zeros((number_of_diagnoses + 4))
+        targets_for_img = np.zeros((number_of_diagnoses + 1))
         for j, feature in enumerate(diagnoses_list):
             if not marker:
-                if feature == "N":
-                    targets_for_img[j] = not csv_df.iloc[row_number].at[feature]
+                if feature == "Patient Sex":
+                    targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                 else:
-                    if feature == "Patient Sex":
-                        targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                    else:
-                        targets_for_img[j] = csv_df.iloc[row_number].at[feature]
+                    targets_for_img[j] = csv_df.iloc[row_number].at[feature]
             else:
-                if feature == "N":
-                    targets_for_img[j] = not csv_df.iloc[row_number].at[feature]
+                if feature == "Patient Sex":
+                    targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
                 else:
-                    if feature == "Patient Sex":
-                        targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                    else:
-                        targets_for_img[j] = csv_df.iloc[row_number].at[feature]
+                    targets_for_img[j] = csv_df.iloc[row_number].at[feature]
 
         targets.append(targets_for_img)
 
     data = torch.Tensor(data).detach()
-    targets = torch.Tensor(targets).detach().float()
+    targets = torch.Tensor(targets).detach() # .float()
     data_size = data.size(0)
 
     # Test the network
     print("Start testing the network..")
-    batch_size = calc_batch_size(data_size, batch_size=20)
-    print("Batch Size:", batch_size)
+    batch_size = calc_batch_size(data_size, batch_size=60)
 
-    print("Make predictions...")
     print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
-    outputs = torch.zeros((data_size, number_of_diagnoses + 1)).float().detach()
-
-    for i in tqdm(range(0, data_size, batch_size)):
+    print("Make predictions...")
+    outputs = torch.zeros((data_size, number_of_diagnoses + 1), device=device).detach()
+    for i in range(0, data_size, batch_size):
         # for uncompleted last batch
         if (i + batch_size) > data_size and d_mod_b != 1:
             batch_size = d_mod_b
-        outputs[i:(i + batch_size)] = net(data[i:(i + batch_size)].to(device)).to("cpu")
 
-    del data
+        outputs[i:(i + batch_size)] = net(data[i:(i + batch_size)].to(device))
+
+
     # To measure the accuracy on the basic of the rounded outcome for each diagnosis could lead to a less
     # meaningful result. That's why this approach is deprecated.
     # In lieu thereof, a ROC and PR curve is used.
@@ -355,7 +242,7 @@ if __name__ == '__main__':
         except ValueError:
             print(i, diagnoses_list[i], targets[:,i], outputs[:,i])
 
-    plt.figure(figsize=(9, 9))
+    plt.figure(figsize=(7, 9))
     lines = []
     labels = []
 
@@ -412,7 +299,7 @@ if __name__ == '__main__':
         precision[i], recall[i], _ = precision_recall_curve(targets[:, i], outputs[:, i])
         average_precision[i] = average_precision_score(targets[:, i], outputs[:, i])
 
-    plt.figure(figsize=(9, 9))
+    plt.figure(figsize=(7, 9))
     f_scores = np.linspace(0.2, 0.8, num=4)
     lines = []
     labels = []
@@ -451,8 +338,3 @@ if __name__ == '__main__':
     plt.savefig(f'{figures_dir}/{encoder_name}/PR_curve_of_all_features.jpg')
 
     os.system(f"cp encoder.py {figures_dir}/{encoder_name}/encoder.py")
-
-
-
-
-
