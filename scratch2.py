@@ -170,11 +170,12 @@ class SupervisedCustomTraining:
 
 def train_model(
     model,
-    dataloaders,
-    optimizer,
+    dataloaders, #already determined batch_sized in the dataloader
+    optimizer, #already determined parameters and lr in this
     num_epochs=25,
     criterion=nn.BCEWithLogitsLoss(reduction="sum"),
     is_inception=False,
+    report_interval=19,
 ):
     """
            The train_model function handles the training and validation of a given
@@ -193,6 +194,7 @@ def train_model(
     val_acc_history = []
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
+    lossarray = []
     for epoch in range(num_epochs):
         print("Epoch {}/{}".format(epoch, num_epochs - 1))
         print("-" * 10)
@@ -206,9 +208,11 @@ def train_model(
             running_loss = 0.0
             running_corrects = 0.0
             # Iterate over data.
+            report_counter = 0
             for inputs, labels in dataloaders[phase]:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
+                report_counter += 1
                 # zero the parameter gradients
                 optimizer.zero_grad()
                 # forward
@@ -228,6 +232,8 @@ def train_model(
                         outputs = model(inputs)
                         print("shape of outputs", outputs.shape)
                         loss = criterion(outputs, labels)
+                        if report_counter % report_interval == 0:
+                            lossarray.append(loss.item())
 
                     #_, preds = torch.max(outputs, 1)
                     preds = torch.max(outputs, torch.ones(8).to(device)).to(device)
@@ -262,7 +268,7 @@ def train_model(
     print("Best val Acc: {:4f}".format(best_acc))
     # load best model weights
     model.load_state_dict(best_model_wts)
-    return model, val_acc_history
+    return model, val_acc_history, lossarray
 
 
 ### Tests #####
@@ -334,21 +340,28 @@ optimizer_ft = optim.Adam(params_to_update)
 
 criterion=nn.BCEWithLogitsLoss(reduction='sum')
 
-model, hist = train_model(model, dataloaders_dict, optimizer_ft,
+model, hist, lossarray = train_model(model, dataloaders_dict, optimizer_ft,
         num_epochs=num_epochs, is_inception=False)
 
 
+#temp save:
+temp_save_dir = './temp_save/'
+os.makedirs(temp_save_dir, exist_ok=True)
+torch.save(model.state_dict(), temp_save_dir + 'model_state.dict')
+torch.save(hist, temp_save_dir + 'history.list')
+torch.save(lossarray, temp_save_dir + 'lossarray.list')
 
 
-test_train = SupervisedCustomTraining(test_dataset, model)
-test_dataloader = DataLoader(dataset=test_train, batch_size=64)
 
-valid_dataloader = DataLoader(dataset=valid_dataset, batch_size=64)
-
-train_model(
-    model=model,
-    dataloaders={"train": test_dataloader, "valid": valid_dataloader},
-)
+#test_train = SupervisedCustomTraining(test_dataset, model)
+#test_dataloader = DataLoader(dataset=test_train, batch_size=64)
+#
+#valid_dataloader = DataLoader(dataset=valid_dataset, batch_size=64)
+#
+#train_model(
+#    model=model,
+#    dataloaders={"train": test_dataloader, "valid": valid_dataloader},
+#)
 
 # dataloader = DataLoader(dataset=data, batch_size=5)
 # dataiter = iter(dataloader)

@@ -170,11 +170,12 @@ class SupervisedCustomTraining:
 
 def train_model(
     model,
-    dataloaders,
-    optimizer=optim.Adam(model.parameters()),
+    dataloaders, #already determined batch_sized in the dataloader
+    optimizer, #already determined parameters and lr in this
     num_epochs=25,
     criterion=nn.BCEWithLogitsLoss(reduction="sum"),
     is_inception=False,
+    report_interval=19,
 ):
     """
            The train_model function handles the training and validation of a given
@@ -193,6 +194,7 @@ def train_model(
     val_acc_history = []
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
+    lossarray = []
     for epoch in range(num_epochs):
         print("Epoch {}/{}".format(epoch, num_epochs - 1))
         print("-" * 10)
@@ -204,11 +206,14 @@ def train_model(
                 model.eval()  # Set model to evaluate mode
 
             running_loss = 0.0
-            running_corrects = 0
+            #running_corrects = 0
+            running_corrects = 0.0
             # Iterate over data.
+            report_counter = 0
             for inputs, labels in dataloaders[phase]:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
+                report_counter += 1
                 # zero the parameter gradients
                 optimizer.zero_grad()
                 # forward
@@ -227,8 +232,11 @@ def train_model(
                     else:
                         outputs = model(inputs)
                         loss = criterion(outputs, labels)
+                        if report_counter % report_interval == 0:
+                            lossarray.append(loss.item())
 
-                    _, preds = torch.max(outputs, 1)
+                    #_, preds = torch.max(outputs, 1)
+                    preds = torch.max(outputs, torch.ones(8).to(device)).to(device)
 
                     # backward + optimize only if in training phase
                     if phase == "train":
@@ -238,7 +246,8 @@ def train_model(
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
-            epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
+            epoch_acc = running_corrects / len(dataloaders[phase].dataset)
+            #epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
             print("{} Loss: {:.4f} Acc: {:.4f}".format(phase, epoch_loss, epoch_acc))
             # deep copy the model
             if phase == "val" and epoch_acc > best_acc:
@@ -257,7 +266,8 @@ def train_model(
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    return model, val_acc_history
+    return model, val_acc_history, lossarray
+
 
 
 ### Tests #####
@@ -284,6 +294,10 @@ input_size=224
 
 mytransform = T.Compose([T.CenterCrop(input_size), T.ToTensor(), normalize])
 
+mytransform = T.Compose([T.ToPILImage(),
+    T.CenterCrop(input_size),
+    T.ToTensor(), normalize])
+
 #prepare model
 model = models.resnet101(pretrained=False)
 model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
@@ -292,12 +306,15 @@ model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
 test_dataset = RetinnSuperVisedDataset(test_dir, csv_file, transform=mytransform)
 valid_dataset = RetinnSuperVisedDataset(valid_dir, csv_file, transform=mytransform)
 
+xx,yy = test_dataset.__getitem__(1)
+xx
+yy
 #put them in a dictionary:
-image_datasets = {'train' : test_dataset, 'valid' : valid_dataset}
+image_datasets = {'train' : test_dataset, 'val' : valid_dataset}
 
 dataloaders_dict = {'train' : DataLoader(image_datasets[x],
     batch_size=batch_size, shuffle=False, num_workers=4) for x in ['train',
-    'valid']}
+    'val']}
 
 model.to(device)
 
@@ -319,40 +336,305 @@ else:
 # Observe that all parameters are being optimized
 optimizer_ft = optim.Adam(params_to_update)
 
-criterion=nn.BCEWithLogitsLoss()
-
-num_epochs=5
+criterion=nn.BCEWithLogitsLoss(reduction='sum')
 
 model, hist = train_model(model, dataloaders_dict, optimizer_ft,
         num_epochs=num_epochs, is_inception=False)
 
-
-test_train = SupervisedCustomTraining(test_dataset, model)
-test_dataloader = DataLoader(dataset=test_train, batch_size=64)
-
-valid_dataloader = DataLoader(dataset=valid_dataset, batch_size=64)
-
-train_model(
-    model=model,
-    dataloaders={"train": test_dataloader, "valid": valid_dataloader},
-)
-
-# dataloader = DataLoader(dataset=data, batch_size=5)
-# dataiter = iter(dataloader)
-# test_datatset = datasets.MNIST(
-#    root=".testmnist/", download=True, transform=T.ToTensor()
-# )
-# valid_dataset = datasets.MNIST(
-#    root=".testmnistvalid/", train=False, transform=T.ToTensor(), download=True
-# )
-# test_dataloader = DataLoader(dataset=test_datatset, batch_size=5)
-# valid_dataloader = DataLoader(dataset=valid_dataset, batch_size=5)
-# testdataiter = iter(test_dataloader)
-# model = models.resnet101(pretrained=False)
-
-# test_training = SupervisedTraining(model, test_datatset, valid_dataset, losses=[bce])
-# test_training = SupervisedTraining(
-#    model, test_dataloader, valid_dataloader, losses=[bce]
-# )
-
 #################
+#Henrik encoder.py 
+####################
+def test_run():
+    """testing encoder.py from henrik's branch
+    with a resnet"""
+
+    #trainfolder = sys.argv[1]
+    trainfolder = test_dir
+    #testfolder = sys.argv[2]
+    testfolder = valid_dir
+    #csv_file = sys.argv[3]     
+    csv_file = csv_file     
+
+    figures_dir = "/data/analysis/ag-reils/ag-reils-shared-students/yiftach/vae_for_retinal_images/data/supervised"
+    encoder_name = "resnet101"
+    os.makedirs(figures_dir + f'/{encoder_name}', exist_ok=True)
+
+    #device = "cuda:5" if torch.cuda.is_available() else "cpu"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    # torch.cuda.clear_memory_allocated()
+    torch.cuda.empty_cache()
+    # torch.cuda.memory_stats(device)
+
+    #csv_df = pd.read_csv(csv_file, sep='\t')
+    csv_df = pd.read_csv(csv_file, header=0, index_col="Fundus Image", sep="\t")
+    #csv_df = addAugmentationAnnotations(trainfolder, csv_file)
+
+    diagnoses = {
+        "N": "normal fundus",
+        "D": "proliferative retinopathy",
+        "G": "glaucoma",
+        "C": "cataract",
+        "A": "age related macular degeneration",
+        "H": "hypertensive retinopathy",
+        "M": "myopia",
+        "O": "other diagnosis"
+    }
+
+    number_of_diagnoses = len(diagnoses)
+    diagnoses_list = list(diagnoses.keys())
+    diagnoses_list.extend(["Patient Sex"])
+    angles = [x for x in range(-22, -9)]
+    angles.extend([x for x in range(10, 22 + 1)])
+    angles.extend([x for x in range(-9, 10)])
+    print("\nPossible Angles: {}\n".format(angles))
+
+    print("\nLoad Data as Tensors and build targets simultanously...")
+    targets = []
+    data = []
+    marker = None
+
+    net = models.resnet101(pretrained=True)
+    net.requires_grad_(False)
+    net.layer4.requires_grad_(True)
+    net.fc.requires_grad_(True)
+    net.fc = nn.Linear(net.fc.in_features, zdim, bias=True)
+
+    # Train the network
+    net, hist = train_model(model, dataloaders_dict, optimizer_ft,
+        num_epochs=num_epochs, is_inception=False)
+
+    
+    print('Finished Training\nTrainingtime: %d sec' % (time.perf_counter() - start))
+    x = np.arange(len(lossarray))
+    spl = UnivariateSpline(x, lossarray)
+    plt.title("Loss-Curve", fontsize=16, fontweight='bold')
+    plt.plot(x, lossarray, '-y')
+    plt.plot(x, spl(x), '-r')
+    plt.savefig(f'{figures_dir}/{encoder_name}_loss_curve.png')
+    # plt.show()
+    plt.close()
+
+    PATH = f'{figures_dir}/{encoder_name}/{encoder_name}.pth'
+    torch.save(net.state_dict(), PATH)
+    
+    ########################################
+    #           Test network               #
+    ########################################
+    # torch.cuda.clear_memory_allocated()
+    torch.cuda.empty_cache()
+    # torch.cuda.memory_stats(device)
+    
+    net = Encoder(number_of_features=len(diagnoses_list)).to(device=device)    
+    net.load_state_dict(torch.load(PATH))
+    print("Allocated memory: %s MiB after loading net again" % torch.cuda.memory_allocated(device))
+
+    
+    print("\nLoad Data as Tensors and build targets simultanously...")
+    targets = []
+    data = []
+    marker = None
+
+    for i, jpg in tqdm(enumerate(os.listdir(testfolder))):
+        if jpg == '.snakemake_timestamp':
+            marker = True
+            continue
+
+        data.append(io.imread(testfolder + jpg).transpose((2, 0, 1)))
+
+        jpg = jpg.replace("_flipped", "")
+        for angle in angles:
+            jpg = jpg.replace("_rot_%i" % angle, "")
+        row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
+
+        targets_for_img = np.zeros((number_of_diagnoses + 1))
+        for j, feature in enumerate(diagnoses_list):
+            if not marker:
+                if feature == "Patient Sex":
+                    targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                else:
+                    targets_for_img[j] = csv_df.iloc[row_number].at[feature]
+            else:
+                if feature == "Patient Sex":
+                    targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
+                else:
+                    targets_for_img[j] = csv_df.iloc[row_number].at[feature]
+
+        targets.append(targets_for_img)
+
+    data = torch.Tensor(data).detach()
+    targets = torch.Tensor(targets).detach() # .float()
+    data_size = data.size(0)
+
+    # Test the network
+    print("Start testing the network..")
+    batch_size = calc_batch_size(data_size, batch_size=20)
+
+    print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
+    print("Make predictions...")
+    outputs = torch.zeros((data_size, number_of_diagnoses + 1), device=device).detach()
+    for i in range(0, data_size, batch_size):
+        # for uncompleted last batch
+        if (i + batch_size) > data_size and d_mod_b != 1:
+            batch_size = d_mod_b
+
+        outputs[i:(i + batch_size)] = net(data[i:(i + batch_size)].to(device))
+
+
+    # To measure the accuracy on the basic of the rounded outcome for each diagnosis could lead to a less
+    # meaningful result. That's why this approach is deprecated.
+    # In lieu thereof, a ROC and PR curve is used.
+    # The network has as an outcome a vector of floats with values between 0 and 1. The threshold to round up is
+    # increased stepwise, starts with 0 until 1.
+    # In every step we calculate the Sensitivity/True Positiv Rate (TRP) and the False Positive Rate (1-Specifity):
+    # TRP = TP/(TP+FN)  and  FPR=FP/(TN+FP).
+    # https://de.wikipedia.org/wiki/Beurteilung_eines_bin%C3%A4ren_Klassifikators#Sensitivit%C3%A4t_und_Falsch-Negativ-Rate
+    # https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
+
+    # roc_auc_score: Compute Area Under the Receiver Operating Characteristic Curve (ROC AUC) from prediction scores:
+    # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html
+
+    # average_auc_score: Compute average precision (AP) from prediction scores
+    # AP = sum ((R_N - R_N_-1) * P_N)
+    # AP summarizes a precision-recall curve as the weighted mean of precisions achieved at each threshold, with the
+    # increase in recall from the previous threshold used as the weight: where R_N and P_N are the precision and recall
+    # at the n-th threshold. This implementation is not interpolated and is different from computing the area under the
+    # precision-recall curve with the trapezoidal rule, which uses linear interpolation and can be too optimistic.
+    # Recall = TP/TP+FN  and   Precision = TP/TP+FP
+    # F1 Score = 2*(Recall * Precision) / (Recall + Precision)
+    # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score
+    # https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-classification-in-python/
+
+    # ROC-Curve/AUC with sklearn:
+    from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score
+
+    outputs = outputs.to(device="cpu").detach().numpy()
+    targets = targets.float().numpy()
+    colors = ['navy', 'turquoise', 'darkorange', 'cornflowerblue', 'indigo', 'darkgreen', 'firebrick', 'sienna',
+              'red', 'limegreen']
+
+    tpr = dict()  # Sensitivity/False Positive Rate
+    fpr = dict()   # True Positive Rate / (1-Specifity)
+    auc = dict()
+
+    # A "micro-average": quantifying score on all classes jointly
+    tpr["micro"], fpr["micro"], _ = roc_curve(targets.ravel(), outputs.ravel())
+    auc["micro"] = roc_auc_score(targets.ravel(), outputs.ravel(), average='micro')
+    print('AUC score, micro-averaged over all classes: {0:0.2f}'.format(auc['micro']))
+
+    plt.figure()
+    plt.step(tpr['micro'], fpr['micro'], where='post')
+    plt.xlabel('False Positive Rate / Sensitivity', fontsize=11)
+    plt.ylabel('True Negative Rate / (1 - Specifity)', fontsize=11)
+    plt.ylim([0.0, 1.05])
+    plt.xlim([0.0, 1.0])
+    plt.title(
+        'AUC score, micro-averaged over all classes: AP={0:0.2f}'
+            .format(auc["micro"]), fontsize=13, fontweight='bold')
+    plt.show()
+    plt.savefig(f'{figures_dir}/{encoder_name}/ROC_curve_micro_averaged.png')
+    plt.close()
+
+    # Plot of all classes ('macro')
+    for i in range(number_of_diagnoses + 1):
+        tpr[i], fpr[i], _ = roc_curve(targets[:, i], outputs[:, i])
+        try:
+            auc[i] = roc_auc_score(targets[:, i], outputs[:, i])
+        except ValueError:
+            print(i, diagnoses_list[i], targets[:,i], outputs[:,i])
+
+    plt.figure(figsize=(7, 9))
+    lines = []
+    labels = []
+
+    l, = plt.plot(tpr["micro"], fpr["micro"], color='gold', lw=2)
+    lines.append(l)
+    labels.append('micro-averaged ROC-AUC = {0:0.2f})'.format(auc["micro"]))
+
+    for i, color in zip(range(number_of_diagnoses + 1), colors):
+        if i in auc.keys():
+            l, = plt.plot(tpr[i], fpr[i], color=color, lw=0.5)
+            lines.append(l)
+            if diagnoses_list[i] != "Patient Sex":
+                labels.append('ROC for class {0} (ROC-AUC = {1:0.2f})'
+                              ''.format(diagnoses[diagnoses_list[i]], auc[i]))
+            else:
+                labels.append('ROC for class {0} (ROC-AUC = {1:0.2f})'
+                              ''.format(diagnoses_list[i], auc[i]))
+
+    fig = plt.gcf()
+    fig.subplots_adjust(bottom=0.25)
+    plt.xlabel('False Positive Rate / Sensitivity', fontsize=11)
+    plt.ylabel('True Negative Rate / (1 - Specifity)', fontsize=11)
+    plt.title('ROC curve of all features', fontsize=13, fontweight='bold')
+    plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=8))
+    plt.savefig(f'{figures_dir}/{encoder_name}/ROC_curve_of_all_features.png')
+    plt.show()
+    plt.close()
+
+    # Precision-Recall Plots
+    precision = dict()
+    recall = dict()
+    average_precision = dict()
+    from sklearn.metrics import auc
+
+    # A "micro-average": quantifying score on all classes jointly
+    precision["micro"], recall["micro"], _ = precision_recall_curve(targets.ravel(), outputs.ravel())
+    average_precision["micro"] = average_precision_score(targets, outputs, average="micro")
+    print('Average precision score, micro-averaged over all classes: {0:0.2f}'.format(average_precision["micro"]))
+    plt.figure()
+    plt.step(recall['micro'], precision['micro'], where='post')
+    plt.xlabel('Recall', fontsize=11)
+    plt.ylabel('Precision', fontsize=11)
+    plt.ylim([0.0, 1.05])
+    plt.xlim([0.0, 1.0])
+    plt.title(
+        'Average precision score, micro-averaged over all classes: AP={0:0.2f}'
+            .format(average_precision["micro"]), fontsize=13, fontweight='bold')
+    plt.show()
+    plt.savefig(f'{figures_dir}/{encoder_name}/PR_curve_micro_averaged.jpg')
+    plt.close()
+
+    # Plot of all classes ('macro')
+    for i in range(number_of_diagnoses + 1):
+        precision[i], recall[i], _ = precision_recall_curve(targets[:, i], outputs[:, i])
+        average_precision[i] = average_precision_score(targets[:, i], outputs[:, i])
+
+    plt.figure(figsize=(7, 9))
+    f_scores = np.linspace(0.2, 0.8, num=4)
+    lines = []
+    labels = []
+    for f_score in f_scores:
+        x = np.linspace(0.01, 1)
+        y = f_score * x / (2 * x - f_score)
+        l, = plt.plot(x[y >= 0], y[y >= 0], color='gray', alpha=0.2)
+        plt.annotate('f1={0:0.1f}'.format(f_score), xy=(0.9, y[45] + 0.02))
+
+    lines.append(l)
+    labels.append('iso-f1 curves')
+    l, = plt.plot(recall["micro"], precision["micro"], color='gold', lw=2)
+    lines.append(l)
+    labels.append('micro-average Precision-recall (average precision = {0:0.2f}'
+                  ''.format(average_precision["micro"]))
+
+    for i, color in zip(range(number_of_diagnoses + 1), colors):
+        l, = plt.plot(recall[i], precision[i], color=color, lw=0.5)
+        lines.append(l)
+        if diagnoses_list[i] != "Patient Sex":
+            labels.append('Precision-recall for class {0} (AP = {1:0.2f})'
+                          ''.format(diagnoses[diagnoses_list[i]], average_precision[i]))
+        else:
+            labels.append('Precision-recall for class {0} (AP = {1:0.2f})'
+                          ''.format(diagnoses_list[i], average_precision[i]))
+
+    fig = plt.gcf()
+    fig.subplots_adjust(bottom=0.25)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Recall', fontsize=11)
+    plt.ylabel('Precision', fontsize=11)
+    plt.title('Precision-Recall curve of all features')
+    plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=9))
+    plt.show()
+    plt.savefig(f'{figures_dir}/{encoder_name}/PR_curve_of_all_features.jpg')
+
+    os.system(f"cp encoder.py {figures_dir}/{encoder_name}/encoder.py")
