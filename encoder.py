@@ -1,3 +1,98 @@
+import torch.nn as nn
+import torch.optim as optim
+import matplotlib.pyplot as plt
+import time
+from scipy.interpolate import UnivariateSpline
+import numpy as np
+import torch
+import os
+from tqdm import tqdm
+import pandas as pd
+from skimage import io
+import sys
+
+def normalize(image):
+    return (image - image.min()) / (image.max() - image.min())
+
+
+def add_slash(path):
+    if path[-1] != '/':
+        return path + "/"
+    else:
+        return (path)
+
+
+def calc_batch_size(datasize, batch_size=128):
+    for b_size in range(batch_size, 2, -1):
+        if datasize % b_size == 0:
+            return batch_size
+        if b_size < 10 and datasize % b_size >= 2:
+            return b_size
+
+
+class Encoder(nn.Module):
+    def __init__(self, number_of_features, z=32):
+        # Incoming image has shape e.g. 192x188x3
+        super(Encoder, self).__init__()
+
+        def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, padding_max_pooling=0):
+            return [
+                nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2, stride=stride),
+                nn.ReLU(),
+                nn.BatchNorm2d(out_channels),
+                nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
+                nn.ReLU(),
+                nn.BatchNorm2d(out_channels),
+                nn.MaxPool2d(kernel_size=2, stride=2, padding=padding_max_pooling)]
+
+        self.conv_layers = nn.Sequential(
+            # Formula of new "Image" Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
+            *conv_block(3, 32, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
+            # -> (188-5+2*2)//1 + 1 = 188  --> Max-Pooling: 188/2 = 94
+            *conv_block(32, 64, kernel_size=5, padding=2),  # New "Image" Size:  48x47
+            *conv_block(64, 128, padding=1),  # New "Image" Size:  24x23
+            *conv_block(128, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
+            *conv_block(256, 512, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
+            *conv_block(512, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  2x2
+        )
+
+        def linear_block(in_feat, out_feat, normalize=True, dropout=None, negative_slope=1e-2):
+            layers = [nn.Linear(in_feat, out_feat)]
+            normalize and layers.append(nn.BatchNorm1d(out_feat))  # It's the same as: if normalize: append...
+            dropout and layers.append(nn.Dropout(dropout))
+            layers.append(nn.LeakyReLU(negative_slope=negative_slope, inplace=True))
+            return layers
+
+        self.linear_layers = nn.Sequential(
+            *linear_block(1024, 512, normalize=True, dropout=0.5),
+            *linear_block(512, 256, dropout=0.3),
+            *linear_block(256, 128),
+            *linear_block(128, 64),
+            nn.Linear(64, number_of_features),
+            nn.BatchNorm1d(number_of_features),
+            nn.Sigmoid()
+            # *linear_block(64, 8, negative_slope=0.0)
+        )
+
+        self.mean = nn.Linear(z, z)
+        self.logvar = nn.Linear(z, z)
+
+    def forward(self, inputs):
+        features = self.conv_layers(inputs)
+        features = features.view(-1, np.prod(features.shape[1:]))
+        features = self.linear_layers(features)
+        # mean = self.mean(features)
+        # logvar = self.logvar(features)
+        return features  # , mean, logvar
+
+
+if __name__ == '__main__':
+
+    trainfolder = sys.argv[1]
+    testfolder = sys.argv[2]
+    csv_file = sys.argv[3] # "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv"
+
+    
     figures_dir = "/home/henrik/PycharmProjects/vae_for_retinal_images/data/supervised"
     encoder_name = "deep_balanced"
     os.makedirs(figures_dir + f'/{encoder_name}', exist_ok=True)
