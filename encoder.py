@@ -93,7 +93,7 @@ if __name__ == '__main__':
     csv_file = sys.argv[3] # "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/processed/annotations/ODIR_Annotations.csv"
 
     
-    figures_dir = "/home/henrik/PycharmProjects/vae_for_retinal_images/data/supervised"
+    figures_dir = "/data/analysis/ag-reils/ag-reils-shared-students/henrik/vae_for_retinal_images/data/supervised"
     encoder_name = "deep_balanced"
     os.makedirs(figures_dir + f'/{encoder_name}', exist_ok=True)
 
@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
     data_size = data.size(0)
     net = Encoder(number_of_features=len(diagnoses_list)).to(device=device)
-    # print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
+    print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
 
     # Train the network
     n_epochs = 1
@@ -176,13 +176,12 @@ if __name__ == '__main__':
     start = time.perf_counter()
 
     d_mod_b = data_size % batch_size
-
+    report_interval = 10
     print("Start Training")
     for n in tqdm(range(n_epochs)):
-        running_loss = 0.0
         b_size = batch_size
 
-        for i in range(0, data_size, batch_size):
+        for k, i in enumerate(range(0, data_size, batch_size)):
             if (i + batch_size) > data_size and d_mod_b != 1:
                 # for uncompleted last batch
                 b_size = d_mod_b
@@ -196,15 +195,16 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
 
-            # print statistics
-            running_loss += loss.item()
-            if 1: # i % b_size == b_size - 1:
-                print('[%d, %5d] loss: %.3f' % (n + 1, i + 1, running_loss / batch_size))
+            if k % report_interval == 0:
                 lossarray.append(loss.item())
-                running_loss = 0.0
+    
+    print("Allocated memory before deleting net, outputs and criterion: %s MiB" % torch.cuda.memory_allocated(device))
+    del criterion 
+    del outputs
+    del net
+    print("Allocated memory after deleting net, outputs and criterion: %s MiB" % torch.cuda.memory_allocated(device))
 
     print('Finished Training\nTrainingtime: %d sec' % (time.perf_counter() - start))
-    print(lossarray)
     x = np.arange(len(lossarray))
     spl = UnivariateSpline(x, lossarray)
     plt.title("Loss-Curve", fontsize=16, fontweight='bold')
@@ -216,14 +216,19 @@ if __name__ == '__main__':
 
     PATH = f'{figures_dir}/{encoder_name}/{encoder_name}.pth'
     torch.save(net.state_dict(), PATH)
-
+    
     ########################################
     #           Test network               #
     ########################################
     # torch.cuda.clear_memory_allocated()
     torch.cuda.empty_cache()
     # torch.cuda.memory_stats(device)
+    
+    net = Encoder(number_of_features=len(diagnoses_list)).to(device=device)    
+    net.load_state_dict(torch.load(PATH))
+    print("Allocated memory: %s MiB after loading net again" % torch.cuda.memory_allocated(device))
 
+    
     print("\nLoad Data as Tensors and build targets simultanously...")
     targets = []
     data = []
@@ -262,7 +267,7 @@ if __name__ == '__main__':
 
     # Test the network
     print("Start testing the network..")
-    batch_size = calc_batch_size(data_size, batch_size=60)
+    batch_size = calc_batch_size(data_size, batch_size=20)
 
     print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
     print("Make predictions...")
