@@ -266,6 +266,9 @@ csv_file = "../preptest2/odir_training_annotations.csv"
 test_dir = "../preptest2/test_images/images/"
 valid_dir = "../preptest2/valid_images/images/"
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+batch_size = 64
+
 zdim = 8
 
 plt.ion()
@@ -277,16 +280,54 @@ df[df["no fundus"] == 1]
 
 plt.show()
 
-mytransform = T.Compose([T.ToTensor(), normalize])
-test_dataset = RetinnSuperVisedDataset(test_dir, csv_file, transform=mytransform)
+input_size=224
 
+mytransform = T.Compose([T.CenterCrop(input_size), T.ToTensor(), normalize])
+
+#prepare model
 model = models.resnet101(pretrained=False)
 model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
+
+#test and validation datasets
+test_dataset = RetinnSuperVisedDataset(test_dir, csv_file, transform=mytransform)
+valid_dataset = RetinnSuperVisedDataset(valid_dir, csv_file, transform=mytransform)
+
+#put them in a dictionary:
+image_datasets = {'train' : test_dataset, 'valid' : valid_dataset}
+
+dataloaders_dict = {'train' : DataLoader(image_datasets[x],
+    batch_size=batch_size, shuffle=False, num_workers=4) for x in ['train',
+    'valid']}
+
+model.to(device)
+
+feature_extract=False
+
+params_to_update = model.parameters()
+print("Params to learn:")
+if feature_extract:
+    params_to_update = []
+    for name,param in model.named_parameters():
+        if param.requires_grad == True:
+            params_to_update.append(param)
+            print("\t",name)
+else:
+    for name,param in model.named_parameters():
+        if param.requires_grad == True:
+            print("\t",name)
+
+# Observe that all parameters are being optimized
+optimizer_ft = optim.Adam(params_to_update)
+
+criterion=nn.BCEWithLogitsLoss()
+
+
+
+
 
 test_train = SupervisedCustomTraining(test_dataset, model)
 test_dataloader = DataLoader(dataset=test_train, batch_size=64)
 
-valid_dataset = RetinnSuperVisedDataset(valid_dir, csv_file, transform=mytransform)
 valid_dataloader = DataLoader(dataset=valid_dataset, batch_size=64)
 
 train_model(
