@@ -372,6 +372,7 @@ class Encoder(nn.Module):
                 param.requires_grad = False
         #change last layer to fit zdim (by default it will be requires_grad=T
         #model.fc = nn.Linear(model.fc.in_features, z, bias=True)
+        #model.layer4._require_grad_(True)
 
         self.encoder = model
 
