@@ -230,7 +230,6 @@ def train_model(
                         loss = loss1 + 0.4 * loss2
                     else:
                         outputs = model(inputs)
-                        print("shape of outputs", outputs.shape)
                         loss = criterion(outputs, labels)
                         if report_counter % report_interval == 0:
                             lossarray.append(loss.item())
@@ -244,8 +243,6 @@ def train_model(
                         optimizer.step()
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
-                print("shpe of preds: ", preds.shape, "shape of labels: ",
-                        labels.shape)
                 running_corrects += torch.sum(preds == labels.data)
                 #running_corrects += torch.sum(preds == labels)
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
@@ -279,7 +276,8 @@ valid_dir= "../retina/outputs/supervised_sets/validation_images/images/"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 batch_size = 64
 zdim = 8
-num_epochs=2
+
+num_epochs=25
 
 plt.ion()
 
@@ -300,6 +298,10 @@ mytransform = T.Compose([T.ToPILImage(),
 
 #prepare model
 model = models.resnet101(pretrained=False)
+#model = models.resnet101(pretrained=True)
+#model.requires_grad_(False)
+#model.layer4.requires_grad_(True)
+#model.fc.requires_grad_(True)
 model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
 
 #test and validation datasets
@@ -336,6 +338,7 @@ else:
             print("\t",name)
 
 # Observe that all parameters are being optimized
+# set non_default lr here if desired
 optimizer_ft = optim.Adam(params_to_update)
 
 criterion=nn.BCEWithLogitsLoss(reduction='sum')
