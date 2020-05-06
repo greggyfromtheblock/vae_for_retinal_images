@@ -289,12 +289,11 @@ plt.show()
 
 input_size=224
 
-#mytransform = T.Compose([T.CenterCrop(input_size), T.ToTensor(), normalize])
-#mytransform = T.Compose([T.CenterCrop(input_size)])
+mytransform = T.Compose([T.ToTensor(), normalize])
 
-mytransform = T.Compose([T.ToPILImage(),
-    T.CenterCrop(input_size),
-    T.ToTensor(), normalize])
+#mytransform = T.Compose([T.ToPILImage(),
+#    T.CenterCrop(input_size),
+#    T.ToTensor(), normalize])
 
 #prepare model
 model = models.resnet101(pretrained=False)
