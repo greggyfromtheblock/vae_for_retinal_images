@@ -172,7 +172,7 @@ def train_model(
     model,
     dataloaders, #already determined batch_sized in the dataloader
     optimizer, #already determined parameters and lr in this
-    num_epochs=25,
+    num_epochs=31,
     criterion=nn.BCEWithLogitsLoss(reduction="sum"),
     is_inception=False,
     report_interval=19,
@@ -277,8 +277,6 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 batch_size = 64
 zdim = 8
 
-num_epochs=3
-
 plt.ion()
 
 #df = pd.read_csv(csv_file, header=0, index_col="Fundus Image", sep="\t")
@@ -341,6 +339,7 @@ else:
 optimizer_ft = optim.Adam(params_to_update)
 
 criterion=nn.BCEWithLogitsLoss(reduction='sum')
+num_epochs = 61
 
 model, hist, lossarray = train_model(model, dataloaders_dict, optimizer_ft,
         num_epochs=num_epochs, is_inception=False)
@@ -348,12 +347,43 @@ model, hist, lossarray = train_model(model, dataloaders_dict, optimizer_ft,
 
 #temp save:
 temp_save_dir = './temp_save/'
+
 os.makedirs(temp_save_dir, exist_ok=True)
 torch.save(model.state_dict(), temp_save_dir + 'model_state.dict')
 torch.save(hist, temp_save_dir + 'history.list')
 torch.save(lossarray, temp_save_dir + 'lossarray.list')
 
+vloader = DataLoader(valid_dataset, batch_size=79)
 
+# get the outputs
+model.eval()
+device2 = 'cpu'
+model.to(device2)
+output_labels = []
+input_labels = []
+
+for inputs, labels in vloader:
+    inputs = inputs.to(device2)
+    labels = labels.to(device2)
+    outputs = model(inputs)
+    output_labels.append(outputs)
+    output_labels = [torch.cat(output_labels, 0)]
+    input_labels.append(labels)
+    input_labels = [torch.cat(input_labels, 0)]
+
+#get a tensor of all the labels/outputs for the plot
+input_labels = input_labels[0]
+output_labels = output_labels[0]
+
+torch.save(input_labels, temp_save_dir + 'input_labels')
+torch.save(output_labels, temp_save_dir + 'output_labels')
+
+
+
+
+#test = torch.save(input_labels, temp_save_dir + 'input_labels')
+#test_load = torch.load(temp_save_dir + 'input_labels')
+#test_load == input_labels
 
 #test_train = SupervisedCustomTraining(test_dataset, model)
 #test_dataloader = DataLoader(dataset=test_train, batch_size=64)
@@ -384,3 +414,88 @@ torch.save(lossarray, temp_save_dir + 'lossarray.list')
 # )
 
 #################
+
+model2 = models.resnet101(pretrained=True)
+model2.requires_grad_(False)
+model2.layer4.requires_grad_(True)
+model2.fc.requires_grad_(True)
+model2.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
+
+model2.to(device)
+
+params_to_update = model2.parameters()
+print("Params to learn:")
+if feature_extract:
+    params_to_update = []
+    for name,param in model.named_parameters():
+        if param.requires_grad == True:
+            params_to_update.append(param)
+            print("\t",name)
+else:
+    for name,param in model.named_parameters():
+        if param.requires_grad == True:
+            print("\t",name)
+
+optimizer_ft = optim.Adam(params_to_update)
+
+
+#test and validation datasets
+input_size=224
+mytransform = T.Compose([T.ToPILImage(),
+    T.CenterCrop(input_size),
+    T.ToTensor(),
+    T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
+
+#mytransform = T.Compose([T.ToTensor(),
+#        T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+#    ])
+
+test_dataset = RetinnSuperVisedDataset(test_dir, csv_file, transform=mytransform)
+valid_dataset = RetinnSuperVisedDataset(valid_dir, csv_file, transform=mytransform)
+
+xx,yy = test_dataset.__getitem__(1)
+
+xx
+yy
+
+#put them in a dictionary:
+image_datasets = {'train' : test_dataset, 'val' : valid_dataset}
+
+dataloaders_dict = {x : DataLoader(image_datasets[x],
+    batch_size=batch_size, shuffle=False, num_workers=4) for x in ['train',
+    'val']}
+
+model2, hist2, lossarray2 = train_model(model2, dataloaders_dict, optimizer_ft,
+        num_epochs=num_epochs, is_inception=False)
+
+
+os.makedirs(temp_save_dir, exist_ok=True)
+torch.save(model2.state_dict(), temp_save_dir + 'model_state.dict')
+torch.save(hist2, temp_save_dir + 'history.list')
+torch.save(lossarray2, temp_save_dir + 'lossarray.list')
+
+vloader = DataLoader(valid_dataset, batch_size=79)
+
+# get the outputs
+model2.eval()
+device2 = 'cpu'
+model2.to(device2)
+output_labels = []
+input_labels = []
+
+for inputs, labels in vloader:
+    inputs = inputs.to(device2)
+    labels = labels.to(device2)
+    outputs = model2(inputs)
+    output_labels.append(outputs)
+    output_labels = [torch.cat(output_labels, 0)]
+    input_labels.append(labels)
+    input_labels = [torch.cat(input_labels, 0)]
+
+#get a tensor of all the labels/outputs for the plot
+input_labels = input_labels[0]
+output_labels = output_labels[0]
+
+torch.save(input_labels, temp_save_dir + 'input_labels')
+torch.save(output_labels, temp_save_dir + 'output_labels')
