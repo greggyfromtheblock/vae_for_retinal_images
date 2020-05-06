@@ -277,7 +277,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 batch_size = 64
 zdim = 8
 
-num_epochs=25
+num_epochs=3
 
 plt.ion()
 
