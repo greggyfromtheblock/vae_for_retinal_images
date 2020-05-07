@@ -272,27 +272,28 @@ def train_model(
 
 ### Tests #####
 
-csv_file = "../preptest2/odir_training_annotations.csv"
-test_dir = "../preptest2/test_images/images/"
-valid_dir = "../preptest2/valid_images/images/"
-
+#csv_file = "../preptest2/odir_training_annotations.csv"
+#test_dir = "../preptest2/test_images/images/"
+#valid_dir = "../preptest2/valid_images/images/"
+#csv_file = "../retina/outputs/supervised_sets/odir-training.csv"
+test_dir = "../retina/outputs/supervised_sets/training_images/images/"
+valid_dir= "../retina/outputs/supervised_sets/validation_images/images/"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 batch_size = 64
-
 zdim = 8
+num_epochs=3
 
 plt.ion()
 
-df = pd.read_csv(csv_file, header=0, index_col="Fundus Image", sep="\t")
-
-df[df["anterior"] == 1]
-df[df["no fundus"] == 1]
+#df = pd.read_csv(csv_file, header=0, index_col="Fundus Image", sep="\t")
+#df[df["anterior"] == 1]
+#df[df["no fundus"] == 1]
 
 plt.show()
 
-input_size=224
+input_size=224 #in case we crop the image, that's the standard resnet size
 
-mytransform = T.Compose([T.CenterCrop(input_size), T.ToTensor(), normalize])
+mytransform = T.Compose([T.ToTensor(), normalize])
 
 mytransform = T.Compose([T.ToPILImage(),
     T.CenterCrop(input_size),
@@ -300,6 +301,10 @@ mytransform = T.Compose([T.ToPILImage(),
 
 #prepare model
 model = models.resnet101(pretrained=False)
+#model = models.resnet101(pretrained=True)
+#model.requires_grad_(False)
+#model.layer4.requires_grad_(True)
+#model.fc.requires_grad_(True)
 model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
 
 #test and validation datasets
@@ -312,13 +317,13 @@ yy
 #put them in a dictionary:
 image_datasets = {'train' : test_dataset, 'val' : valid_dataset}
 
-dataloaders_dict = {'train' : DataLoader(image_datasets[x],
+dataloaders_dict = {x : DataLoader(image_datasets[x],
     batch_size=batch_size, shuffle=False, num_workers=4) for x in ['train',
     'val']}
 
 model.to(device)
 
-feature_extract=False
+feature_extract=False #
 
 params_to_update = model.parameters()
 print("Params to learn:")
