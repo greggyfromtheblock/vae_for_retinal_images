@@ -281,7 +281,7 @@ valid_dir= "../retina/outputs/supervised_sets/validation_images/images/"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 batch_size = 64
 zdim = 8
-num_epochs=3
+num_epochs=35
 
 plt.ion()
 
@@ -300,20 +300,20 @@ mytransform = T.Compose([T.ToPILImage(),
     T.ToTensor(), normalize])
 
 #prepare model
-model = models.resnet101(pretrained=False)
-#model = models.resnet101(pretrained=True)
-#model.requires_grad_(False)
-#model.layer4.requires_grad_(True)
-#model.fc.requires_grad_(True)
+#model = models.resnet101(pretrained=False)
+model = models.resnet101(pretrained=True)
+model.requires_grad_(False)
+model.layer4.requires_grad_(True)
+model.fc.requires_grad_(True)
 model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
 
 #test and validation datasets
 test_dataset = RetinnSuperVisedDataset(test_dir, csv_file, transform=mytransform)
 valid_dataset = RetinnSuperVisedDataset(valid_dir, csv_file, transform=mytransform)
 
-xx,yy = test_dataset.__getitem__(1)
-xx
-yy
+#xx,yy = test_dataset.__getitem__(1)
+#xx
+#yy
 #put them in a dictionary:
 image_datasets = {'train' : test_dataset, 'val' : valid_dataset}
 
@@ -323,7 +323,7 @@ dataloaders_dict = {x : DataLoader(image_datasets[x],
 
 model.to(device)
 
-feature_extract=False #
+feature_extract=False #irrelevant for us
 
 params_to_update = model.parameters()
 print("Params to learn:")
@@ -345,6 +345,40 @@ criterion=nn.BCEWithLogitsLoss(reduction='sum')
 
 model, hist = train_model(model, dataloaders_dict, optimizer_ft,
         num_epochs=num_epochs, is_inception=False)
+
+#temp save:
+temp_save_dir = './temp_save/'
+
+os.makedirs(temp_save_dir, exist_ok=True)
+torch.save(model.state_dict(), temp_save_dir + 'model_state.dict')
+torch.save(hist, temp_save_dir + 'history.list')
+torch.save(lossarray, temp_save_dir + 'lossarray.list')
+
+vloader = DataLoader(valid_dataset, batch_size=79)
+
+# get the outputs
+model.eval()
+device2 = 'cpu'
+model.to(device2)
+output_labels = []
+input_labels = []
+
+for inputs, labels in vloader:
+    inputs = inputs.to(device2)
+    labels = labels.to(device2)
+    outputs = model(inputs)
+    output_labels.append(outputs)
+    output_labels = [torch.cat(output_labels, 0)]
+    input_labels.append(labels)
+    input_labels = [torch.cat(input_labels, 0)]
+
+#get a tensor of all the labels/outputs for the plot
+input_labels = input_labels[0]
+output_labels = output_labels[0]
+
+torch.save(input_labels, temp_save_dir + 'input_labels')
+torch.save(output_labels, temp_save_dir + 'output_labels')
+
 
 #################
 #Henrik encoder.py 
@@ -393,22 +427,6 @@ def test_run():
     angles.extend([x for x in range(-9, 10)])
     print("\nPossible Angles: {}\n".format(angles))
 
-    print("\nLoad Data as Tensors and build targets simultanously...")
-    targets = []
-    data = []
-    marker = None
-
-    net = models.resnet101(pretrained=True)
-    net.requires_grad_(False)
-    net.layer4.requires_grad_(True)
-    net.fc.requires_grad_(True)
-    net.fc = nn.Linear(net.fc.in_features, zdim, bias=True)
-
-    # Train the network
-    net, hist = train_model(model, dataloaders_dict, optimizer_ft,
-        num_epochs=num_epochs, is_inception=False)
-
-    
     print('Finished Training\nTrainingtime: %d sec' % (time.perf_counter() - start))
     x = np.arange(len(lossarray))
     spl = UnivariateSpline(x, lossarray)
@@ -419,97 +437,8 @@ def test_run():
     # plt.show()
     plt.close()
 
-    PATH = f'{figures_dir}/{encoder_name}/{encoder_name}.pth'
-    torch.save(net.state_dict(), PATH)
     
-    ########################################
-    #           Test network               #
-    ########################################
-    # torch.cuda.clear_memory_allocated()
-    torch.cuda.empty_cache()
-    # torch.cuda.memory_stats(device)
     
-    net = Encoder(number_of_features=len(diagnoses_list)).to(device=device)    
-    net.load_state_dict(torch.load(PATH))
-    print("Allocated memory: %s MiB after loading net again" % torch.cuda.memory_allocated(device))
-
-    
-    print("\nLoad Data as Tensors and build targets simultanously...")
-    targets = []
-    data = []
-    marker = None
-
-    for i, jpg in tqdm(enumerate(os.listdir(testfolder))):
-        if jpg == '.snakemake_timestamp':
-            marker = True
-            continue
-
-        data.append(io.imread(testfolder + jpg).transpose((2, 0, 1)))
-
-        jpg = jpg.replace("_flipped", "")
-        for angle in angles:
-            jpg = jpg.replace("_rot_%i" % angle, "")
-        row_number = csv_df.loc[csv_df['Fundus Image'] == jpg].index[0]
-
-        targets_for_img = np.zeros((number_of_diagnoses + 1))
-        for j, feature in enumerate(diagnoses_list):
-            if not marker:
-                if feature == "Patient Sex":
-                    targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                else:
-                    targets_for_img[j] = csv_df.iloc[row_number].at[feature]
-            else:
-                if feature == "Patient Sex":
-                    targets_for_img[j] = 0 if csv_df.iloc[row_number].at[feature] == "Female" else 1
-                else:
-                    targets_for_img[j] = csv_df.iloc[row_number].at[feature]
-
-        targets.append(targets_for_img)
-
-    data = torch.Tensor(data).detach()
-    targets = torch.Tensor(targets).detach() # .float()
-    data_size = data.size(0)
-
-    # Test the network
-    print("Start testing the network..")
-    batch_size = calc_batch_size(data_size, batch_size=20)
-
-    print("Allocated memory: %s MiB" % torch.cuda.memory_allocated(device))
-    print("Make predictions...")
-    outputs = torch.zeros((data_size, number_of_diagnoses + 1), device=device).detach()
-    for i in range(0, data_size, batch_size):
-        # for uncompleted last batch
-        if (i + batch_size) > data_size and d_mod_b != 1:
-            batch_size = d_mod_b
-
-        outputs[i:(i + batch_size)] = net(data[i:(i + batch_size)].to(device))
-
-
-    # To measure the accuracy on the basic of the rounded outcome for each diagnosis could lead to a less
-    # meaningful result. That's why this approach is deprecated.
-    # In lieu thereof, a ROC and PR curve is used.
-    # The network has as an outcome a vector of floats with values between 0 and 1. The threshold to round up is
-    # increased stepwise, starts with 0 until 1.
-    # In every step we calculate the Sensitivity/True Positiv Rate (TRP) and the False Positive Rate (1-Specifity):
-    # TRP = TP/(TP+FN)  and  FPR=FP/(TN+FP).
-    # https://de.wikipedia.org/wiki/Beurteilung_eines_bin%C3%A4ren_Klassifikators#Sensitivit%C3%A4t_und_Falsch-Negativ-Rate
-    # https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
-
-    # roc_auc_score: Compute Area Under the Receiver Operating Characteristic Curve (ROC AUC) from prediction scores:
-    # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html
-
-    # average_auc_score: Compute average precision (AP) from prediction scores
-    # AP = sum ((R_N - R_N_-1) * P_N)
-    # AP summarizes a precision-recall curve as the weighted mean of precisions achieved at each threshold, with the
-    # increase in recall from the previous threshold used as the weight: where R_N and P_N are the precision and recall
-    # at the n-th threshold. This implementation is not interpolated and is different from computing the area under the
-    # precision-recall curve with the trapezoidal rule, which uses linear interpolation and can be too optimistic.
-    # Recall = TP/TP+FN  and   Precision = TP/TP+FP
-    # F1 Score = 2*(Recall * Precision) / (Recall + Precision)
-    # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html#sklearn.metrics.average_precision_score
-    # https://machinelearningmastery.com/roc-curves-and-precision-recall-curves-for-classification-in-python/
-
-    # ROC-Curve/AUC with sklearn:
     from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score
 
     outputs = outputs.to(device="cpu").detach().numpy()
@@ -641,5 +570,4 @@ def test_run():
     plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=9))
     plt.show()
     plt.savefig(f'{figures_dir}/{encoder_name}/PR_curve_of_all_features.jpg')
-
     os.system(f"cp encoder.py {figures_dir}/{encoder_name}/encoder.py")
