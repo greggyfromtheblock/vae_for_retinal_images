@@ -91,7 +91,7 @@ if __name__ == '__main__':
     plt.xticks(rotation='vertical')
     plt.bar(diagnoses_list2, count_arr, color=colors)
     plt.ylabel("Häufigkeit", fontsize=14, fontweight='bold')
-    plt.title("Frequencies of all diagnoses + the Patient Sex of all Images (contained in the Annotations)")
+    plt.title("Frequencies of all diagnoses + the Patient Sex of Training Images")
     plt.savefig(dir_to_save_histograms+"frequencies_training_images.png")
     plt.show()
     plt.close()
