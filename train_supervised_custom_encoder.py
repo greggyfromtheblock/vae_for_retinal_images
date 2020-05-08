@@ -428,7 +428,64 @@ def plot_figures(temp_save_dir,
     plt.close()
 
 
-### Tests #####
+################## Custom Encoder ##############################
+
+class Encoder(nn.Module):
+    def __init__(self, number_of_features, z=32):
+        # Incoming image has shape e.g. 192x188x3
+        super(Encoder, self).__init__()
+
+        def conv_block(in_channels, out_channels, kernel_size=3, stride=1, padding=0, padding_max_pooling=0):
+            return [
+                nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2, stride=stride),
+                nn.ReLU(),
+                nn.BatchNorm2d(out_channels),
+                nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding, stride=stride),
+                nn.ReLU(),
+                nn.BatchNorm2d(out_channels),
+                nn.MaxPool2d(kernel_size=2, stride=2, padding=padding_max_pooling)]
+
+        self.conv_layers = nn.Sequential(
+            # Formula of new "Image" Size: (origanal_size - kernel_size + 2 * amount_of_padding)//stride + 1
+            *conv_block(3, 32, kernel_size=5, stride=1, padding=2),  # (192-5+2*2)//1 + 1 = 192  > Max-Pooling: 190/2=96
+            # -> (188-5+2*2)//1 + 1 = 188  --> Max-Pooling: 188/2 = 94
+            *conv_block(32, 64, kernel_size=5, padding=2),  # New "Image" Size:  48x47
+            *conv_block(64, 128, padding=1),  # New "Image" Size:  24x23
+            *conv_block(128, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  11x10
+            *conv_block(256, 512, padding=0, padding_max_pooling=0),  # New "Image" Size:  5x4
+            *conv_block(512, 256, padding=0, padding_max_pooling=1),  # New "Image" Size:  2x2
+        )
+
+        def linear_block(in_feat, out_feat, normalize=True, dropout=None, negative_slope=1e-2):
+            layers = [nn.Linear(in_feat, out_feat)]
+            normalize and layers.append(nn.BatchNorm1d(out_feat))  # It's the same as: if normalize: append...
+            dropout and layers.append(nn.Dropout(dropout))
+            layers.append(nn.LeakyReLU(negative_slope=negative_slope, inplace=True))
+            return layers
+
+        self.linear_layers = nn.Sequential(
+            *linear_block(1024, 512, normalize=True, dropout=0.5),
+            *linear_block(512, 256, dropout=0.3),
+            *linear_block(256, 128),
+            *linear_block(128, 64),
+            nn.Linear(64, number_of_features),
+            nn.BatchNorm1d(number_of_features),
+            nn.Sigmoid()
+            # *linear_block(64, 8, negative_slope=0.0)
+        )
+
+        self.mean = nn.Linear(z, z)
+        self.logvar = nn.Linear(z, z)
+
+    def forward(self, inputs):
+        features = self.conv_layers(inputs)
+        features = features.view(-1, np.prod(features.shape[1:]))
+        features = self.linear_layers(features)
+        # mean = self.mean(features)
+        # logvar = self.logvar(features)
+        return features  # , mean, logvar
+
+########################## Runtime #####
 
 csv_file = "../retina/outputs/supervised_sets/odir-training.csv"
 test_dir = "../retina/data/processed/ODIR_Training_224x224/images/"
@@ -437,7 +494,8 @@ valid_dir= "../retina/data/processed/ODIR_Testing_224x224/images/"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 batch_size = 64
 zdim = 8
-input_size=224
+#input_size=224 #for resnet
+input_size=(192,188) #for henrik's encoder
 num_epochs=31
 
 #plt.ion()
@@ -449,27 +507,38 @@ num_epochs=31
 #    T.CenterCrop(input_size),
 #    T.ToTensor(), normalize])
 mytransform = T.Compose([T.ToPILImage(),
-    T.CenterCrop(input_size),
+#    T.CenterCrop(input_size),
+    T.Resize(input_size),
     T.ToTensor(),
     T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
     ])
 
 #prepare model
-#model = models.resnet101(pretrained=False)
-model = models.resnet101(pretrained=True)
-model.requires_grad_(False)
-model.layer4.requires_grad_(True)
-model.fc.requires_grad_(True)
+model = models.resnet101(pretrained=False)
+#model = models.resnet101(pretrained=True)
+#model.requires_grad_(False)
+#model.layer4.requires_grad_(True)
+#model.fc.requires_grad_(True)
 model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
+
+encoder = Encoder(number_of_features=8, z=8)
+
+
+
 
 #test and validation datasets
 test_dataset = RetinnSuperVisedDataset(test_dir, csv_file, transform=mytransform)
 valid_dataset = RetinnSuperVisedDataset(valid_dir, csv_file, transform=mytransform)
 
 # test datasets
-xx,yy = test_dataset.__getitem__(1)
-xx
-yy
+#temp_path = "./smalloutputdir"
+#temp_dataset = RetinnSuperVisedDataset(temp_path,
+#    csv_file="./data/odir-training.csv",  transform=mytransform)
+#
+#xx,yy = temp_dataset.__getitem__(1)
+#xx
+#yy
+###############3
 
 #put them in a dictionary:
 image_datasets = {'train' : test_dataset, 'val' : valid_dataset}
@@ -480,8 +549,8 @@ dataloaders_dict = {x : DataLoader(image_datasets[x],
 
 model.to(device)
 
-#feature_extract=False #for untrained model
-feature_extract=True #for pretrained resnet
+feature_extract=False #for untrained model
+#feature_extract=True #for pretrained resnet
 
 params_to_update = model.parameters()
 print("Params to learn:")
