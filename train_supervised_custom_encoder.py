@@ -514,14 +514,16 @@ mytransform = T.Compose([T.ToPILImage(),
     ])
 
 #prepare model
-model = models.resnet101(pretrained=False)
+#model = models.resnet101(pretrained=False)
+
 #model = models.resnet101(pretrained=True)
 #model.requires_grad_(False)
 #model.layer4.requires_grad_(True)
 #model.fc.requires_grad_(True)
-model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
 
-encoder = Encoder(number_of_features=8, z=8)
+#model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
+
+model = Encoder(number_of_features=8, z=8)
 
 
 
