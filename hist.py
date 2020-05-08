@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 if __name__ == '__main__':
-    dir_to_save_histograms = "/data/analysis/ag-reils/ag-reils-shared-students/henrik2/vae_for_retinal_images/data/histograms"
+    dir_to_save_histograms = "/data/analysis/ag-reils/ag-reils-shared-students/henrik2/vae_for_retinal_images/data/histograms/"
     os.makedirs(dir_to_save_histograms, exist_ok=True)
 
     inspect_dir = "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Testing_Introspection_Images"
