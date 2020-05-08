@@ -259,6 +259,7 @@ def plot_figures(temp_save_dir,
     #csv_file = 'data/odir-training.csv'
 
     # plt.io()
+    plt.ioff()
 
     figures_dir = temp_save_dir + "figures/"
     #figures_dir = "/data/analysis/ag-reils/ag-reils-shared-students/yiftach/vae_for_retinal_images/data/supervised"
@@ -496,7 +497,7 @@ batch_size = 64
 zdim = 8
 #input_size=224 #for resnet
 input_size=(192,188) #for henrik's encoder
-num_epochs=31
+num_epochs = 31
 
 #plt.ion()
 #plt.show()
@@ -572,25 +573,34 @@ else:
 optimizer_ft = optim.Adam(params_to_update)
 
 criterion=nn.BCEWithLogitsLoss(reduction='sum')
-num_epochs = 31
-#num_epochs = 61
 
+print("start training")
 model, hist, lossarray = train_model(model, dataloaders_dict, optimizer_ft,
         num_epochs=num_epochs, is_inception=False)
-
+print("finished training")
 
 #temp save:
 #temp_save_dir = './temp_save/resnet101_pretrained2/'
 temp_save_dir = './temp_save/custum_encoder/'
 
+print("save the state dict, lossarray, hist")
 os.makedirs(temp_save_dir, exist_ok=True)
 torch.save(model.state_dict(), temp_save_dir + 'model_state.dict')
 torch.save(hist, temp_save_dir + 'history.list')
 torch.save(lossarray, temp_save_dir + 'lossarray.list')
 
+print("load validation dataloader")
 vloader = DataLoader(valid_dataset, batch_size=79)
 
+#model = Encoder(number_of_features=8, z=8)
+#model.state_dict = torch.load(temp_save_dir + 'model_state.dict', 
+#        map_location='cpu')
+#
+
+
+
 # get the outputs
+print("get the outputs")
 model.eval()
 device2 = 'cpu'
 model.to(device2)
@@ -610,14 +620,18 @@ for inputs, labels in vloader:
 input_labels = input_labels[0]
 output_labels = output_labels[0]
 
+print("save input labels, outputlabels")
 torch.save(input_labels, temp_save_dir + 'input_labels')
 torch.save(output_labels, temp_save_dir + 'output_labels')
+print("saved")
 
 # plots
+print("start the plotting")
+plt.ioff()
 plot_figures(temp_save_dir=temp_save_dir,
         csv_file = 'data/odir-training.csv',
         trainfolder = test_dir,
         testfolder = valid_dir,
         encoder_name = "custom encoder",
         device='cpu')
-
+print("done")
