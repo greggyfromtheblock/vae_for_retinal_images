@@ -390,6 +390,10 @@ from scipy.interpolate import UnivariateSpline
 from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score
 from sklearn.metrics import auc
 
+#temp_save_dir = './temp_save/'
+temp_save_dir = './temp_save/resnet101_pretrained2/'
+
+
 """testing encoder.py from henrik's branch
 with a resnet"""
 lossarray = torch.load(temp_save_dir + 'lossarray.list', map_location='cpu')
@@ -405,7 +409,8 @@ testfolder = valid_dir
 #csv_file = sys.argv[3]     
 csv_file = 'data/odir-training.csv'
 
-figures_dir = "temp_save/figures/"
+#figures_dir = "temp_save/figures/"
+figures_dir = temp_save_dir + "figures/"
 #figures_dir = "/data/analysis/ag-reils/ag-reils-shared-students/yiftach/vae_for_retinal_images/data/supervised"
 encoder_name = "resnet101"
 os.makedirs(figures_dir + f'/{encoder_name}', exist_ok=True)
@@ -481,8 +486,8 @@ plt.title(
     'AUC score, micro-averaged over all classes: AP={0:0.2f}'
         .format(auc["micro"]), fontsize=13, fontweight='bold')
 plt.show()
-
 plt.savefig(f'{figures_dir}/{encoder_name}/ROC_curve_micro_averaged.png')
+
 plt.close()
 
 
@@ -568,7 +573,7 @@ lines.append(l)
 labels.append('micro-average Precision-recall (average precision = {0:0.2f}'
               ''.format(average_precision["micro"]))
 
-for i, color in zip(range(number_of_diagnoses + 1), colors):
+for i, color in zip(range(number_of_diagnoses), colors):
     l, = plt.plot(recall[i], precision[i], color=color, lw=0.5)
     lines.append(l)
     if diagnoses_list[i] != "Patient Sex":
