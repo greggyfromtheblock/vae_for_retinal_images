@@ -271,11 +271,17 @@ def train_model(
 ### Tests #####
 
 csv_file = "../retina/outputs/supervised_sets/odir-training.csv"
-test_dir = "../retina/outputs/supervised_sets/training_images/images/"
-valid_dir= "../retina/outputs/supervised_sets/validation_images/images/"
+#test_dir = "../retina/outputs/supervised_sets/training_images/images/"
+#valid_dir= "../retina/outputs/supervised_sets/validation_images/images/"
+
+test_dir = "../retina/data/processed/ODIR_Training_224x224/images/"
+valid_dir= "../retina/data/processed/ODIR_Testing_224x224/images/"
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 batch_size = 64
 zdim = 8
+input_size=224
+num_epochs=31
 
 plt.ion()
 
@@ -285,20 +291,23 @@ plt.ion()
 
 plt.show()
 
-input_size=224
 
-mytransform = T.Compose([T.ToTensor(), normalize])
-
+#mytransform = T.Compose([T.ToTensor(), normalize])
 #mytransform = T.Compose([T.ToPILImage(),
 #    T.CenterCrop(input_size),
 #    T.ToTensor(), normalize])
+mytransform = T.Compose([T.ToPILImage(),
+    T.CenterCrop(input_size),
+    T.ToTensor(),
+    T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
 
 #prepare model
-model = models.resnet101(pretrained=False)
-#model = models.resnet101(pretrained=True)
-#model.requires_grad_(False)
-#model.layer4.requires_grad_(True)
-#model.fc.requires_grad_(True)
+#model = models.resnet101(pretrained=False)
+model = models.resnet101(pretrained=True)
+model.requires_grad_(False)
+model.layer4.requires_grad_(True)
+model.fc.requires_grad_(True)
 model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
 
 #test and validation datasets
@@ -306,7 +315,6 @@ test_dataset = RetinnSuperVisedDataset(test_dir, csv_file, transform=mytransform
 valid_dataset = RetinnSuperVisedDataset(valid_dir, csv_file, transform=mytransform)
 
 xx,yy = test_dataset.__getitem__(1)
-
 xx
 yy
 
@@ -319,7 +327,8 @@ dataloaders_dict = {x : DataLoader(image_datasets[x],
 
 model.to(device)
 
-feature_extract=False
+#feature_extract=False
+feature_extract=True
 
 params_to_update = model.parameters()
 print("Params to learn:")
@@ -339,14 +348,15 @@ else:
 optimizer_ft = optim.Adam(params_to_update)
 
 criterion=nn.BCEWithLogitsLoss(reduction='sum')
-num_epochs = 61
+num_epochs = 31
+#num_epochs = 61
 
 model, hist, lossarray = train_model(model, dataloaders_dict, optimizer_ft,
         num_epochs=num_epochs, is_inception=False)
 
 
 #temp save:
-temp_save_dir = './temp_save/'
+temp_save_dir = './temp_save/resnet101_pretrained2/'
 
 os.makedirs(temp_save_dir, exist_ok=True)
 torch.save(model.state_dict(), temp_save_dir + 'model_state.dict')
