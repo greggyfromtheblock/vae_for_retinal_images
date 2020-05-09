@@ -77,13 +77,20 @@ if __name__ == "__main__":
     )
 
 
+#    mytransform = T.Compose([
+#    #    T.ToPILImage(),
+#        T.CenterCrop(224), #for resnet
+#        T.ToTensor(),
+#        T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+#        ])
+
+
     mytransform = T.Compose([
     #    T.ToPILImage(),
         T.CenterCrop(224), #for resnet
         T.ToTensor(),
-        T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        normalize,
         ])
-
 
 
     img_dataset = datasets.ImageFolder(
