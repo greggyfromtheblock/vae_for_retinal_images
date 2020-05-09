@@ -132,7 +132,7 @@
     "type": "bool"
   },
   "-state_dict": {
-      "short":  "statedict",
+      "short":  "-statedict",
       "type": "str",
       "help": "Path to the saved state_doict of the network",
       "value": "temp_save/resnet101_3/model_state.dict"
