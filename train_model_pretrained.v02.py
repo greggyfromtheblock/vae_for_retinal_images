@@ -93,9 +93,9 @@ if __name__ == "__main__":
     data = VAEDataset(img_dataset)
 
     imsize = tuple([int(i) for i in FLAGS.image_dim.split(',')])
-    print("using state_dict from:", state_dict)
+    print("using state_dict from:", FLAGS.state_dict)
     encoder = Encoder(z=FLAGS.zdim, pretrained=FLAGS.pretrained,
-            state_dict=FLAGS.statedict)
+            state_dict=FLAGS.state_dict)
     decoder = Decoder(z=FLAGS.zdim, imsize=imsize)
 
     training = OdirVAETraining(
