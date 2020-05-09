@@ -1,0 +1,140 @@
+{
+  "-out_directory": {
+    "short": "-od",
+    "value": "output_y_small_custom5",
+    "help": "Output directory. for logger",
+    "type": "str"
+  },
+  "-input": {
+    "short": "-i",
+    "value": "../retina/data/processed/ODIR_Training_224x224/",
+    "help": "Input file or directory, if multiple files are expected comma-separation is assumed.",
+    "type": "str"
+  },
+  "-logging_name": {
+    "short": "-n",
+    "value": "test_y_small_custom5",
+    "help": "Global logger prefix.",
+    "type": "str"
+  },
+  "-network_name": {
+    "short": "-nn",
+    "value": "Retinn_VAE_with_pretrained_Resnet101",
+    "help": "Some juicy VAE name.",
+    "type": "str"
+  },
+    "-network_dir": {
+    "short": "-nd",
+    "value": "Retinn_VAE_pt_Resnet101",
+    "help": "Directory to event, torch files and trained encoder.",
+    "type": "str"
+  },
+  "-path_prefix": {
+      "short": "-pathprefix",
+      "value": "nn_output_y_small_custom5",
+      "help": "where the training torch files are stored?",
+      "type": "str"
+  },
+  "-network_vis_dir": {
+    "short": "-nvd",
+    "value": "visualizations_odir-vae-Resnet101_pt",
+    "help": "Directory to visualizations",
+    "type": "str"
+  },
+  "-csv_input": {
+    "short": "-csv",
+    "value": "../retina/outputs/odir_training_extended_annotations.csv",
+    "help": "Preprocessed annotations",
+    "type": "str"
+  },
+  "-device": {
+    "short": "-dv",
+    "value": "cuda",
+    "help": "Device to work on",
+    "type": "str"
+  },
+  "-learningrate": {
+    "short": "-lr",
+    "value": 1.2e-5,
+    "help": "The models learningrate",
+    "type": "float"
+  },
+  "-maxpochs": {
+    "short": "-me",
+    "value": 8950,
+    "help": "Maximum nr of epochs to train the model",
+    "type": "int"
+  },
+  "-reportinterval": {
+    "short": "-rp",
+    "value": 100,
+    "help": "Report after {reprotinterval}-steps",
+    "type": "int"
+  },
+  "-batchsize": {
+    "short": "-bs",
+    "value": 64,
+    "help": "The models batchsize",
+    "type": "int"
+  },
+  "-zdim": {
+    "short": "-zd",
+    "value": 128,
+    "help": "The latent dimension of the bottleneck.",
+    "type": "int"
+  },
+    "-max_degree": {
+    "short": "-md",
+    "value": 20,
+    "help": "Max. rotation degree.",
+    "type": "int"
+  },
+  "-dropout": {
+    "short": "-do",
+    "value": 0.0,
+    "help": "Dropout to apply",
+    "type": "float"
+  },
+  "-alpha": {
+    "short": "-aa",
+    "value": 0.0,
+    "help": "Parameter alpha (float)",
+    "type": "float"
+  },
+  "-beta": {
+    "short": "-bb",
+    "value": 0.0,
+    "help": "Parameter beta (float)",
+    "type": "float"
+  },
+  "-gamma": {
+    "short": "-gg",
+    "value": 0,
+    "help": "Parameter gamma (int)",
+    "type": "int"
+  },
+  "-delta": {
+    "short": "-dd",
+    "value": 0,
+    "help": "Parameter delta (int)",
+    "type": "int"
+  },
+  "-image_dim": {
+    "short": "-imdim",
+    "value": "256,320",
+    "help": "Dimension of the input images",
+    "type": "str"
+  },
+  "-pretrained": {
+    "short": "-pretr",
+    "value": "True",
+    "help": "Parameter delta (int)",
+    "type": "bool"
+  },
+  "state_dict": {
+      "short":  "statedict",
+      "type": "str",
+      "help": "Path to the saved state_doict of the network",
+      "value": "temp_save/resnet101_3/model_state.dict"
+  }
+}
