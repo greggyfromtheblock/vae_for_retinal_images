@@ -237,7 +237,12 @@ from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, av
 from sklearn.metrics import auc
 
 #temp_save_dir = './temp_save/resnet101_pretrained2/'
-temp_save_dir = './temp_save/custum_encoder2/'
+#temp_save_dir = './temp_save/custum_encoder2/'
+temp_save_dir = './temp_save/resnet101finetuned/'
+
+if len(sys.arv) > 1:
+    temp_save_dir = add_slash(sys.argv[1])
+    print("will save to: ", temp_save_dir)
 
 def plot_figures(temp_save_dir,
         csv_file,
