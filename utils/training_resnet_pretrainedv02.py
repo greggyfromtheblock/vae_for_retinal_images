@@ -364,7 +364,8 @@ class Encoder(nn.Module):
         #model = resnet101(3, z).cuda() #3: rgb input channels, 32: latent space dim
         model = resnet101(3, z).to('cuda') #3: rgb input channels, 32: latent space dim
         #model = resnetCustom(3,z).cuda()
-        model.state_dict = torch.load(state_dict, map_location='cuda') 
+        if state_dict != None:
+            model.state_dict = torch.load(state_dict, map_location='cuda') 
 
         model.fc = nn.Linear(model.fc.in_features, z, bias=True)
 
