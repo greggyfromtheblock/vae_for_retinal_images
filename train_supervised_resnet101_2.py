@@ -134,7 +134,7 @@ def train_model(
     model,
     dataloaders, #already determined batch_sized in the dataloader
     optimizer, #already determined parameters and lr in this
-    num_epochs=31,
+    num_epochs=37,
     criterion=nn.BCEWithLogitsLoss(reduction="sum"),
     is_inception=False,
     report_interval=19,
@@ -517,14 +517,14 @@ mytransform = T.Compose([T.ToPILImage(),
 #prepare model
 #model = models.resnet101(pretrained=False)
 
-#model = models.resnet101(pretrained=True)
-#model.requires_grad_(False)
-#model.layer4.requires_grad_(True)
-#model.fc.requires_grad_(True)
+model = models.resnet101(pretrained=True)
+model.requires_grad_(False)
+model.layer4.requires_grad_(True)
+model.fc.requires_grad_(True)
 
-#model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
+model.fc = nn.Linear(model.fc.in_features, zdim, bias=True)
 
-model = Encoder(number_of_features=8, z=8)
+#model = Encoder(number_of_features=8, z=8)
 
 
 
@@ -581,7 +581,7 @@ print("finished training")
 
 #temp save:
 #temp_save_dir = './temp_save/resnet101_pretrained2/'
-temp_save_dir = './temp_save/custum_encoder/'
+temp_save_dir = './temp_save/resnet101_3/'
 
 print("save the state dict, lossarray, hist")
 os.makedirs(temp_save_dir, exist_ok=True)
@@ -632,6 +632,6 @@ plot_figures(temp_save_dir=temp_save_dir,
         csv_file = 'data/odir-training.csv',
         trainfolder = test_dir,
         testfolder = valid_dir,
-        encoder_name = "custom encoder",
+        encoder_name = "resnet101finetuned",
         device='cpu')
 print("done")
