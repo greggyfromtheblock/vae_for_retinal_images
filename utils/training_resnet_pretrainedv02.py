@@ -366,7 +366,7 @@ class Encoder(nn.Module):
         model = models.resnet101(pretrained=pretrained).cuda() #output is [-1, 1000]
         #model = resnetCustom(3,z).cuda()
         if state_dict != None:
-            model.load_state_dict(state_dict, map_location='cuda')
+            model.load_state_dict(state_dict)
             #model.state_dict = torch.load(state_dict, map_location='cuda') 
             model.train()
             print("model.state_dict loaded ")
