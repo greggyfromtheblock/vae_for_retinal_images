@@ -296,7 +296,7 @@ def plot_figures(temp_save_dir,
     plt.plot(x, lossarray, '-y')
     plt.plot(x, spl(x), '-r')
     plt.savefig(f'{figures_dir}/{encoder_name}_loss_curve.png')
-    # plt.show()
+    plt.show()
     plt.close()
 
     outputs = output_labels.to(device="cpu").detach().numpy()
@@ -637,6 +637,6 @@ plot_figures(temp_save_dir=temp_save_dir,
         csv_file = 'data/odir-training.csv',
         trainfolder = test_dir,
         testfolder = valid_dir,
-        encoder_name = "resnet101finetuned",
+        encoder_name = "resnet101finetuned_4",
         device='cpu')
 print("done")
