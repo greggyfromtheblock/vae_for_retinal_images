@@ -240,7 +240,7 @@ from sklearn.metrics import auc
 #temp_save_dir = './temp_save/custum_encoder2/'
 temp_save_dir = './temp_save/resnet101finetuned/'
 
-if len(sys.arv) > 1:
+if len(sys.argv) > 1:
     temp_save_dir = add_slash(sys.argv[1])
     print("will save to: ", temp_save_dir)
 
