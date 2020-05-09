@@ -557,8 +557,8 @@ dataloaders_dict = {x : DataLoader(image_datasets[x],
 
 model.to(device)
 
-feature_extract=False #for untrained model
-#feature_extract=True #for pretrained resnet
+#feature_extract=False #for untrained model
+feature_extract=True #for pretrained resnet
 
 params_to_update = model.parameters()
 print("Params to learn:")
