@@ -367,6 +367,7 @@ class Encoder(nn.Module):
         #model = resnetCustom(3,z).cuda()
         if state_dict != None:
             model.state_dict = torch.load(state_dict, map_location='cuda') 
+            print("model.state_dict: ", model.state_dict)
 
         model.fc = nn.Linear(model.fc.in_features, z, bias=True)
 
