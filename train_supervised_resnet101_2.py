@@ -500,8 +500,8 @@ valid_dir= "../retina/data/processed/ODIR_Testing_224x224/images/"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 batch_size = 64
 zdim = 8
-#input_size=224 #for resnet
-input_size=(192,188) #for henrik's encoder
+input_size=224 #for resnet
+#input_size=(192,188) #for henrik's encoder
 num_epochs = 31
 
 #plt.ion()
@@ -513,8 +513,8 @@ num_epochs = 31
 #    T.CenterCrop(input_size),
 #    T.ToTensor(), normalize])
 mytransform = T.Compose([T.ToPILImage(),
-#    T.CenterCrop(input_size),
-    T.Resize(input_size),
+    T.CenterCrop(input_size),
+#    T.Resize(input_size),
     T.ToTensor(),
     T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
     ])
