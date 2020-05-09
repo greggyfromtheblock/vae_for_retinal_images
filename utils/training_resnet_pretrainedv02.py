@@ -402,7 +402,8 @@ class Encoder(nn.Module):
 
 
 class Decoder_yiftach(nn.Module):
-    def __init__(self, z=32, imsize=(256,320)):
+#    def __init__(self, z=32, imsize=(256,320)):
+    def __init__(self, z=32, imsize=(224,224)):
         super(Decoder, self).__init__()
         self.z = z
         h,w = imsize
@@ -461,7 +462,10 @@ class Decoder_yiftach(nn.Module):
             ),  # 10x154x181
             *conv_block(10, 7, padding=1, kernel_size=3, scale_factor=1.5),  # 7x231x271
             *conv_block(7, 3, padding=1, kernel_size=3, scale_factor=1.1),  # 7x231x271
-            nn.UpsamplingNearest2d(size=(256, 320)),  # The wished size
+            #nn.UpsamplingNearest2d(size=(256, 320)),  # The wished size
+            nn.UpsamplingNearest2d(size=(self.h, self.w)),  # The wished size
+            nn.ReLU(),
+            #nn.Linear(in_feat, out_feat)
             nn.Conv2d(in_channels=3, out_channels=3, kernel_size=1),
         )
 
