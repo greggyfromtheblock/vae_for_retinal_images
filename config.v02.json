@@ -121,7 +121,7 @@
   },
   "-image_dim": {
     "short": "-imdim",
-    "value": "256,320",
+    "value": "224,224",
     "help": "Dimension of the input images",
     "type": "str"
   },
