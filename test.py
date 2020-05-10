@@ -1,3 +1,55 @@
+# Standard Python Modules
+from __future__ import print_function, division
+import os
+import sys
+import time
+import argparse
+import copy
+
+# pndas, plt, numpy, and other
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
+
+# Standard Torch Modules
+import torch
+import torch.nn.functional as F
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader, TensorDataset
+
+# torchvision
+import torchvision
+from torchvision import datasets, transforms as T
+from torchvision import utils as vutils
+from torchvision.utils import save_image
+from torchvision import models
+
+# Torchsupport
+import torchsupport
+from torchsupport.training.vae import VAETraining
+from torchsupport.training.training import SupervisedTraining
+
+# Augmentor
+import Augmentor
+
+# skimage.sklearn
+from skimage import io, transform as skT
+
+# other
+from tensorboardX import SummaryWriter
+from torchsummary import summary
+
+# for Resnet
+from functools import partial
+from dataclasses import dataclass
+from collections import OrderedDict
+
+# Own Modules
+from utils.utils import setup
+from utils.get_mean_std import get_mean_std
+
 """
 Trigger training here
 """
@@ -36,7 +88,92 @@ def add_slash(path):
         return path
 
 
+################################## Tests
+
+import json
+config="config.v02.json"
+
+from utils.utils import set_default_options
+
+with open(config) as f:
+  jdata = json.load(f)
+
+# Output: {'name': 'Bob', 'languages': ['English', 'Fench']}
+print(jdata)
+
+jdata.keys()
+jdata.values()
+
+plt.ion()
+
+imfolder = 'smalldata/250x320/'
+network_name = 'test_betwork' 
+path_prefix = 'test_prefix'
+network_dir = f"{path_prefix}/{network_name}/"
+device = FLAGS.device if torch.cuda.is_available() else "cpu"
+
+myTransform1 = T.Compose(
+    [
+        #T.Grayscale(3),
+        T.CenterCrop(224),
+        T.ToTensor(),
+        normalize,
+        #T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        #T.Normalize(means, stds),
+    ]
+    #                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]
+    #                T.Normalize((0.5,), (0.5,))]
+)
+
+
+myTransform2 = T.Compose([
+#    T.ToPILImage(),
+    T.CenterCrop(224), #for resnet
+    T.ToTensor(),
+    T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
+
+
+myTransform3 = T.Compose([
+#    T.ToPILImage(),
+    T.CenterCrop(224), #for resnet
+    T.ToTensor(),
+    normalize,
+    ])
+
+myTransform4 = T.Compose([
+    T.CenterCrop(224), #for resnet
+    T.ToTensor(),
+    ])
+
+
+img_dataset = datasets.ImageFolder(
+    imfolder,
+    transform=myTransform1,
+)
+
+data = VAEDataset(img_dataset)
+
+
+
+plt.show()
+
+img2 = io.imread('smalldata/250x320/images/14_left.jpg')
+io.imshow(img2)
+#bimgs = torch.ones((2,3,224,224))
+
+img, _ = img_dataset.__getitem__(33)
+y = img.numpy()
+y = y.transpose((1,2,0))
+io.imshow(y)
+
+
+
+y
+################################## 
+
 if __name__ == "__main__":
+
     FLAGS, logger = setup(running_script="./utils/training.py",
             config="config.v02.json")
     print("FLAGS= ", FLAGS)
@@ -64,17 +201,17 @@ if __name__ == "__main__":
     f_inv = T.Normalize(mean = -means/stds, std = 1/stds)
 
 
-#    myOldtransform=T.Compose(
-#        [
-#            #T.Grayscale(3),
-#            #T.CenterCrop(224),
-#            T.ToTensor(),
-#            normalize,
-#            #T.Normalize(means, stds),
-#        ]
-#        #                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]
-#        #                T.Normalize((0.5,), (0.5,))]
-#    )
+    myOldtransform=T.Compose(
+        [
+            #T.Grayscale(3),
+            #T.CenterCrop(224),
+            T.ToTensor(),
+            normalize,
+            #T.Normalize(means, stds),
+        ]
+        #                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]
+        #                T.Normalize((0.5,), (0.5,))]
+    )
 
 
 #    mytransform = T.Compose([
@@ -86,6 +223,7 @@ if __name__ == "__main__":
 
 
     mytransform = T.Compose([
+    #    T.ToPILImage(),
         T.CenterCrop(224), #for resnet
         T.ToTensor(),
         normalize,

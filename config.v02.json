@@ -31,7 +31,7 @@
   },
   "-path_prefix": {
       "short": "-pathprefix",
-      "value": "nn_output_y_small_custom5",
+      "value": "tests_nn_resnet_6",
       "help": "where the training torch files are stored?",
       "type": "str"
   },
