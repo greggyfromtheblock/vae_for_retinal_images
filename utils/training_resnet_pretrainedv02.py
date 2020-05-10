@@ -627,5 +627,5 @@ class OdirVAETraining(VAETraining):
                 #y,
                 self.step_id,
             )
-            print("output shape: ", reconstructions[0].shape)
+            #print("output shape: ", reconstructions[0].shape)
         return mean, logvar, reconstructions, data
