@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 if __name__ == '__main__':
-    dir_to_save_histograms = "/data/analysis/ag-reils/ag-reils-shared-students/henrik2/vae_for_retinal_images/data/histograms"
+    dir_to_save_histograms = "/data/analysis/ag-reils/ag-reils-shared-students/henrik2/vae_for_retinal_images/data/histograms/"
     os.makedirs(dir_to_save_histograms, exist_ok=True)
 
     inspect_dir = "/data/analysis/ag-reils/ag-reils-shared-students/retina/data/raw/ODIR_Testing_Introspection_Images"
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     plt.xticks(rotation='vertical')
     plt.bar(diagnoses_list2, count_arr, color=colors)
     plt.ylabel("Häufigkeit", fontsize=14, fontweight='bold')
-    plt.title("Frequencies of all diagnoses + the Patient Sex of all Images (contained in the Annotations)")
+    plt.title("Frequencies of all diagnoses + the Patient Sex of Training Images")
     plt.savefig(dir_to_save_histograms+"frequencies_training_images.png")
     plt.show()
     plt.close()
